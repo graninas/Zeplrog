@@ -1,0 +1,106 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 72135a9e7938742117969ea9ae81cdb7e820ebaebf7607f16b410e1ce8aac8c7
+
+name:           zeplrog
+version:        0.0.0.1
+homepage:       https://github.com/graninas/zeplrog#readme
+bug-reports:    https://github.com/graninas/zeplrog/issues
+author:         Alexander Granin
+maintainer:     graninas@gmail.com
+copyright:      Granin A.S. 2021
+license:        BSD3
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/graninas/zeplrog
+
+library
+  exposed-modules:
+      Main
+  other-modules:
+      Paths_zeplrog
+  hs-source-dirs:
+      src
+  default-extensions: DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ScopedTypeVariables ExplicitNamespaces NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  ghc-options: -Wall
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , containers
+    , free
+    , gloss
+    , lens
+    , mtl
+    , newtype-generics
+    , random
+    , scientific
+    , template-haskell
+    , text
+    , time
+    , transformers
+    , uuid
+    , void
+  default-language: Haskell2010
+
+executable zeplrog
+  main-is: Main.hs
+  other-modules:
+      Paths_zeplrog
+  hs-source-dirs:
+      src/
+  default-extensions: DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ScopedTypeVariables ExplicitNamespaces NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , containers
+    , free
+    , gloss
+    , lens
+    , mtl
+    , newtype-generics
+    , random
+    , scientific
+    , template-haskell
+    , text
+    , time
+    , transformers
+    , uuid
+    , void
+  default-language: Haskell2010
+
+test-suite functional-tests
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_zeplrog
+  hs-source-dirs:
+      test/
+  default-extensions: DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ScopedTypeVariables ExplicitNamespaces NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , containers
+    , free
+    , gloss
+    , hspec
+    , lens
+    , mtl
+    , newtype-generics
+    , random
+    , scientific
+    , template-haskell
+    , text
+    , time
+    , transformers
+    , uuid
+    , void
+    , zeplrog
+  default-language: Haskell2010
