@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 67385b0990475ebd8918c40efe3cdde1eca7f847080912c1c449bcd204373cc3
+-- hash: b52b696427024909c17c712936237dd30b4f2fe81dfb0fb0dbfc54d18e0dd94d
 
 name:           zeplrog
 version:        0.0.0.1
@@ -24,55 +24,89 @@ source-repository head
 library
   exposed-modules:
       Main
+      ZP.Prelude
   other-modules:
       Paths_zeplrog
   hs-source-dirs:
       src
-  default-extensions: DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ScopedTypeVariables ExplicitNamespaces NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
   ghc-options: -Wall
   build-depends:
-      base >=4.7 && <5
+      MonadRandom
+    , aeson
+    , base >=4.7 && <5
     , bytestring
+    , clock
     , containers
+    , data-default
+    , directory
+    , entropy
+    , extra
+    , filepath
+    , fmt
     , free
+    , generic-lens
     , gloss
     , lens
     , mtl
     , newtype-generics
     , random
+    , resource-pool
+    , resourcet
     , scientific
+    , stm
     , template-haskell
     , text
     , time
+    , time-units
     , transformers
+    , universum
     , uuid
+    , vector
     , void
   default-language: Haskell2010
 
 executable zeplrog
   main-is: Main.hs
   other-modules:
+      ZP.Prelude
       Paths_zeplrog
   hs-source-dirs:
       src/
-  default-extensions: DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ScopedTypeVariables ExplicitNamespaces NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
-      base >=4.7 && <5
+      MonadRandom
+    , aeson
+    , base >=4.7 && <5
     , bytestring
+    , clock
     , containers
+    , data-default
+    , directory
+    , entropy
+    , extra
+    , filepath
+    , fmt
     , free
+    , generic-lens
     , gloss
     , lens
     , mtl
     , newtype-generics
     , random
+    , resource-pool
+    , resourcet
     , scientific
+    , stm
     , template-haskell
     , text
     , time
+    , time-units
     , transformers
+    , universum
     , uuid
+    , vector
     , void
   default-language: Haskell2010
 
@@ -83,25 +117,41 @@ test-suite functional-tests
       Paths_zeplrog
   hs-source-dirs:
       test/
-  default-extensions: DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ScopedTypeVariables ExplicitNamespaces NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      MonadRandom
+    , aeson
+    , base >=4.7 && <5
     , bytestring
+    , clock
     , containers
+    , data-default
+    , directory
+    , entropy
+    , extra
+    , filepath
+    , fmt
     , free
+    , generic-lens
     , gloss
     , hspec
     , lens
     , mtl
     , newtype-generics
     , random
+    , resource-pool
+    , resourcet
     , scientific
+    , stm
     , template-haskell
     , text
     , time
+    , time-units
     , transformers
+    , universum
     , uuid
+    , vector
     , void
     , zeplrog
   default-language: Haskell2010

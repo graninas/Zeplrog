@@ -8,13 +8,26 @@ copyright:           "Granin A.S. 2021"
 
 
 default-extensions:
+- NoImplicitPrelude
+- GADTs
+- RankNTypes
 - DeriveFunctor
 - DeriveGeneric
 - OverloadedStrings
 - LambdaCase
 - MultiParamTypeClasses
-- ScopedTypeVariables
 - ExplicitNamespaces
+- TypeApplications
+- ScopedTypeVariables
+- TypeOperators
+- TypeFamilies
+- DataKinds
+- FlexibleContexts
+- FlexibleInstances
+- PatternSynonyms
+- PolyKinds
+- DefaultSignatures
+- ConstraintKinds
 - NamedFieldPuns
 - TupleSections
 - ViewPatterns
@@ -23,21 +36,37 @@ default-extensions:
 
 dependencies:
 - base >= 4.7 && < 5
+- aeson
 - bytestring
-- mtl
-- time
-- scientific
+- clock
 - containers
+- data-default
+- directory
+- entropy
+- extra
+- filepath
+- fmt
 - free
-- transformers
+- generic-lens
+- gloss
+- lens
+- MonadRandom
+- mtl
+- newtype-generics
+- random
+- resource-pool
+- resourcet
+- scientific
+- stm
 - template-haskell
 - text
-- newtype-generics
+- time
+- time-units
+- transformers
+- universum
 - uuid
+- vector
 - void
-- random
-- lens
-- gloss
 
 library:
   source-dirs:

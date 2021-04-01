@@ -1,8 +1,11 @@
 module Main where
 
+import ZP.Prelude
+
 import qualified Data.Map as Map
 
 import Graphics.Gloss
+import Graphics.Gloss.Interface.IO.Game
 
 -- X is horizontal, grows to right
 -- Y is vertical, grows to up
@@ -10,120 +13,190 @@ import Graphics.Gloss
 -- (0, 0) is in the center of the window
 
 type Coords = (Int, Int)
-type RenderedCell = Char
 
-type RenderedLevel = Map.Map Coords RenderedCell
+newtype GridDimensions  = GridDimensions Coords
+newtype GridCellSize    = GridCellSize Int
+newtype BareCellSize    = BareCellSize Int
+newtype BareCellHalf    = BareCellHalf Int
+newtype BaseShift       = BaseShift Coords
+newtype GlossBaseShift  = GlossBaseShift (Float, Float)
+newtype GlossCoords     = GlossCoords (Float, Float)
+newtype CellSpaceSize   = CellSpaceSize Int
+newtype PlayerPosition  = PlayerPosition Coords
+newtype GlossWindowSize = GlossWindowSize Coords
+newtype GlossWindowPosition = GlossWindowPosition Coords
+
+type RenderedLevel = Map.Map Coords Char
+type Level = Map.Map Coords Char
 
 
 data GameState = GameState
-  { plPos :: Coords
-  , renderedLevel :: RenderedLevel
+  { wndSizeVar        :: TVar GlossWindowSize
+  , gridDimsVar       :: TVar GridDimensions
+  , bareCellSizeVar   :: TVar BareCellSize
+  , cellSpaceSizeVar  :: TVar CellSpaceSize
+  , playerPosVar      :: TVar PlayerPosition
+  , levelVar          :: TVar Level
   }
 
 data Room = RectRoom Coords Coords
 
-glossWindowSize :: Coords
-glossWindowSize = (1200, 1200)
+defaultGlossWindowSize :: GlossWindowSize
+defaultGlossWindowSize = GlossWindowSize (1200, 1200)
 
-glossWindowPosition :: Coords
-glossWindowPosition = (500, 100)
+defaultGlossWindowPosition :: GlossWindowPosition
+defaultGlossWindowPosition = GlossWindowPosition (500, 100)
 
-glossWindow :: Display
-glossWindow = InWindow "The Journey of Zeplrog" glossWindowSize glossWindowPosition
+defaultPlayerPosition :: PlayerPosition
+defaultPlayerPosition = PlayerPosition (500, 100)
 
-xBaseShift, yBaseShift :: Int
-xBaseShift = negate $ fst glossWindowSize `div` 2
-yBaseShift = negate $ snd glossWindowSize `div` 2
+-- | Number of cells in the grid
+defaultGridDimensions :: GridDimensions
+defaultGridDimensions = GridDimensions (26, 26)
 
-xGlossBaseShift, yGlossBaseShift :: Float
-xGlossBaseShift = fromIntegral xBaseShift
-yGlossBaseShift = fromIntegral yBaseShift
+defaultCellSize :: BareCellSize
+defaultCellSize = BareCellSize 40
 
-
-firstRoom :: Room
-firstRoom = RectRoom (0, 0) (20, 20)
-
-cellSize :: Int
-cellSize = 40
-
-cellHalfSize :: Int
-cellHalfSize = cellSize `div` 2
-
-cellSpaceSize :: Int
-cellSpaceSize = cellSize `div` 10
-
-gridCellSize :: Int
-gridCellSize = cellSize + cellSpaceSize
-
-gridDimension :: Coords
-gridDimension = (26, 26)
-
-glossCellShape :: Picture
-glossCellShape = Circle $ fromIntegral cellHalfSize
-
-glossPlayerShape :: Picture
-glossPlayerShape = Color red $ circleSolid $ fromIntegral cellHalfSize
-
--- TODO
-renderLevel :: Room -> RenderedLevel
-renderLevel _ = Map.fromList cells
+defaultCellSpaceSize :: CellSpaceSize
+defaultCellSpaceSize = CellSpaceSize $ dcs `div` 10
   where
-    cells = [ ((x, y), ' ') | x <- [1..fst gridDimension], y <- [1..snd gridDimension] ]
+    (BareCellSize dcs) = defaultCellSize
 
-idxXToGlossCell :: Int -> Float
-idxXToGlossCell x = xGlossBaseShift + fromIntegral (x * gridCellSize)
-
-idxYToGlossCell :: Int -> Float
-idxYToGlossCell y = yGlossBaseShift + fromIntegral (y * gridCellSize)
-
-toGlossCell :: (Coords, Char) -> Picture
-toGlossCell ((x, y), ' ') = Translate (idxXToGlossCell x) (idxYToGlossCell y) glossCellShape
-
-levelToGloss :: RenderedLevel -> Picture
-levelToGloss lvl = Pictures $ map toGlossCell $ Map.toList lvl
-
-glossLevelRenderer = levelToGloss
-glossPlayerRenderer (plX, plY) = Translate (idxXToGlossCell plX) (idxYToGlossCell plY) glossPlayerShape
-
-initGame :: IO GameState
-initGame = pure $ GameState (20, 20) (renderLevel firstRoom)
+initialLevel :: GridDimensions -> Level
+initialLevel (GridDimensions (dimsX, dimsY)) = Map.fromList cells
+  where
+    cells = [ ((x, y), ' ') | x <- [1..dimsX], y <- [1..dimsY] ]
 
 
-simpleGameSimulator :: viewport -> Float -> GameState -> GameState
-simpleGameSimulator _ _ (GameState plPos lvl) = GameState ( (1 + snd plPos), (fst plPos) ) lvl
+initGame
+  :: GlossWindowSize
+  -> GlossWindowPosition
+  -> GridDimensions
+  -> BareCellSize
+  -> CellSpaceSize
+  -> PlayerPosition
+  -> Level
+  -> IO (GameState, Display)
+initGame
+  (GlossWindowSize wndSize)
+  (GlossWindowPosition wndPos)
+  gridDims
+  bareCellSize
+  cellSpaceSize
+  playerPos
+  level = do
+    let glossWindow = InWindow "The Journey of Zeplrog" wndSize wndPos
+    st <- GameState
+      <$> newTVarIO (GlossWindowSize wndSize)
+      <*> newTVarIO gridDims
+      <*> newTVarIO bareCellSize
+      <*> newTVarIO cellSpaceSize
+      <*> newTVarIO playerPos
+      <*> newTVarIO level
+    pure (st, glossWindow)
+
+simpleGameSimulator :: Float -> GameState -> IO GameState
+simpleGameSimulator _ st@(GameState {..}) = do
+  atomically $ do
+    PlayerPosition playerPos <- readTVar playerPosVar
+    writeTVar playerPosVar $ PlayerPosition ( 1 + snd playerPos, fst playerPos )
+  pure st
+
+coordsToGlossCell :: GlossBaseShift -> GridCellSize -> Coords -> GlossCoords
+coordsToGlossCell (GlossBaseShift (shiftX, shiftY)) (GridCellSize cellSize) (x, y)
+  = GlossCoords (x', y')
+  where
+    x' = shiftX + fromIntegral (x * cellSize)
+    y' = shiftY + fromIntegral (y * cellSize)
+
+getBaseShift :: GlossWindowSize -> BaseShift
+getBaseShift (GlossWindowSize (wX, wY)) = BaseShift (shiftX, shiftY)
+  where
+    shiftX = negate $ wX `div` 2
+    shiftY = negate $ wY `div` 2
+
+getGlossBaseShift :: GlossWindowSize -> GlossBaseShift
+getGlossBaseShift gwnd = GlossBaseShift (fromIntegral shiftX, fromIntegral shiftY)
+  where
+    BaseShift (shiftX, shiftY) = getBaseShift gwnd
+
+getBareCellHalf :: BareCellSize -> BareCellHalf
+getBareCellHalf (BareCellSize s) = BareCellHalf $ s `div` 2
+
+getGridCellSize :: BareCellSize -> CellSpaceSize -> GridCellSize
+getGridCellSize (BareCellSize bareCellSize) (CellSpaceSize cellSpaceSize) =
+  GridCellSize $ bareCellSize + cellSpaceSize
+
+glossPlayerRenderer
+  :: GlossBaseShift
+  -> GridCellSize
+  -> BareCellHalf
+  -> PlayerPosition
+  -> Picture
+glossPlayerRenderer glossBaseShift gridCellSize (BareCellHalf bareCellHalf) (PlayerPosition playerPos) =
+  Translate glossCellX glossCellY glossPlayerShape
+  where
+    glossPlayerShape :: Picture
+    glossPlayerShape = Color red $ circleSolid $ fromIntegral bareCellHalf
+    (GlossCoords (glossCellX, glossCellY)) = coordsToGlossCell glossBaseShift gridCellSize playerPos
+
+
+glossLevelRenderer
+  :: GlossBaseShift
+  -> GridCellSize
+  -> BareCellHalf
+  -> Level
+  -> Picture
+glossLevelRenderer glossBaseShift gridCellSize (BareCellHalf bareCellHalf) level =
+  Pictures $ map toGlossCell $ Map.toList level
+  where
+    glossCellShape :: Picture
+    glossCellShape = Circle $ fromIntegral bareCellHalf
+
+    toGlossCell :: (Coords, Char) -> Picture
+    toGlossCell (cellPos, ' ') = Translate shiftX shiftY glossCellShape
+      where
+        (GlossCoords (shiftX, shiftY)) = coordsToGlossCell glossBaseShift gridCellSize cellPos
 
 
 
-glossRenderer :: GameState -> Picture
-glossRenderer (GameState plPos lvl) = Pictures
-  [ glossLevelRenderer lvl
-  , glossPlayerRenderer plPos
-  ]
+glossRenderer :: GameState -> IO Picture
+glossRenderer (GameState {..}) = do
+  (wndSize, bareCellSize, cellSpaceSize, playerPos, level) <- atomically $ do
+    wndSize       <- readTVar wndSizeVar
+    bareCellSize  <- readTVar bareCellSizeVar
+    cellSpaceSize <- readTVar cellSpaceSizeVar
+    playerPos     <- readTVar playerPosVar
+    level         <- readTVar levelVar
+    pure (wndSize, bareCellSize, cellSpaceSize, playerPos, level)
+
+  let gridCellSize   = getGridCellSize bareCellSize cellSpaceSize
+  let glossBaseShift = getGlossBaseShift wndSize
+  let bareCellHalf   = getBareCellHalf bareCellSize
+
+  pure $ Pictures
+    [ glossPlayerRenderer glossBaseShift gridCellSize bareCellHalf playerPos
+    , glossLevelRenderer glossBaseShift gridCellSize bareCellHalf level
+    ]
+
+
+glossEvenHandler :: Event -> GameState -> IO GameState
+glossEvenHandler (EventKey _ _ _ _)     st = pure st
+glossEvenHandler (EventResize newSize)  st = pure st
+glossEvenHandler (EventMotion mousePos) st = pure st
+
 
 
 main :: IO ()
 main = do
 
-  gameSt <- initGame
+  (st, glossWindow) <- initGame
+    defaultGlossWindowSize
+    defaultGlossWindowPosition
+    defaultGridDimensions
+    defaultCellSize
+    defaultCellSpaceSize
+    defaultPlayerPosition
+    (initialLevel defaultGridDimensions)
 
-  simulate glossWindow black 2 gameSt glossRenderer simpleGameSimulator
-
-
-  -- let renderedLevel = renderLevel firstRoom
-  -- let glossLevel = levelToGloss renderedLevel
-  -- display glossWindow black $ Color white glossLevel
-
-
-  -- let zzCircle = Pictures
-  --       [ Color white $ Translate 0 0 $ circleSolid 30
-  --       , Color blue  $ Translate 0 0 $ circleSolid 5
-  --       ]
-  -- let nnCircle = Pictures
-  --       [ Color white $ Translate xGlossBaseShift yGlossBaseShift $ circleSolid 30
-  --       , Color blue  $ Translate xGlossBaseShift yGlossBaseShift $ circleSolid 5
-  --       ]
-  -- let znCircle = Pictures
-  --       [ Color white $ Translate 0 yGlossBaseShift $ circleSolid 30
-  --       , Color blue  $ Translate 0 yGlossBaseShift $ circleSolid 5
-  --       ]
-  -- display glossWindow black (Pictures [zzCircle, znCircle])
+  playIO glossWindow black 2 st glossRenderer glossEvenHandler simpleGameSimulator
