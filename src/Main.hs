@@ -61,6 +61,9 @@ gridDimension = (26, 26)
 glossCellShape :: Picture
 glossCellShape = Circle $ fromIntegral cellHalfSize
 
+glossPlayerShape :: Picture
+glossPlayerShape = Color red $ circleSolid $ fromIntegral cellHalfSize
+
 -- TODO
 renderLevel :: Room -> RenderedLevel
 renderLevel _ = Map.fromList cells
@@ -79,18 +82,36 @@ toGlossCell ((x, y), ' ') = Translate (idxXToGlossCell x) (idxYToGlossCell y) gl
 levelToGloss :: RenderedLevel -> Picture
 levelToGloss lvl = Pictures $ map toGlossCell $ Map.toList lvl
 
+glossLevelRenderer = levelToGloss
+glossPlayerRenderer (plX, plY) = Translate (idxXToGlossCell plX) (idxYToGlossCell plY) glossPlayerShape
+
 initGame :: IO GameState
 initGame = pure $ GameState (20, 20) (renderLevel firstRoom)
+
+
+simpleGameSimulator :: viewport -> Float -> GameState -> GameState
+simpleGameSimulator _ _ (GameState plPos lvl) = GameState ( (1 + snd plPos), (fst plPos) ) lvl
+
+
+
+glossRenderer :: GameState -> Picture
+glossRenderer (GameState plPos lvl) = Pictures
+  [ glossLevelRenderer lvl
+  , glossPlayerRenderer plPos
+  ]
+
 
 main :: IO ()
 main = do
 
-  -- gameSt <- initGame
-  let renderedLevel = renderLevel firstRoom
+  gameSt <- initGame
 
-  let glossLevel = levelToGloss renderedLevel
+  simulate glossWindow black 2 gameSt glossRenderer simpleGameSimulator
 
-  display glossWindow black $ Color white glossLevel
+
+  -- let renderedLevel = renderLevel firstRoom
+  -- let glossLevel = levelToGloss renderedLevel
+  -- display glossWindow black $ Color white glossLevel
 
 
   -- let zzCircle = Pictures
