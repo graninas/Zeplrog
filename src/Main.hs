@@ -48,7 +48,7 @@ defaultGlossWindowPosition :: GlossWindowPosition
 defaultGlossWindowPosition = GlossWindowPosition (500, 100)
 
 defaultPlayerPosition :: PlayerPosition
-defaultPlayerPosition = PlayerPosition (500, 100)
+defaultPlayerPosition = PlayerPosition (1, 1)
 
 -- | Number of cells in the grid
 defaultGridDimensions :: GridDimensions
@@ -151,7 +151,7 @@ glossLevelRenderer glossBaseShift gridCellSize (BareCellHalf bareCellHalf) level
   Pictures $ map toGlossCell $ Map.toList level
   where
     glossCellShape :: Picture
-    glossCellShape = Circle $ fromIntegral bareCellHalf
+    glossCellShape = Color white $ Circle $ fromIntegral bareCellHalf
 
     toGlossCell :: (Coords, Char) -> Picture
     toGlossCell (cellPos, ' ') = Translate shiftX shiftY glossCellShape
@@ -175,8 +175,8 @@ glossRenderer (GameState {..}) = do
   let bareCellHalf   = getBareCellHalf bareCellSize
 
   pure $ Pictures
-    [ glossPlayerRenderer glossBaseShift gridCellSize bareCellHalf playerPos
-    , glossLevelRenderer glossBaseShift gridCellSize bareCellHalf level
+    [ glossLevelRenderer glossBaseShift gridCellSize bareCellHalf level
+    , glossPlayerRenderer glossBaseShift gridCellSize bareCellHalf playerPos
     ]
 
 
@@ -200,3 +200,11 @@ main = do
     (initialLevel defaultGridDimensions)
 
   playIO glossWindow black 2 st glossRenderer glossEvenHandler simpleGameSimulator
+
+  -- let circle = Color white $ circleSolid 20
+  -- display glossWindow black circle
+  -- playIO glossWindow black 2
+  --   1  -- circle rad
+  --   (\r -> pure $ Color white $ circleSolid $ fromIntegral r )
+  --   (\_ r -> pure $ r - 1)
+  --   (\_ r -> pure $ r + 1)
