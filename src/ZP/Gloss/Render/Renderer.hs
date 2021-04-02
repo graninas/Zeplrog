@@ -15,7 +15,9 @@ import Graphics.Gloss
 import qualified Data.Map as Map
 
 data ActorStateSlice = ActorStateSlice
-  { goalVar               :: Goal
+  { goalVar               :: ActorGoal
+  , currentActivity       :: ActorActivity
+
   , currentPos            :: CellIdxs
   , currentPath           :: ActorPath
   , currentShape          :: Picture
@@ -29,9 +31,12 @@ readPlayerActor :: ActorState -> STM ActorStateSlice
 readPlayerActor (ActorState {..}) =
   ActorStateSlice
     <$> readTVar goalVar
+    <*> readTVar currentActivityVar
+
     <*> readTVar currentPosVar
     <*> readTVar currentPathVar
     <*> readTVar currentShapeVar
+
     <*> readTVar currentPathPointShapeVar
     <*> readTVar currentPathDisplayVar
     <*> pure staticShape
@@ -63,7 +68,7 @@ glossActorPathRenderer
   glossBaseShift
   gridCellSize
   (ActorStateSlice {..}) =
-    -- TODO: not hardcoded blink period 
+    -- TODO: not hardcoded blink period
     case currentPathDisplay of
       PathIsBlinking n | n >= 2 -> Pictures $ map toActorPathPoint currentPath
       _ -> blank
