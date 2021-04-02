@@ -6,8 +6,11 @@ import ZP.Types
 import ZP.Gloss.Types
 
 
-coordsToGlossCell :: GlossBaseShift -> GridCellSize -> Coords -> GlossCoords
-coordsToGlossCell (GlossBaseShift (shiftX, shiftY)) (GridCellSize cellSize) (x, y)
+coordsToGlossCell :: GlossBaseShift -> GridCellSize -> CellIdxs -> GlossCoords
+coordsToGlossCell
+  (GlossBaseShift (shiftX, shiftY))
+  (GridCellSize cellSize)
+  (CellIdxs (x, y))
   = GlossCoords (x', y')
   where
     x' = shiftX + fromIntegral (x * cellSize)
@@ -30,3 +33,6 @@ getBareCellHalf (BareCellSize s) = BareCellHalf $ s `div` 2
 getGridCellSize :: BareCellSize -> CellSpaceSize -> GridCellSize
 getGridCellSize (BareCellSize bareCellSize) (CellSpaceSize cellSpaceSize) =
   GridCellSize $ bareCellSize + cellSpaceSize
+
+getGlossGridCellSize :: GridCellSize -> GlossGridCellSize
+getGlossGridCellSize (GridCellSize s) = GlossGridCellSize $ fromIntegral s
