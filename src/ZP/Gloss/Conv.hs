@@ -36,3 +36,6 @@ getGridCellSize (BareCellSize bareCellSize) (CellSpaceSize cellSpaceSize) =
 
 getGlossGridCellSize :: GridCellSize -> GlossGridCellSize
 getGlossGridCellSize (GridCellSize s) = GlossGridCellSize $ fromIntegral s
+
+getGlossBareCellSize :: BareCellSize -> GlossBareCellSize
+getGlossBareCellSize (BareCellSize s) = GlossBareCellSize $ fromIntegral s
