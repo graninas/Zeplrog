@@ -9,7 +9,8 @@ import ZP.Types
 -- (-x, -y) is the left bottom corner
 -- (0, 0) is in the center of the window
 
-newtype GlossBaseShift  = GlossBaseShift (Float, Float)
 newtype GlossCoords     = GlossCoords (Float, Float)
+newtype GlossBaseShift  = GlossBaseShift (Float, Float)
 newtype GlossWindowSize = GlossWindowSize Coords
 newtype GlossWindowPosition = GlossWindowPosition Coords
+newtype GlossBareCellSize = GlossBareCellSize Float

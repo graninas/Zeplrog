@@ -8,6 +8,7 @@ import ZP.Gloss.Conv
 import ZP.Gloss.Render.Renderer
 import ZP.Game.Logic
 import ZP.Game.State
+import ZP.Game.Debug
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -36,6 +37,9 @@ defaultCellSpaceSize = CellSpaceSize $ dcs `div` 10
   where
     (BareCellSize dcs) = defaultCellSize
 
+defaultDbgOptions :: DebugOptions
+defaultDbgOptions = DebugOptions True white True (dark green) True "Hi, this is debug!" (dark green)
+
 initialLevel :: GridDimensions -> Level
 initialLevel (GridDimensions (dimsX, dimsY)) = Map.fromList cells
   where
@@ -50,6 +54,7 @@ initGame
   -> CellSpaceSize
   -> PlayerPosition
   -> Level
+  -> DebugOptions
   -> IO (GameState, Display)
 initGame
   (GlossWindowSize wndSize)
@@ -58,7 +63,8 @@ initGame
   bareCellSize
   cellSpaceSize
   playerPos
-  level = do
+  level
+  dbgOpts = do
     let glossWindow = InWindow "The Journey of Zeplrog" wndSize wndPos
     st <- GameState
       <$> newTVarIO (GlossWindowSize wndSize)
@@ -67,6 +73,7 @@ initGame
       <*> newTVarIO cellSpaceSize
       <*> newTVarIO playerPos
       <*> newTVarIO level
+      <*> newTVarIO dbgOpts
     pure (st, glossWindow)
 
 
@@ -78,7 +85,7 @@ glossEvenHandler (EventMotion mousePos) st = pure st
 
 loadLevel :: String -> IO Level
 loadLevel lvlFileName = do
-  l1 :: [String] <- (map T.unpack . lines) <$> (readFile $ "./data/" <> lvlFileName)
+  l1 :: [String] <- (reverse . map T.unpack . lines) <$> (readFile $ "./data/" <> lvlFileName)
   let l2 :: [(Int, String)] = zip [1..] l1
   let l3 :: [ (Coords, Char) ] = join $ map zipRow l2
   pure $ Map.fromList l3
@@ -100,5 +107,6 @@ main = do
     defaultCellSpaceSize
     defaultPlayerPosition
     lvl
+    defaultDbgOptions
 
   playIO glossWindow black 2 st glossRenderer glossEvenHandler simpleGameSimulator

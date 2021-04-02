@@ -7,18 +7,20 @@ import ZP.Gloss.Types
 import ZP.Gloss.Conv
 import ZP.Gloss.Render.Cells
 import ZP.Game.State
+import ZP.Game.Debug
 
 import Graphics.Gloss
 
 import qualified Data.Map as Map
 
 glossPlayerRenderer
-  :: GlossBaseShift
+  :: DebugOptions
+  -> GlossBaseShift
   -> GridCellSize
   -> BareCellHalf
   -> PlayerPosition
   -> Picture
-glossPlayerRenderer glossBaseShift gridCellSize (BareCellHalf bareCellHalf) (PlayerPosition playerPos) =
+glossPlayerRenderer dbgOpts glossBaseShift gridCellSize (BareCellHalf bareCellHalf) (PlayerPosition playerPos) =
   Translate glossCellX glossCellY glossPlayerShape
   where
     glossPlayerShape :: Picture
@@ -27,50 +29,73 @@ glossPlayerRenderer glossBaseShift gridCellSize (BareCellHalf bareCellHalf) (Pla
 
 
 glossLevelRenderer
-  :: GlossBaseShift
+  :: DebugOptions
+  -> GlossBaseShift
   -> GridCellSize
-  -> BareCellHalf
+  -> BareCellSize
   -> Level
   -> Picture
-glossLevelRenderer glossBaseShift gridCellSize (BareCellHalf bareCellHalf) level =
-  Pictures $ map toGlossCell' $ Map.toList level
+glossLevelRenderer
+  (DebugOptions {..})
+  glossBaseShift
+  gridCellSize
+  (BareCellSize bareCellSize)
+  level =
+  Pictures $ map (toGlossCell'' . withGlossCoords) $ Map.toList level
   where
-    toGlossCell' :: (Coords, Char) -> Picture
-    toGlossCell' (cellPos, ch) = Translate shiftX shiftY $ toGlossCell ch
-      where
-        (GlossCoords (shiftX, shiftY)) = coordsToGlossCell glossBaseShift gridCellSize cellPos
+    glossBareCellSize :: GlossBareCellSize
+    glossBareCellSize = GlossBareCellSize $ fromIntegral bareCellSize
 
-toGlossCell :: Char -> Picture
-toGlossCell ' ' = emptyCell
-toGlossCell '.' = clearFloor
-toGlossCell 'I' = pillar
-toGlossCell '+' = door
-toGlossCell '─' = wall "─"
-toGlossCell '│' = wall "│"
-toGlossCell '┘' = wall "┘"
-toGlossCell '└' = wall "└"
-toGlossCell '┌' = wall "┌"
-toGlossCell '┐' = wall "┐"
-toGlossCell '├' = wall "├"
-toGlossCell '├' = wall "┤"
-toGlossCell ch  = unknown [ch]
+    withGlossCoords :: (Coords, Char) -> (GlossCoords, Char)
+    withGlossCoords (cellPos, ch) =
+      (coordsToGlossCell glossBaseShift gridCellSize cellPos, ch)
 
+    toGlossCell'' :: (GlossCoords, Char) -> Picture
+    toGlossCell'' d@(GlossCoords (shiftX, shiftY), ch) =
+      if showCellBoxes
+      then Pictures [ Translate shiftX shiftY $ toGlossCell glossBareCellSize ch
+                    , Translate shiftX shiftY $ cellBox glossBareCellSize cellBoxColor
+                    ]
+      else Translate shiftX shiftY $ toGlossCell glossBareCellSize ch
+
+toGlossCell :: GlossBareCellSize -> Char -> Picture
+toGlossCell _ '#' = emptyCell
+toGlossCell _ '.' = clearFloor
+toGlossCell cs 'I' = pillar cs
+toGlossCell cs '+' = door cs
+toGlossCell cs '─' = hWall cs
+toGlossCell cs '│' = vWall cs
+toGlossCell cs '┘' = brCorner cs
+toGlossCell cs '└' = blCorner cs
+toGlossCell cs '┌' = ulCorner cs
+toGlossCell cs '┐' = urCorner cs
+toGlossCell cs '├' = vWallRJoint cs
+toGlossCell cs '┤' = vWallLJoint cs
+toGlossCell _ ch  = unknown [ch]
+
+glossDebugTextRenderer :: DebugOptions -> GlossBaseShift -> GridCellSize -> Picture
+glossDebugTextRenderer (DebugOptions {..}) (GlossBaseShift (x, y)) gridCellSize =
+  if showDebugText
+    then Translate x y $ Color debugTextColor $ text debugText
+    else blank
 
 glossRenderer :: GameState -> IO Picture
 glossRenderer (GameState {..}) = do
-  (wndSize, bareCellSize, cellSpaceSize, playerPos, level) <- atomically $ do
+  (wndSize, bareCellSize, cellSpaceSize, playerPos, level, dbgOpts) <- atomically $ do
     wndSize       <- readTVar wndSizeVar
     bareCellSize  <- readTVar bareCellSizeVar
     cellSpaceSize <- readTVar cellSpaceSizeVar
     playerPos     <- readTVar playerPosVar
     level         <- readTVar levelVar
-    pure (wndSize, bareCellSize, cellSpaceSize, playerPos, level)
+    dbgOpts       <- readTVar debugOptionsVar
+    pure (wndSize, bareCellSize, cellSpaceSize, playerPos, level, dbgOpts)
 
   let gridCellSize   = getGridCellSize bareCellSize cellSpaceSize
   let glossBaseShift = getGlossBaseShift wndSize
   let bareCellHalf   = getBareCellHalf bareCellSize
 
   pure $ Pictures
-    [ glossLevelRenderer glossBaseShift gridCellSize bareCellHalf level
-    , glossPlayerRenderer glossBaseShift gridCellSize bareCellHalf playerPos
+    [ glossLevelRenderer  dbgOpts glossBaseShift gridCellSize bareCellSize level
+    , glossPlayerRenderer dbgOpts glossBaseShift gridCellSize bareCellHalf playerPos
+    , glossDebugTextRenderer dbgOpts glossBaseShift gridCellSize
     ]

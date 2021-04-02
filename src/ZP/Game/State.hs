@@ -4,6 +4,7 @@ import ZP.Prelude
 
 import ZP.Types
 import ZP.Gloss.Types
+import ZP.Game.Debug
 
 import qualified Data.Map as Map
 
@@ -15,4 +16,5 @@ data GameState = GameState
   , cellSpaceSizeVar  :: TVar CellSpaceSize
   , playerPosVar      :: TVar PlayerPosition
   , levelVar          :: TVar Level
+  , debugOptionsVar   :: TVar DebugOptions
   }

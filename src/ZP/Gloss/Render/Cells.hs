@@ -9,23 +9,50 @@ import Graphics.Gloss
 
 import qualified Data.Map as Map
 
+text' :: String -> Picture
+text' str = Scale (0.13) (0.13) $ text str
 
 emptyCell :: Picture
-emptyCell = Color white $ circleSolid 5
-
+emptyCell = blank
 
 clearFloor :: Picture
-clearFloor = Color (greyN 0.8) $ text "."
+clearFloor = Color (greyN 0.8) $ circleSolid 2
 
-pillar :: Picture
-pillar = Color (light green) $ text "I"
+pillar :: GlossBareCellSize -> Picture
+pillar (GlossBareCellSize s) = Color green $ rectangleSolid (s / 3) s
 
-door :: Picture
-door = Color (dark yellow) $ text "+"
-
-wall :: String -> Picture
-wall w = Color white $ text w
-
+door :: GlossBareCellSize -> Picture
+door (GlossBareCellSize s) = Color (dark yellow) $ Pictures
+  [ rectangleSolid (s / 3) s
+  , rectangleSolid s (s / 3)
+  ]
 
 unknown :: String -> Picture
-unknown w = Color red $ text $ "?" <> w
+unknown w = Color red $ text' $ "?" <> w
+
+
+cellBox :: GlossBareCellSize -> Color -> Picture
+cellBox (GlossBareCellSize s) col = Color col $ rectangleWire s s
+
+wallColor :: Color
+wallColor = greyN 0.7
+
+wallBrick :: GlossBareCellSize -> Picture
+wallBrick (GlossBareCellSize s) = Color wallColor $ rectangleSolid s s
+
+hWall :: GlossBareCellSize -> Picture
+hWall = wallBrick
+vWall :: GlossBareCellSize -> Picture
+vWall = wallBrick
+brCorner :: GlossBareCellSize -> Picture
+brCorner = wallBrick
+blCorner :: GlossBareCellSize -> Picture
+blCorner = wallBrick
+ulCorner :: GlossBareCellSize -> Picture
+ulCorner = wallBrick
+urCorner :: GlossBareCellSize -> Picture
+urCorner = wallBrick
+vWallRJoint :: GlossBareCellSize -> Picture
+vWallRJoint = wallBrick
+vWallLJoint :: GlossBareCellSize -> Picture
+vWallLJoint = wallBrick

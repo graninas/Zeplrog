@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1a2bbf6f9875d7a8324b216f80d9bbe1224fa3075b62517e2bc836ccfffe3748
+-- hash: a1fd4fc3ef2fa4139464b862d50c79789776c2aedbb48c366b2f37e239e36f22
 
 name:           zeplrog
 version:        0.0.0.1
@@ -24,6 +24,7 @@ source-repository head
 library
   exposed-modules:
       Main
+      ZP.Game.Debug
       ZP.Game.Logic
       ZP.Game.State
       ZP.Gloss.Conv
@@ -76,6 +77,7 @@ library
 executable zeplrog
   main-is: Main.hs
   other-modules:
+      ZP.Game.Debug
       ZP.Game.Logic
       ZP.Game.State
       ZP.Gloss.Conv
