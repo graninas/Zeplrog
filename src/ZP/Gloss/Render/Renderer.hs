@@ -71,7 +71,7 @@ toGlossCell cs '┌' = ulCorner cs
 toGlossCell cs '┐' = urCorner cs
 toGlossCell cs '├' = vWallRJoint cs
 toGlossCell cs '┤' = vWallLJoint cs
-toGlossCell _ ch  = unknown [ch]
+toGlossCell cs ch  = unknown cs [ch]
 
 glossDebugTextRenderer :: DebugOptions -> GlossBaseShift -> GridCellSize -> Picture
 glossDebugTextRenderer (DebugOptions {..}) (GlossBaseShift (x, y)) gridCellSize =
