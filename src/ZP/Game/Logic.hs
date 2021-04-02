@@ -9,58 +9,80 @@ import ZP.Hardcode
 
 import qualified Data.Map as Map
 
-animateActorPath :: ActorState -> STM ()
-animateActorPath ActorState {..} = do
-  dispVar <- readTVar currentPathDisplayVar
-  case dispVar of
-    PathIsInvisible           -> pure ()
+createActivePath :: TVar ObjectId -> ActorPath -> STM (ObjectId, TVar ActivePath)
+createActivePath idCounterVar path = do
+  pId <- readTVar idCounterVar
+  modifyTVar' idCounterVar (\(ObjectId oId) -> ObjectId $ oId + 1)
+  var <- newTVar $ ActivePath pId path (Just initPathBlinkingDisplay)       -- TODO: remove hardcode
+  pure (pId, var)
 
-    PathIsBlinking n | n > 0  ->
-      writeTVar currentPathDisplayVar $ PathIsBlinking $ n - 1
+addAnimatedObject :: TVar AnimatedObjects -> ObjectId -> AnimatedObject -> STM ()
+addAnimatedObject animatedObjectsVar objId animObj =
+  modifyTVar' animatedObjectsVar $ Map.insert objId animObj
 
-    PathIsBlinking n | n <= 0 ->
-      writeTVar currentPathDisplayVar $ PathIsBlinking pathBlinkingPeriod
+removeAnimatedObject :: TVar AnimatedObjects -> ObjectId -> STM ()
+removeAnimatedObject animatedObjectsVar objId =
+  modifyTVar' animatedObjectsVar $ Map.delete objId
 
+animate :: TVar AnimatedObjects -> STM ()
+animate objectsVar = do
+  objects <- readTVar objectsVar
+  mapM_ animateObject $ Map.toList objects
 
-moveActorByPath :: ActorState -> STM ()
-moveActorByPath ActorState {..} = do
-  path <- readTVar currentPathVar
-  case path of
-    [] -> pure ()
-    (p:ps) -> do
-      writeTVar currentPosVar p
-      writeTVar currentPathVar ps
+animateObject :: (ObjectId, AnimatedObject) -> STM ()
+animateObject (_, AnimatedPath actPathVar) = animatePath actPathVar
 
+animatePath :: TVar ActivePath -> STM ()
+animatePath actPathVar = do
+  actPath <- readTVar actPathVar
+  case actPath of
+    (ActivePath _ _ Nothing) -> pure ()
 
-evaluateActorActivity :: ActorState -> STM ()
-evaluateActorActivity actorSt@(ActorState {..}) = do
+    (ActivePath objId path (Just (PathIsBlinking pic n))) | n > 0 ->
+      writeTVar actPathVar (ActivePath objId path (Just (PathIsBlinking pic $ n - 1)))
+
+    (ActivePath objId path (Just (PathIsBlinking pic n))) | n <= 0 ->
+      writeTVar actPathVar (ActivePath objId path (Just (PathIsBlinking pic pathBlinkingPeriod)))
+
+moveActor :: ActorState -> CellIdxs -> STM ()
+moveActor ActorState {..} newPos = writeTVar currentPosVar newPos
+
+evaluateActorActivity :: GameState -> ActorState -> STM ()
+evaluateActorActivity (GameState {..}) actorSt@(ActorState {..}) = do
   activity <- readTVar currentActivityVar
-  curPath  <- readTVar currentPathVar
   case activity of
     Idling n | n > 0     -> writeTVar currentActivityVar $ Idling $ n - 1
-    Idling n | n <= 0    -> writeTVar currentActivityVar $ Observing 10 Nothing       -- TODO: remove hardcoded observing
-    Observing n mbRes | n > 0  -> do
+    Idling n | n <= 0    -> writeTVar currentActivityVar $ Observing False observingPeriod Nothing
 
-      -- TODO: observe
 
-      writeTVar currentActivityVar $ Observing (n - 1) mbRes
+    -- TODO: remove demo hardcode!
+    Observing True n _ | n == 4  -> do
+      (pId, pathVar) <- createActivePath objectIdCounterVar demoPath
+      writeTVar currentActivityVar $ Observing False 3 $ Just $ PathFound pathVar
+      addAnimatedObject animatedObjectsVar pId $ AnimatedPath pathVar
+    ------------------------------
 
-    Observing n mbRes | n <= 0 -> do
+
+    Observing b n mbRes | n > 0 -> writeTVar currentActivityVar $ Observing b (n - 1) mbRes
+
+    Observing _ n mbRes | n <= 0 -> do
       case mbRes of
-        Nothing -> writeTVar currentActivityVar $ Idling 10       -- TODO: remove hardcoded idling
-        Just (PathFound path) -> do
-          writeTVar currentPathVar path
-          writeTVar currentActivityVar FollowingPath
-    FollowingPath -> do
-      animateActorPath actorSt
-      case curPath of
-        [] -> writeTVar currentActivityVar $ Idling 10
-        _  -> moveActorByPath actorSt
+        Nothing                     -> writeTVar currentActivityVar $ Idling idlingPeriod
+        Just (PathFound actPathVar) -> writeTVar currentActivityVar $ FollowingPath actPathVar
 
-
+    FollowingPath actPathVar -> do
+      ActivePath pId path mbPathDisp <- readTVar actPathVar
+      case path of
+        [] -> do
+          removeAnimatedObject animatedObjectsVar pId
+          writeTVar currentActivityVar $ Idling idlingPeriod
+        (p:ps)  -> do
+          moveActor actorSt p
+          writeTVar actPathVar $ ActivePath pId ps mbPathDisp
 
 simpleGameSimulator :: Float -> GameState -> IO GameState
 simpleGameSimulator _ st@(GameState {..}) = do
   atomically $ do
-    evaluateActorActivity playerActorState
+    evaluateActorActivity st playerActorState
+    animate animatedObjectsVar
   pure st

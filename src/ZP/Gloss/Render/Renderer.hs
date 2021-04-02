@@ -32,13 +32,14 @@ data ActorStateSlice = ActorStateSlice
   , currentActivity       :: ActorActivity
 
   , currentPos            :: CellIdxs
-  , currentPath           :: ActorPath
   , currentShape          :: Picture
 
   , currentPathPointShape :: Picture
-  , currentPathDisplay    :: PathDisplay
-  , staticShape           :: Picture
   }
+
+data AnimatedObjectSlice = AnimatedPathSlice ActorPath (Maybe PathDisplay)
+
+type AnimatedObjectsSlice = [AnimatedObjectSlice]
 
 readPlayerActor :: ActorState -> STM ActorStateSlice
 readPlayerActor (ActorState {..}) =
@@ -47,13 +48,19 @@ readPlayerActor (ActorState {..}) =
     <*> readTVar currentActivityVar
 
     <*> readTVar currentPosVar
-    <*> readTVar currentPathVar
     <*> readTVar currentShapeVar
 
     <*> readTVar currentPathPointShapeVar
-    <*> readTVar currentPathDisplayVar
-    <*> pure staticShape
 
+readAnimatedObjects :: TVar AnimatedObjects -> STM AnimatedObjectsSlice
+readAnimatedObjects objectsVar = do
+  objMap <- readTVar objectsVar
+  mapM toAnimObjectSlice $ Map.toList objMap
+  where
+    toAnimObjectSlice :: (ObjectId, AnimatedObject) -> STM AnimatedObjectSlice
+    toAnimObjectSlice (_, AnimatedPath actPathVar) = do
+      ActivePath _ path mbDisp <- readTVar actPathVar
+      pure $ AnimatedPathSlice path mbDisp
 
 renderActor :: RenderOptions -> ActorStateSlice -> Picture
 renderActor (RenderOptions {..}) (ActorStateSlice {..}) =
@@ -67,19 +74,27 @@ renderActorActivity (RenderOptions {..}) (ActorStateSlice {..}) =
     GlossCoords (x, y) = glossInfoWindowPos
     GlossTextScale scaleFactor = glossTextScale
     actPicture = case currentActivity of
-        Idling n          -> text $ "idling: " <> show n
-        Observing n mbRes -> text $ "observing: " <> show n
-        FollowingPath     -> text $ "following the path"
+        Idling n        -> text $ "idling: " <> show n
+        Observing _ n _ -> text $ "observing: " <> show n
+        FollowingPath _ -> text $ "following the path"
   in Translate x y $ Scale scaleFactor scaleFactor $ Color red actPicture
 
-renderActorPath :: RenderOptions -> ActorStateSlice -> Picture
-renderActorPath (RenderOptions {..}) (ActorStateSlice {..}) =
-    case currentPathDisplay of
-      PathIsBlinking n | n >= pathBlinkingHalfPeriod -> Pictures $ map toActorPathPoint currentPath
-      _ -> blank
+
+renderAnimatedObjects :: RenderOptions -> AnimatedObjectsSlice -> Picture
+renderAnimatedObjects ro objs = Pictures $ map (renderAnimatedObjectSlice ro) objs
+
+renderAnimatedObjectSlice :: RenderOptions -> AnimatedObjectSlice -> Picture
+renderAnimatedObjectSlice ro (AnimatedPathSlice path mbDisp) = renderPath ro path mbDisp
+
+renderPath :: RenderOptions -> ActorPath -> Maybe PathDisplay -> Picture
+renderPath _ _ Nothing = blank
+renderPath (RenderOptions {..}) path (Just (PathIsBlinking pic n)) =
+  if n >= pathBlinkingHalfPeriod
+    then Pictures $ map toPathPoint path
+    else blank
   where
-    toActorPathPoint :: CellIdxs -> Picture
-    toActorPathPoint pos = Translate glossCellX glossCellY currentPathPointShape
+    toPathPoint :: CellIdxs -> Picture
+    toPathPoint pos = Translate glossCellX glossCellY pic
       where
         (GlossCoords (glossCellX, glossCellY)) = coordsToGlossCell glossBaseShift gridCellSize pos
 
@@ -115,14 +130,15 @@ renderDebugText (RenderOptions {..}) =
 
 glossRenderer :: GameState -> IO Picture
 glossRenderer (GameState {..}) = do
-  (wndSize, bareCellSize, cellSpaceSize, playerActor, level, dbgOpts) <- atomically $ do
+  (wndSize, bareCellSize, cellSpaceSize, playerActorSlice, level, animObjsSlice, dbgOpts) <- atomically $ do
     wndSize       <- readTVar wndSizeVar
     bareCellSize  <- readTVar bareCellSizeVar
     cellSpaceSize <- readTVar cellSpaceSizeVar
-    playerActor   <- readPlayerActor playerActorState
+    playerActorSlice   <- readPlayerActor playerActorState
     level         <- readTVar levelVar
+    animObjsSlice <- readAnimatedObjects animatedObjectsVar
     dbgOpts       <- readTVar debugOptionsVar
-    pure (wndSize, bareCellSize, cellSpaceSize, playerActor, level, dbgOpts)
+    pure (wndSize, bareCellSize, cellSpaceSize, playerActorSlice, level, animObjsSlice, dbgOpts)
 
   let gridCellSize      = getGridCellSize bareCellSize cellSpaceSize
   let glossBaseShift    = getGlossBaseShift wndSize
@@ -147,9 +163,9 @@ glossRenderer (GameState {..}) = do
         glossInfoWindowPos
 
   pure $ Pictures
-    [ renderLevel      renderOptions level
-    , renderActorPath  renderOptions playerActor
-    , renderActor      renderOptions playerActor
-    , renderActorActivity renderOptions playerActor
-    , renderDebugText  renderOptions
+    [ renderLevel renderOptions level
+    , renderActor renderOptions playerActorSlice
+    , renderAnimatedObjects renderOptions animObjsSlice
+    , renderActorActivity renderOptions playerActorSlice
+    , renderDebugText renderOptions
     ]

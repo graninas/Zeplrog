@@ -3,6 +3,7 @@ module Main where
 import ZP.Prelude
 
 import ZP.Types
+import ZP.Hardcode
 import ZP.Gloss.Types
 import ZP.Gloss.Conv
 import ZP.Gloss.Render.Renderer
@@ -43,23 +44,13 @@ defaultDbgOptions = DebugOptions True white True (dark green) False "Hi, this is
 initialPlayerActorState :: BareCellSize -> IO ActorState
 initialPlayerActorState bareCellSize = ActorState
     <$> newTVarIO FindExit            -- goal (TODO)
-    <*> newTVarIO FollowingPath       -- current activity
+    <*> newTVarIO (Observing True observingPeriod Nothing)       -- current activity
 
     <*> newTVarIO (CellIdxs (3, 3))   -- current pos
-    <*> newTVarIO                     -- current path
-      [ CellIdxs (4,3)
-      , CellIdxs (4,4)
-      , CellIdxs (5,4)
-      , CellIdxs (6,4)
-      , CellIdxs (7,4)
-      , CellIdxs (8,4)
-      , CellIdxs (8,5)
-      ]
-
     <*> newTVarIO (playerActorShape bareCellSize)
-    <*> newTVarIO (pathPointShape bareCellSize)
-    <*> newTVarIO (PathIsBlinking 2)          -- TODO: not hardcoded blink period
-    <*> pure (pathPointShape bareCellSize)
+
+    -- <*> newTVarIO (pathPointShape bareCellSize)
+    <*> newTVarIO pathPointShape
 
 initialLevel :: GridDimensions -> Level
 initialLevel (GridDimensions (CellIdxs (dimsX, dimsY))) = Map.fromList cells
@@ -95,6 +86,9 @@ initGame
       <*> (pure playerActor)
       <*> newTVarIO level
       <*> newTVarIO dbgOpts
+
+      <*> newTVarIO (ObjectId 0)
+      <*> newTVarIO Map.empty
     pure (st, glossWindow)
 
 
