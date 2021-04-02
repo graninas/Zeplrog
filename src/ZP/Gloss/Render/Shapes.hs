@@ -1,4 +1,4 @@
-module ZP.Gloss.Render.Cells where
+module ZP.Gloss.Render.Shapes where
 
 import ZP.Prelude
 
@@ -63,3 +63,12 @@ vWallRJoint :: GlossBareCellSize -> Picture
 vWallRJoint = wallBrick
 vWallLJoint :: GlossBareCellSize -> Picture
 vWallLJoint = wallBrick
+
+
+playerActorShape :: BareCellSize -> Picture
+playerActorShape (BareCellSize bareCellSize) =
+  Color red $ circleSolid $ fromIntegral (bareCellSize `div` 2)
+
+pathPointShape :: BareCellSize -> Picture
+pathPointShape (BareCellSize bareCellSize) =
+  Color (dark green) $ circleSolid $ (fromIntegral bareCellSize / 4)

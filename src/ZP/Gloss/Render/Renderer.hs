@@ -5,7 +5,8 @@ import ZP.Prelude
 import ZP.Types
 import ZP.Gloss.Types
 import ZP.Gloss.Conv
-import ZP.Gloss.Render.Cells
+import ZP.Gloss.Render.Shapes
+import ZP.Game.Types
 import ZP.Game.State
 import ZP.Game.Debug
 
@@ -13,25 +14,64 @@ import Graphics.Gloss
 
 import qualified Data.Map as Map
 
-glossPlayerRenderer
+data ActorStateSlice = ActorStateSlice
+  { goalVar               :: Goal
+  , currentPos            :: CellIdxs
+  , currentPath           :: ActorPath
+  , currentShape          :: Picture
+
+  , currentPathPointShape :: Picture
+  , currentPathDisplay    :: PathDisplay
+  , staticShape           :: Picture
+  }
+
+readPlayerActor :: ActorState -> STM ActorStateSlice
+readPlayerActor (ActorState {..}) =
+  ActorStateSlice
+    <$> readTVar goalVar
+    <*> readTVar currentPosVar
+    <*> readTVar currentPathVar
+    <*> readTVar currentShapeVar
+    <*> readTVar currentPathPointShapeVar
+    <*> readTVar currentPathDisplayVar
+    <*> pure staticShape
+
+
+glossActorRenderer
   :: DebugOptions
   -> GlossBaseShift
   -> GridCellSize
-  -> BareCellHalf
-  -> PlayerPosition
+  -> ActorStateSlice
   -> Picture
-glossPlayerRenderer
+glossActorRenderer
   dbgOpts
   glossBaseShift
   gridCellSize
-  (BareCellHalf bareCellHalf)
-  (PlayerPosition playerPos) =
-  Translate glossCellX glossCellY glossPlayerShape
+  (ActorStateSlice {..}) =
+  Translate glossCellX glossCellY currentShape
   where
-    glossPlayerShape :: Picture
-    glossPlayerShape = Color red $ circleSolid $ fromIntegral bareCellHalf
-    (GlossCoords (glossCellX, glossCellY)) = coordsToGlossCell glossBaseShift gridCellSize playerPos
+    (GlossCoords (glossCellX, glossCellY)) = coordsToGlossCell glossBaseShift gridCellSize currentPos
 
+glossActorPathRenderer
+  :: DebugOptions
+  -> GlossBaseShift
+  -> GridCellSize
+  -> ActorStateSlice
+  -> Picture
+glossActorPathRenderer
+  dbgOpts
+  glossBaseShift
+  gridCellSize
+  (ActorStateSlice {..}) =
+    -- TODO: not hardcoded blink period 
+    case currentPathDisplay of
+      PathIsBlinking n | n >= 2 -> Pictures $ map toActorPathPoint currentPath
+      _ -> blank
+  where
+    toActorPathPoint :: CellIdxs -> Picture
+    toActorPathPoint pos = Translate glossCellX glossCellY currentPathPointShape
+      where
+        (GlossCoords (glossCellX, glossCellY)) = coordsToGlossCell glossBaseShift gridCellSize pos
 
 glossLevelRenderer
   :: DebugOptions
@@ -104,14 +144,14 @@ glossDebugTextRenderer
 
 glossRenderer :: GameState -> IO Picture
 glossRenderer (GameState {..}) = do
-  (wndSize, bareCellSize, cellSpaceSize, playerPos, level, dbgOpts) <- atomically $ do
+  (wndSize, bareCellSize, cellSpaceSize, playerActor, level, dbgOpts) <- atomically $ do
     wndSize       <- readTVar wndSizeVar
     bareCellSize  <- readTVar bareCellSizeVar
     cellSpaceSize <- readTVar cellSpaceSizeVar
-    playerPos     <- readTVar playerPosVar
+    playerActor   <- readPlayerActor playerActorState
     level         <- readTVar levelVar
     dbgOpts       <- readTVar debugOptionsVar
-    pure (wndSize, bareCellSize, cellSpaceSize, playerPos, level, dbgOpts)
+    pure (wndSize, bareCellSize, cellSpaceSize, playerActor, level, dbgOpts)
 
   let gridCellSize      = getGridCellSize bareCellSize cellSpaceSize
   let glossBaseShift    = getGlossBaseShift wndSize
@@ -120,6 +160,7 @@ glossRenderer (GameState {..}) = do
 
   pure $ Pictures
     [ glossLevelRenderer     dbgOpts glossBaseShift gridCellSize bareCellSize level
-    , glossPlayerRenderer    dbgOpts glossBaseShift gridCellSize bareCellHalf playerPos
+    , glossActorPathRenderer dbgOpts glossBaseShift gridCellSize playerActor
+    , glossActorRenderer     dbgOpts glossBaseShift gridCellSize playerActor
     , glossDebugTextRenderer dbgOpts glossBaseShift gridCellSize
     ]
