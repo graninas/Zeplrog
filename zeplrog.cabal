@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9902d2108670752b7a0487348904294e56da5690cd3160b8a35ac7e35f973733
+-- hash: adf7916059d085a8b1141fd91804edfe4e78847a6ebab174a7ef457c86bf3bd0
 
 name:           zeplrog
 version:        0.0.0.1
@@ -32,6 +32,7 @@ library
       ZP.Gloss.Render.Renderer
       ZP.Gloss.Render.Shapes
       ZP.Gloss.Types
+      ZP.Hardcode
       ZP.Prelude
       ZP.Types
   other-modules:
@@ -86,6 +87,7 @@ executable zeplrog
       ZP.Gloss.Render.Renderer
       ZP.Gloss.Render.Shapes
       ZP.Gloss.Types
+      ZP.Hardcode
       ZP.Prelude
       ZP.Types
       Paths_zeplrog

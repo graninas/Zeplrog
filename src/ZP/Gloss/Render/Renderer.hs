@@ -9,6 +9,7 @@ import ZP.Gloss.Render.Shapes
 import ZP.Game.Types
 import ZP.Game.State
 import ZP.Game.Debug
+import ZP.Hardcode
 
 import Graphics.Gloss
 
@@ -20,6 +21,10 @@ data RenderOptions = RenderOptions
   , bareCellSize   :: BareCellSize
   , glossBaseShift :: GlossBaseShift
   , glossBareCellSize :: GlossBareCellSize
+
+  , glossTextScale :: GlossTextScale
+
+  , glossInfoWindowPos :: GlossCoords
   }
 
 data ActorStateSlice = ActorStateSlice
@@ -56,11 +61,21 @@ renderActor (RenderOptions {..}) (ActorStateSlice {..}) =
   where
     (GlossCoords (glossCellX, glossCellY)) = coordsToGlossCell glossBaseShift gridCellSize currentPos
 
+renderActorActivity :: RenderOptions -> ActorStateSlice -> Picture
+renderActorActivity (RenderOptions {..}) (ActorStateSlice {..}) =
+  let
+    GlossCoords (x, y) = glossInfoWindowPos
+    GlossTextScale scaleFactor = glossTextScale
+    actPicture = case currentActivity of
+        Idling n          -> text $ "idling: " <> show n
+        Observing n mbRes -> text $ "observing: " <> show n
+        FollowingPath     -> text $ "following the path"
+  in Translate x y $ Scale scaleFactor scaleFactor $ Color red actPicture
+
 renderActorPath :: RenderOptions -> ActorStateSlice -> Picture
 renderActorPath (RenderOptions {..}) (ActorStateSlice {..}) =
-    -- TODO: not hardcoded blink period
     case currentPathDisplay of
-      PathIsBlinking n | n >= 2 -> Pictures $ map toActorPathPoint currentPath
+      PathIsBlinking n | n >= pathBlinkingHalfPeriod -> Pictures $ map toActorPathPoint currentPath
       _ -> blank
   where
     toActorPathPoint :: CellIdxs -> Picture
@@ -115,11 +130,26 @@ glossRenderer (GameState {..}) = do
   let glossGridCellSize = getGlossGridCellSize gridCellSize
   let glossBareCellSize = getGlossBareCellSize bareCellSize
 
-  let renderOptions = RenderOptions dbgOpts gridCellSize bareCellSize glossBaseShift glossBareCellSize
+  -- TODO: remove hardcode
+  let glossTextScale         = GlossTextScale 0.2
+  let infoWindowPos          = CellIdxs (17, 9)
+
+  let glossInfoWindowPos = coordsToGlossCell glossBaseShift gridCellSize infoWindowPos
+
+
+  let renderOptions = RenderOptions
+        dbgOpts
+        gridCellSize
+        bareCellSize
+        glossBaseShift
+        glossBareCellSize
+        glossTextScale
+        glossInfoWindowPos
 
   pure $ Pictures
     [ renderLevel      renderOptions level
     , renderActorPath  renderOptions playerActor
     , renderActor      renderOptions playerActor
+    , renderActorActivity renderOptions playerActor
     , renderDebugText  renderOptions
     ]

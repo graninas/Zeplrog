@@ -37,7 +37,7 @@ defaultCellSpaceSize = CellSpaceSize $ dcs `div` 10
     (BareCellSize dcs) = defaultBareCellSize
 
 defaultDbgOptions :: DebugOptions
-defaultDbgOptions = DebugOptions True white True (dark green) True "Hi, this is debug!" (dark green)
+defaultDbgOptions = DebugOptions True white True (dark green) False "Hi, this is debug!" (dark green)
 
 
 initialPlayerActorState :: BareCellSize -> IO ActorState
