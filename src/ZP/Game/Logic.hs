@@ -9,10 +9,15 @@ import ZP.Hardcode
 
 import qualified Data.Map as Map
 
-createActivePath :: TVar ObjectId -> ActorPath -> STM (ObjectId, TVar ActivePath)
-createActivePath idCounterVar path = do
+getObjectId :: TVar ObjectId -> STM ObjectId
+getObjectId idCounterVar = do
   pId <- readTVar idCounterVar
   modifyTVar' idCounterVar (\(ObjectId oId) -> ObjectId $ oId + 1)
+  pure pId
+
+createActivePath :: TVar ObjectId -> ActorPath -> STM (ObjectId, TVar ActivePath)
+createActivePath idCounterVar path = do
+  pId <- getObjectId idCounterVar
   var <- newTVar $ ActivePath pId path (Just initPathBlinkingDisplay)       -- TODO: remove hardcode
   pure (pId, var)
 
