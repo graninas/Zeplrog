@@ -18,3 +18,6 @@ newtype CellSpaceSize   = CellSpaceSize Int
 newtype PlayerPosition  = PlayerPosition CellIdxs
 
 type Level = Map.Map CellIdxs Char
+
+
+-- New generation

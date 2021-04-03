@@ -2,6 +2,7 @@ module ZP.AISpec where
 
 import ZP.Prelude
 import ZP.Types
+import ZP.App
 import ZP.Game.Types
 import ZP.Game.Logic
 
@@ -53,7 +54,43 @@ data AINet = AINet
   , actingObjects :: Map ActingObjectId ActingObject
 
   , rndSource :: RndSource
+  , worldVar  :: TVar World
   }
+
+type WorldObjects = [Int]
+
+data World = World
+  { level :: Level
+  , worldObjects :: WorldObjects
+  }
+
+
+data WorldEntry = WE
+  { pos :: (Int, Int)
+  , objIdx :: Int
+  , staticPropIdx :: Int
+  }
+  deriving (Show, Read, Eq, Ord)
+
+type WorldEntries = [WorldEntry]
+
+-- -----------------------------------------------------------------------------
+--
+-- loadWorld :: String -> IO World
+-- loadWorld lvlFileName = do
+--   l1 :: [String] <- (reverse . map T.unpack . lines) <$> (readFile lvlFileName)
+--   let l2 :: [(Int, String)] = zip [1..] l1
+--   let l3 :: [ (CellIdxs, Char) ] = join $ map zipRow l2
+--   pure $ Map.fromList l3
+--   where
+--     zipRow :: (Int, String) -> [ (CellIdxs, Char) ]
+--     zipRow (y, str) = [ (CellIdxs (x, y), ch) | (x, ch) <- zip [1..] str ]
+--
+
+loadTestWorld :: String -> WorldObjects -> IO World
+loadTestWorld lvlFileName objs = do
+  lvl <- loadLevel lvlFileName
+  pure $ World lvl objs
 
 -- -----------------------------------------------------------------------------
 
@@ -189,8 +226,8 @@ dogActingObject idCounterVar = do
   pure (actObjId, ActingObject (ActingObjectName "dog 01") actObjId rootProp curActVar)
 
 
-initialAINet :: TVar ObjectId -> RndSource -> STM (AINet, ActingObjectId)
-initialAINet idCounterVar rndSource = do
+initialAINet :: TVar ObjectId -> RndSource -> TVar World -> STM (AINet, ActingObjectId)
+initialAINet idCounterVar rndSource worldVar = do
   dogSProp <- dogStaticProperty idCounterVar
   let kBase = [dogSProp]
 
@@ -201,7 +238,7 @@ initialAINet idCounterVar rndSource = do
         [ (guardActObjId, guardActObj)
         , (dogActObjId, dogActObj)
         ]
-  pure (AINet kBase actingObjs rndSource, guardActObjId)
+  pure (AINet kBase actingObjs rndSource worldVar, guardActObjId)
 
 -- -----------------------------------------------------------------------------
 
@@ -239,15 +276,17 @@ selectAction' aiNet@(AINet {..}) actObj@(ActingObject {..}) = do
     _  -> setCurrentAction actObj $ actProps !! decision
 
 selectAction :: AINet -> ActingObjectId -> STM String
-selectAction aiNet@(AINet _ actingObjs _) objId = do
-  case Map.lookup objId actingObjs of
+selectAction aiNet@(AINet {..}) objId = do
+  case Map.lookup objId actingObjects of
     Nothing  -> pure $ "Acting object not found: " <> show objId
     Just obj -> selectAction' aiNet obj
 
 --------
 
 evaluateObservingAction :: AINet -> ActingObject -> STM String
-evaluateObservingAction _ _ = pure "Observing action"
+evaluateObservingAction _ _ = do
+
+  pure "Observing action"
 
 evaluateGoalSettingAction :: AINet -> ActingObject -> STM String
 evaluateGoalSettingAction _ _ = pure "Goal setting action"
@@ -267,8 +306,8 @@ evaluateCurrentAction' aiNet@(AINet {..}) actObj@(ActingObject {..}) = do
       _ -> pure $ "Action is not yet supported: " <> show essence
 
 evaluateCurrentAction :: AINet -> ActingObjectId -> STM String
-evaluateCurrentAction aiNet@(AINet _ actingObjs _) objId = do
-  case Map.lookup objId actingObjs of
+evaluateCurrentAction aiNet@(AINet {..}) objId = do
+  case Map.lookup objId actingObjects of
     Nothing  -> pure $ "Acting object not found: " <> show objId
     Just obj -> evaluateCurrentAction' aiNet obj
 
@@ -302,17 +341,26 @@ spec =
   describe "AI test" $ do
     it "Selecting the observing action" $ do
       idCounterVar <- newTVarIO $ ObjectId 0
+      worldVar <- newTVarIO $ World Map.empty []
       stepVar <- newTVarIO 0
       let rndSource = mkRndSource1 stepVar
-      (aiNet, guardActObjId) <- atomically $ initialAINet idCounterVar rndSource
+
+      (aiNet, guardActObjId) <- atomically $ initialAINet idCounterVar rndSource worldVar
       result <- atomically $ selectAction aiNet guardActObjId
       result `shouldBe` "Action set: Essence \"observing\""
 
     it "Evaluating the observing action" $ do
       idCounterVar <- newTVarIO $ ObjectId 0
+      worldVar <- newTVarIO $ World Map.empty []
       stepVar <- newTVarIO 0
       let rndSource = mkRndSource2 stepVar
-      (aiNet, guardActObjId) <- atomically $ initialAINet idCounterVar rndSource
+      (aiNet, guardActObjId) <- atomically $ initialAINet idCounterVar rndSource worldVar
+
+      let testObjects = []
+      world <- loadTestWorld "./test/test_data/lvl1.zpg" testObjects
+      atomically $ writeTVar worldVar world
+
+
       result1 <- atomically $ selectAction aiNet guardActObjId
       result2 <- atomically $ evaluateCurrentAction aiNet guardActObjId
 
