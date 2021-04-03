@@ -9,16 +9,20 @@ import           Test.Hspec
 
 import qualified Data.Map as Map
 
-type ActivePropertyId = ObjectId
+newtype ActivePropertyId   = ActivePropertyId ObjectId
+newtype AbstractPropertyId = AbstractPropertyId ObjectId
 
 newtype Essence      = Essence String         -- TODO: Flyweight pattern
 newtype PropertyType = PropertyType String    -- TODO: Flyweight pattern
   deriving (Show, Eq, Ord)
 
 type PropertyMap = Map.Map PropertyType (TVar [TVar ActiveProperty])
+type AbstractPropertyMap = Map.Map PropertyType [AbstractProperty]
 
-data ActiveProperty
-  = ActiveProperty ActivePropertyId Essence (TVar PropertyMap)
+data ActiveProperty = ActiveProperty ActivePropertyId Essence (TVar PropertyMap)
+
+data AbstractProperty = AbstractProperty AbstractPropertyId Essence AbstractPropertyMap
+
 
 newtype Name = Name String
 
@@ -40,12 +44,30 @@ abstractGoalPropType = PropertyType "abstract goal"
 abstractPointPropType :: PropertyType
 abstractPointPropType = PropertyType "abstract point"
 
+getActivePropertyId :: TVar ObjectId -> STM ActivePropertyId
+getActivePropertyId idCounterVar = do
+  propId <- getObjectId idCounterVar
+  pure $ ActivePropertyId propId
+
+getAbstractPropertyId :: TVar ObjectId -> STM AbstractPropertyId
+getAbstractPropertyId idCounterVar = do
+  propId <- getObjectId idCounterVar
+  pure $ AbstractPropertyId propId
+
+
 
 mkProperty :: String -> TVar ObjectId -> STM (TVar ActiveProperty)
 mkProperty essenceStr idCounterVar = do
-  propId <- getObjectId idCounterVar
+  propId <- getActivePropertyId idCounterVar
   propsVar <- newTVar Map.empty
   newTVar $ ActiveProperty propId (Essence essenceStr) propsVar
+
+
+
+mkAbstractProperty :: String -> TVar ObjectId -> STM AbstractProperty
+mkAbstractProperty essenceStr idCounterVar = do
+  propId <- getAbstractPropertyId idCounterVar
+  pure $ AbstractProperty propId (Essence essenceStr) Map.empty
 
 
 mkAbstractKillDogGoal :: TVar ObjectId -> STM (TVar ActiveProperty)
@@ -57,10 +79,21 @@ mkAbstractKillDogGoal idCounterVar = do
     [ (abstractPointPropType, abstractDogProp)
     ]
 
-  propId <- getObjectId idCounterVar
+  propId <- getActivePropertyId idCounterVar
   newTVar $ ActiveProperty propId (Essence "kill") propsVar
 
 
+dogAbstractProperty :: STM AbstractProperty
+dogAbstractProperty = do
+  posProp <- mkAbstractProperty "pos" idCounterVar
+  hpProp  <- mkAbstractProperty "hp" idCounterVar
+
+  propsVar = Map.fromList
+    [ (inventoryPropType, [ posProp, hpProp ])
+    ]
+
+  propId <- getAbstractPropertyId idCounterVar
+  pure $ ActiveProperty propId (Essence "dog") propsVar
 
 
 guardActingObject :: TVar ObjectId -> STM ActingObject
@@ -97,7 +130,7 @@ guardActingObject idCounterVar = do
     , (abstractGoalPropType, goalsVar)
     ]
 
-  rootPropId <- getObjectId idCounterVar
+  rootPropId <- getActivePropertyId idCounterVar
   let rootProp = ActiveProperty rootPropId (Essence "guard") rootPropsVar
   pure $ ActingObject (Name "guard 01") rootProp
 
@@ -114,7 +147,7 @@ dogActingObject idCounterVar = do
     [ (inventoryPropType, invVar)
     ]
 
-  rootPropId <- getObjectId idCounterVar
+  rootPropId <- getActivePropertyId idCounterVar
   let rootProp = ActiveProperty rootPropId (Essence "dog") rootPropsVar
   pure $ ActingObject (Name "dog 01") rootProp
 
