@@ -9,73 +9,122 @@ import           Test.Hspec
 
 import qualified Data.Map as Map
 
-type PropertyId = ObjectId
+type ActivePropertyId = ObjectId
 
-newtype Essence = Essence String
-data Property = Property PropertyId Essence [TVar Property]
+newtype Essence      = Essence String         -- TODO: Flyweight pattern
+newtype PropertyType = PropertyType String    -- TODO: Flyweight pattern
+  deriving (Show, Eq, Ord)
+
+type PropertyMap = Map.Map PropertyType (TVar [TVar ActiveProperty])
+
+data ActiveProperty
+  = ActiveProperty ActivePropertyId Essence (TVar PropertyMap)
 
 newtype Name = Name String
 
-data ActingObject = ActingObject Name (TVar Property)
 
-discoveryEssense :: Essence
-discoveryEssense = Essence "discovery"
+data ActingObject = ActingObject
+  { name :: Name
+  , rootProperty :: ActiveProperty
+  }
 
-playerEssense :: Essence
-playerEssense = Essence "0"
+inventoryPropType :: PropertyType
+inventoryPropType = PropertyType "inventory"
 
-dogEssense :: Essence
-dogEssense = Essence "d"
+actionPropType :: PropertyType
+actionPropType = PropertyType "action"
 
-guardEssense :: Essence
-guardEssense = Essence "@"
+abstractGoalPropType :: PropertyType
+abstractGoalPropType = PropertyType "abstract goal"
 
-mkProperty :: String -> TVar ObjectId -> STM (TVar Property)
+abstractPointPropType :: PropertyType
+abstractPointPropType = PropertyType "abstract point"
+
+
+mkProperty :: String -> TVar ObjectId -> STM (TVar ActiveProperty)
 mkProperty essenceStr idCounterVar = do
   propId <- getObjectId idCounterVar
-  newTVar $ Property propId (Essence essenceStr) []
+  propsVar <- newTVar Map.empty
+  newTVar $ ActiveProperty propId (Essence essenceStr) propsVar
 
-playerDiscoveryProperty ::  TVar ObjectId -> STM (TVar Property)
-playerDiscoveryProperty idCounterVar = do
+
+mkAbstractKillDogGoal :: TVar ObjectId -> STM (TVar ActiveProperty)
+mkAbstractKillDogGoal idCounterVar = do
+
+  let abstractDogProp = undefined    -- TODO
+
+  propsVar <- newTVar $ Map.fromList
+    [ (abstractPointPropType, abstractDogProp)
+    ]
+
   propId <- getObjectId idCounterVar
-  newTVar $ Property propId discoveryEssense []
+  newTVar $ ActiveProperty propId (Essence "kill") propsVar
 
-playerCharacterProperty :: TVar ObjectId -> STM (TVar Property)
-playerCharacterProperty idCounterVar = do
-  discoveryProp <- playerDiscoveryProperty idCounterVar
-  hpProp <- mkProperty "HP" idCounterVar
-  propId <- getObjectId idCounterVar
-  newTVar $ Property propId playerEssense [discoveryProp, hpProp]
 
-guardProperty :: TVar ObjectId -> STM (TVar Property)
-guardProperty idCounterVar = do
-  hpProp        <- mkProperty "HP" idCounterVar
-  iceWandProp   <- mkProperty "ice wand" idCounterVar
+
+
+guardActingObject :: TVar ObjectId -> STM ActingObject
+guardActingObject idCounterVar = do
+  posProp       <- mkProperty "pos" idCounterVar
+  hpProp        <- mkProperty "hp" idCounterVar
   fireWandProp  <- mkProperty "fire wand" idCounterVar
-  -- attackDogStaticGoal
-  hpProp <- mkProperty "HP" idCounterVar
-  propId <- getObjectId idCounterVar
-  newTVar $ Property propId guardEssense [hpProp, iceWandProp, fireWandProp]
+  iceWandProp   <- mkProperty "ice wand" idCounterVar
 
-dogProperty :: TVar ObjectId -> STM (TVar Property)
-dogProperty idCounterVar = do
-  hpProp <- mkProperty "HP" idCounterVar
-  propId <- getObjectId idCounterVar
-  newTVar $ Property propId dogEssense [hpProp]
+  observeAct  <- mkProperty "observing"     idCounterVar
+  setGoalsAct <- mkProperty "setting goals" idCounterVar
+  planAct     <- mkProperty "planning"      idCounterVar
 
+  killDogGoal <- mkAbstractKillDogGoal idCounterVar
+
+  invVar <- newTVar
+      [ posProp
+      , hpProp
+      , fireWandProp
+      , iceWandProp
+      ]
+
+  actsVar <- newTVar
+    [ observeAct
+    , setGoalsAct
+    , planAct
+    ]
+
+  goalsVar <- newTVar [killDogGoal]
+
+  rootPropsVar <- newTVar $ Map.fromList
+    [ (inventoryPropType, invVar)
+    , (actionPropType, actsVar)
+    , (abstractGoalPropType, goalsVar)
+    ]
+
+  rootPropId <- getObjectId idCounterVar
+  let rootProp = ActiveProperty rootPropId (Essence "guard") rootPropsVar
+  pure $ ActingObject (Name "guard 01") rootProp
+
+
+
+dogActingObject :: TVar ObjectId -> STM ActingObject
+dogActingObject idCounterVar = do
+  posProp       <- mkProperty "pos" idCounterVar
+  hpProp        <- mkProperty "hp" idCounterVar
+
+  invVar <- newTVar [ posProp, hpProp ]
+
+  rootPropsVar <- newTVar $ Map.fromList
+    [ (inventoryPropType, invVar)
+    ]
+
+  rootPropId <- getObjectId idCounterVar
+  let rootProp = ActiveProperty rootPropId (Essence "dog") rootPropsVar
+  pure $ ActingObject (Name "dog 01") rootProp
 
 
 initialObjects :: TVar ObjectId -> STM [ActingObject]
-initialObjects idCounterVar = do
-  plPropVar    <- playerCharacterProperty idCounterVar
-  guardPropVar <- guardProperty idCounterVar
-  dogPropVar <- dogProperty idCounterVar
-  pure [ ActingObject (Name "player") plPropVar
-       , ActingObject (Name "guard") guardPropVar
-       , ActingObject (Name "dog") dogPropVar
-       ]
-
-
+initialObjects idCounterVar =
+  sequence
+    [ guardActingObject idCounterVar
+    , dogActingObject idCounterVar
+    ]
 
 
 spec :: Spec
