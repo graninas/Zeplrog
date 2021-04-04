@@ -255,10 +255,10 @@ guardActingObject idCounterVar dogSProp = do
     $ (actObjId, actObj)
 
 
-dogActingObject :: TVar ObjectId -> STM (ActingObjectId, ActingObject)
-dogActingObject idCounterVar = do
-  posProp       <- mkProperty posEssence idCounterVar
-  hpProp        <- mkProperty hpEssence idCounterVar
+dogActingObject :: TVar ObjectId -> StaticProperty -> STM (ActingObjectId, ActingObject)
+dogActingObject idCounterVar dosSProp = do
+  posProp <- mkProperty posEssence idCounterVar
+  hpProp  <- mkProperty hpEssence idCounterVar
 
   invVar <- newTVar [ posProp, hpProp ]
 
@@ -270,7 +270,7 @@ dogActingObject idCounterVar = do
 
   rootPropId <- getActivePropertyId idCounterVar
   actObjId   <- getActingObjectId idCounterVar
-  let rootProp = ActiveProperty rootPropId dogEssence Nothing rootPropsVar
+  let rootProp = ActiveProperty rootPropId dogEssence (Just dosSProp) rootPropsVar
 
   knownObjsVar <- newTVar Set.empty
   let actObj = ActingObject (ActingObjectName "dog 01") actObjId rootProp curActVar knownObjsVar
@@ -285,7 +285,7 @@ initialAINet idCounterVar rndSource worldVar = do
   let kBase = [dogSProp]
 
   (guardActObjId, guardActObj) <- guardActingObject idCounterVar dogSProp
-  (dogActObjId, dogActObj)     <- dogActingObject idCounterVar
+  (dogActObjId, dogActObj)     <- dogActingObject idCounterVar dogSProp
 
   let actingObjs = Map.fromList
         [ (guardActObjId, guardActObj)
@@ -355,42 +355,52 @@ discoverPropertiesByTypes
   :: (PropertyType, TVar [ActiveProperty])
   -> STM (PropertyType, [KnownActiveProperty])
 discoverPropertiesByTypes (propType, activePropsVar) = do
+  trace ("discoverPropertiesByTypes" <> show propType) $ pure ()
   activeProps <- readTVar activePropsVar
-  mbProps <- mapM discoverProperty activeProps
+  mbProps     <- mapM discoverProperty activeProps
   pure (propType, catMaybes mbProps)
 
 
 discoverChunk :: StaticProperty -> ActiveProperty -> STM KnownActiveProperty
 discoverChunk statProp activeProp@(ActiveProperty {propertiesVar}) = do
-  activeProps <- readTVar propertiesVar
-  knownProps  <- mapM discoverPropertiesByTypes $ Map.toList activeProps
+  trace "discoverChunk" $ pure ()
+  activeProps   <- readTVar propertiesVar
+  knownProps    <- mapM discoverPropertiesByTypes $ Map.toList activeProps
   knownPropsVar <- newTVar $ Map.fromList knownProps
-  knownVal    <- newTVar 0    -- known prop val dummy
+  knownVal      <- newTVar 0    -- known prop val dummy
   pure $ KnownActiveProperty statProp activeProp knownPropsVar knownVal
 
 
 discoverProperty :: ActiveProperty -> STM (Maybe KnownActiveProperty)
-discoverProperty activeProp@(ActiveProperty{staticPoint}) =
+discoverProperty activeProp@(ActiveProperty{staticPoint}) = do
+  trace "discoverProperty" $ pure ()
   case staticPoint of
-    Nothing -> trace "Prop doesn't have static prop to discover." $ pure Nothing
+    Nothing -> trace "discoverProperty: prop doesn't have static prop to discover." $ pure Nothing
     Just statProp@(StaticProperty {..})
       | staticPropertyDiscover == StaticDiscoverRoot -> Just <$> discoverChunk statProp activeProp
       | staticPropertyDiscover == StaticDiscoverLeaf -> Just <$> discoverChunk statProp activeProp
       | staticPropertyDiscover == StaticNonDiscoverable ->
-          trace "Static prop is not discoverable." $ pure Nothing
+          trace "discoverProperty: static prop is not discoverable." $ pure Nothing
 
+
+-- TODO
 discover' :: AINet -> ActingObject -> ActingObject -> STM ()
 discover' _ self other = do
   mbKnownActiveProp <- discoverProperty $ rootProperty other
   case mbKnownActiveProp of
-    Nothing -> trace "Discovery failed" $ pure ()
-    Just knownActiveProp -> trace "Discoverty succeeded" $ pure ()
+    Nothing -> trace "discover': discoveryPropety returned Nothing" $ pure ()
+    Just knownActiveProp -> trace "discover': discoverPropety returned prop" $ pure ()
 
 discover :: AINet -> ActingObject -> ActingObject -> STM ()
-discover _ self other | objectId self == objectId other = pure ()
+discover _ self other | objectId self == objectId other = do
+  trace "discover: discovering self not needed." $ pure ()
 discover aiNet self other = do
   known <- isAlreadyKnownActingObject self other
-  when (not known) $ discover' aiNet self other
+  when (not known) $ do
+    trace "discover: discovering acting object" $ pure ()
+    discover' aiNet self other
+  when known $ trace "discover: known object" $ pure ()
+
 
 evaluateObservingAction :: AINet -> ActingObject -> STM String
 evaluateObservingAction aiNet@(AINet {..}) actObj@(ActingObject {..}) = do
