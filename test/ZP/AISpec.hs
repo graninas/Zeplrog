@@ -37,10 +37,12 @@ data StaticPropertyDiscoverability
   = StaticDiscoverRoot
   | StaticDiscoverLeaf
   | StaticNonDiscoverable
+  deriving (Show, Eq, Ord)
 
 data ActivePropertyDiscoverability
   = ActiveDiscoverable
   | ActiveNonDiscoverable
+  deriving (Show, Eq, Ord)
 
 data StaticProperty = StaticProperty
   { propertyId :: StaticPropertyId
@@ -65,15 +67,14 @@ data ActingObject = ActingObject
   , objectId         :: ActingObjectId
   , rootProperty     :: ActiveProperty
   , currentActionVar :: TVar (Maybe ActiveProperty)
-  , knownActingObjects :: TVar (Set.Set ActingObjectId)
+  , knownActingObjectsVar :: TVar (Set.Set ActingObjectId)
   }
 
-type KnownActiveProperties = [KnownActiveProperty]
-type KnownPropertiesMap = Map.Map PropertyType KnownActiveProperties
+type KnownPropertiesMap = Map.Map PropertyType [KnownActiveProperty]
 data KnownActiveProperty = KnownActiveProperty
   { staticPoint        :: StaticProperty
   , activeProperty     :: ActiveProperty
-  , knownPropertiesVar :: TVar KnownActiveProperties
+  , knownPropertiesVar :: TVar KnownPropertiesMap
   , knownPropertyValue :: TVar Int  --- Dummy
   }
 
@@ -88,8 +89,8 @@ data AINet = AINet
   }
 
 data WorldObject = WorldObject
-  { worldObjectPos :: (Int, Int)
-  , actingObject :: ActingObject
+  { actingObjectId :: ActingObjectId
+  , worldObjectPos :: (Int, Int)
   }
 
 type WorldObjects = [WorldObject]
@@ -336,33 +337,36 @@ selectAction aiNet@(AINet {..}) objId = do
 --------
 
 observe :: AINet -> ActingObject -> STM [ActingObject]
-observe aiNet@(AINet {..}) _ = do
+observe aiNet@(AINet {actingObjects, worldVar}) _ = do
+  -- Initial observing logic
+  World {worldObjects} <- readTVar worldVar
+  let objIds = map actingObjectId worldObjects
 
   -- hardcode goes here
-  World {worldObjects} <- readTVar worldVar
-  pure $ map actingObject worldObjects
+  pure $ Map.elems actingObjects
 
 isAlreadyKnownActingObject :: ActingObject -> ActingObject -> STM Bool
 isAlreadyKnownActingObject self other = do
-  objs <- readTVar knownActingObjects
-  pure $ Set.member (objectId other) objs
+  knownObjs <- readTVar $ knownActingObjectsVar self
+  pure $ Set.member (objectId other) knownObjs
 
 
 discoverPropertiesByTypes
-  :: (PropertyType, [ActiveProperty])
+  :: (PropertyType, TVar [ActiveProperty])
   -> STM (PropertyType, [KnownActiveProperty])
-discoverPropertiesByTypes (propType, activeProps) = do
-  mbProps <- mapM (\propVar -> readTVar propVar >>= discoverProperty) activeProps
-  pure (propType, filter isJust mbProps)
+discoverPropertiesByTypes (propType, activePropsVar) = do
+  activeProps <- readTVar activePropsVar
+  mbProps <- mapM discoverProperty activeProps
+  pure (propType, catMaybes mbProps)
 
 
 discoverChunk :: StaticProperty -> ActiveProperty -> STM KnownActiveProperty
 discoverChunk statProp activeProp@(ActiveProperty {propertiesVar}) = do
   activeProps <- readTVar propertiesVar
-  knownProps  <- mapM discoverPropertiesByTypes activeProps
-  knownPropsMap <- newTVar $ Map.fromList knownProps
+  knownProps  <- mapM discoverPropertiesByTypes $ Map.toList activeProps
+  knownPropsVar <- newTVar $ Map.fromList knownProps
   knownVal    <- newTVar 0    -- known prop val dummy
-  pure $ KnownActiveProperty statProp activeProp knownPropsMap knownVal
+  pure $ KnownActiveProperty statProp activeProp knownPropsVar knownVal
 
 
 discoverProperty :: ActiveProperty -> STM (Maybe KnownActiveProperty)
@@ -370,8 +374,8 @@ discoverProperty activeProp@(ActiveProperty{staticPoint}) =
   case staticPoint of
     Nothing -> trace "Prop doesn't have static prop to discover." $ pure Nothing
     Just statProp@(StaticProperty {..})
-      | staticPropertyDiscover == StaticDiscoverRoot -> discoverChunk statProp activeProp
-      | staticPropertyDiscover == StaticDiscoverLeaf -> discoverChunk statProp activeProp
+      | staticPropertyDiscover == StaticDiscoverRoot -> Just <$> discoverChunk statProp activeProp
+      | staticPropertyDiscover == StaticDiscoverLeaf -> Just <$> discoverChunk statProp activeProp
       | staticPropertyDiscover == StaticNonDiscoverable ->
           trace "Static prop is not discoverable." $ pure Nothing
 
