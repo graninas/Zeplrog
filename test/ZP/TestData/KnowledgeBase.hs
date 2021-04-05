@@ -24,6 +24,10 @@ data CommonStaticProperties = CommonStaticProperties
   , hpSProp       :: StaticProperty
   , fireWandSProp :: StaticProperty
   , iceWandSProp  :: StaticProperty
+
+  , obsrvingSProp     :: StaticProperty
+  , settingGoalsSProp :: StaticProperty
+  , planningSProp     :: StaticProperty
   }
 
 
@@ -37,6 +41,10 @@ mkCommonStaticProperties idCounterVar essencesVar =
     <*> mkStaticProperty idCounterVar essencesVar fireWandEssence Map.empty StaticNonDiscoverable ActiveNonDiscoverable
     <*> mkStaticProperty idCounterVar essencesVar iceWandEssence  Map.empty StaticNonDiscoverable ActiveNonDiscoverable
 
+    <*> mkStaticProperty idCounterVar essencesVar observingEssence    Map.empty StaticNonDiscoverable ActiveNonDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar settingGoalsEssence Map.empty StaticNonDiscoverable ActiveNonDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar planningEssence     Map.empty StaticNonDiscoverable ActiveNonDiscoverable
+
 dogStaticProperty :: IdCounter -> TVar Essences -> CommonStaticProperties -> STM StaticProperty
 dogStaticProperty idCounterVar essencesVar CommonStaticProperties{..} = do
   let props = Map.fromList
@@ -45,10 +53,11 @@ dogStaticProperty idCounterVar essencesVar CommonStaticProperties{..} = do
   mkStaticProperty idCounterVar essencesVar dogEssence props StaticDiscoverRoot ActiveNonDiscoverable
 
 guardStaticProperty :: IdCounter -> TVar Essences -> CommonStaticProperties -> STM StaticProperty
-guardStaticProperty idCounterVar essencesVar CommonStaticProperties{..} =do
+guardStaticProperty idCounterVar essencesVar CommonStaticProperties{..} = do
   -- TODO: add a new type of a dynamic discoverability: discoverability on usage
   let props = Map.fromList
         [ (inventoryPropType, [ posSProp, hpSProp, fireWandSProp, iceWandSProp ])
+        , (actionPropType, [obsrvingSProp, settingGoalsSProp, planningSProp])
         ]
   mkStaticProperty idCounterVar essencesVar guardEssence props StaticDiscoverRoot ActiveNonDiscoverable
 
@@ -64,13 +73,6 @@ initKnowledgeBase idCounterVar = do
   pure $ KnowledgeBase statProps essences
 
 ------------------
-
-
--- mkProperty :: Essence -> IdCounter -> STM ActiveProperty
--- mkProperty essence idCounterVar = do
---   propId <- getActivePropertyId idCounterVar
---   propsVar <- newTVar Map.empty
---   pure $ ActiveProperty propId essence Nothing propsVar
 
 -- mkAbstractKillDogGoal :: IdCounter -> StaticProperty -> STM ActiveProperty
 -- mkAbstractKillDogGoal idCounterVar dogStatProp = do
@@ -125,26 +127,3 @@ initKnowledgeBase idCounterVar = do
 --     -- $ traceShow actObjId
 --     $ (actObjId, actObj)
 --
---
--- dogActingObject :: IdCounter -> StaticProperty -> STM (ActingObjectId, ActingObject)
--- dogActingObject idCounterVar dosSProp = do
---   posProp <- mkProperty posEssence idCounterVar
---   hpProp  <- mkProperty hpEssence idCounterVar
---
---   invVar <- newTVar [ posProp, hpProp ]
---
---   rootPropsVar <- newTVar $ Map.fromList
---     [ (inventoryPropType, invVar)
---     ]
---
---   curActVar <- newTVar Nothing
---
---   rootPropId <- getActivePropertyId idCounterVar
---   actObjId   <- getActingObjectId idCounterVar
---   let rootProp = ActiveProperty rootPropId dogEssence (Just dosSProp) rootPropsVar
---
---   knownObjsVar <- newTVar Map.empty
---   let actObj = ActingObject (ActingObjectName "dog 01") actObjId rootProp curActVar knownObjsVar
---   pure
---     -- $ traceShow actObjId
---     $ (actObjId, actObj)
