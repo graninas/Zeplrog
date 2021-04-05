@@ -36,36 +36,31 @@ setCurrentAction actObj@(ActingObject {currentActionVar}) actProp@(ActivePropert
   writeTVar currentActionVar actProp
   pure $ "Action set: " <> show (essence staticProperty)
 
-selectAction' :: ZPNet -> ActingObject -> STM String
-selectAction'
-  aiNet@(ZPNet {rndSource})
-  actObj@(ActingObject {rootProperty, currentActionVar}) = do
+selectNextAction'' :: ActingObject -> Essence -> STM String
+selectNextAction'' actObj@(ActingObject {rootProperty, currentActionVar}) ess = do
+  -- FIXME: Inefficient active property search. Can be optimized.
+  actProps <- getPropertiesOfType rootProperty actionPropType
+  case find (essenceIs ess) actProps of
+    Nothing -> pure $ "Action property not found for essence: " <> show ess
+    Just actProp -> setCurrentAction actObj actProp
+  where
+    essenceIs :: Essence -> ActiveProperty -> Bool
+    essenceIs ess ActiveProperty {staticProperty} = essence staticProperty == ess
 
-    actProps <- getPropertiesOfType rootProperty actionPropType
-
-    let propsCnt = length actProps
-
-    decision <- getRandomValue rndSource propsCnt
-    -- No check for validity!
-    -- (decision < 0) || (decision >= (length actProps))
-
-    case actProps of
-      [] -> pure "No action properties found."
-      _  -> setCurrentAction actObj $ actProps !! decision
-
-selectAction :: ZPNet -> ActingObjectName -> STM String
-selectAction aiNet@(ZPNet {actingObjectsByName}) name = do
-  case Map.lookup name actingObjectsByName of
-    Nothing  -> pure $ "Acting object not found: " <> show name
-    Just obj -> selectAction' aiNet obj
-
+selectNextAction' :: ActingObject -> STM String
+selectNextAction' actObj@(ActingObject {currentActionVar}) = do
+  ActiveProperty{propertyValueVar} <- readTVar currentActionVar
+  propVal <- readTVar propertyValueVar
+  case propVal of
+    PairValue (EssenceValue nextActEssence) _ -> selectNextAction'' actObj nextActEssence
+    _ -> pure "selectNextAction': no next action"
 
 -- Property values for actions are treated as input parameters of those actions.
 selectNextAction :: ZPNet -> ActingObjectName -> STM String
 selectNextAction aiNet@(ZPNet {actingObjectsByName}) name = do
   case Map.lookup name actingObjectsByName of
     Nothing  -> pure $ "Acting object not found: " <> show name
-    Just obj -> selectAction' aiNet obj
+    Just obj -> selectNextAction' obj
 
 --------
 traceStep :: String -> ActiveProperty -> STM ()
@@ -102,15 +97,17 @@ discoverPropertiesByTypes (propType, activePropsVar) = do
   pure (propType, catMaybes mbProps)
 
 discoverChunk :: ActiveProperty -> STM KnownActiveProperty
-discoverChunk activeProp@(ActiveProperty {propertiesVar, propertyValue, staticProperty}) = do
+discoverChunk activeProp@(ActiveProperty {propertiesVar, propertyValueVar, staticProperty}) = do
   traceStep "discoverChunk" activeProp
   activeProps   <- readTVar propertiesVar
   knownProps    <- mapM discoverPropertiesByTypes $ Map.toList activeProps
   knownPropsVar <- newTVar $ Map.fromList knownProps
-  knownVal      <- case (activeValueDiscover staticProperty, propertyValue) of
-    (ActiveValueDiscoverable, Just valVar) -> readTVar valVar >>= newTVar >>= pure . Just
-    (ActiveValueNonDiscoverable, _) -> pure Nothing
-  pure $ KnownActiveProperty activeProp knownPropsVar knownVal
+  mbKnownValVar <- case activeValueDiscover staticProperty of
+    ActiveValueNonDiscoverable -> newTVar Nothing
+    ActiveValueDiscoverable    -> do
+      propVal <- readTVar propertyValueVar
+      newTVar $ Just propVal
+  pure $ KnownActiveProperty activeProp knownPropsVar mbKnownValVar
 
 
 discoverProperty :: ActiveProperty -> STM (Maybe KnownActiveProperty)

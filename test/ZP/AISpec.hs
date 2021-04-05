@@ -34,9 +34,12 @@ materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) noActProp nam
     Nothing ->
       trace ("materializeActiveObject: Essence not found: " <> show essence) $ pure Nothing
     Just sProp -> do
-      rootProp     <- materializeStaticProperty idCounterVar kb propsSetter sProp
+      rootProp  <- materializeStaticProperty idCounterVar kb propsSetter sProp
+      actProps  <- getPropertiesOfType rootProp actionPropType
+      curActVar <- newTVar $ case actProps of
+        []    -> noActProp
+        (p:_) -> p
       knownObjsVar <- newTVar Map.empty
-      curActVar    <- newTVar noActProp
       actObjId     <- getActingObjectId idCounterVar
       pure $ Just $ ActingObject name actObjId rootProp curActVar knownObjsVar
 
@@ -50,7 +53,8 @@ dog02Name   = ActingObjectName "dog 02"
 
 commonActionsLoop :: [(Essence, PropertyValue)]
 commonActionsLoop =
-  [ (observingEssence,     PairValue (EssenceValue discoveringEssence)   NoValue)  -- no input params yet
+  [ (noActionEssence,      PairValue (EssenceValue observingEssence)     NoValue)  -- starting point
+  , (observingEssence,     PairValue (EssenceValue discoveringEssence)   NoValue)  -- no input params yet
   , (discoveringEssence,   PairValue (EssenceValue settingGoalsEssence)  NoValue)  -- no input params yet
   , (settingGoalsEssence,  PairValue (EssenceValue planningEssence)      NoValue)  -- no input params yet
   , (planningEssence,      PairValue (EssenceValue followingPlanEssence) NoValue)  -- no input params yet
@@ -119,14 +123,14 @@ mkRndSource2 stepVar input = do
 spec :: Spec
 spec =
   describe "AI test" $ do
-    it "Selecting the observing action" $ do
+    it "Selecting the next action. Should be observing (after noAct)" $ do
       idCounterVar <- newTVarIO 0
       worldVar     <- newTVarIO $ World Map.empty []
       stepVar      <- newTVarIO 0
       let rndSource = mkRndSource1 stepVar
 
       aiNet  <- atomically $ initZPNet idCounterVar rndSource worldVar
-      result <- atomically $ selectAction aiNet guard01Name
+      result <- atomically $ selectNextAction aiNet guard01Name
       result `shouldBe` "Action set: Essence \"observing\""
 
     it "Evaluating the observing & discovering actions" $ do
@@ -134,12 +138,11 @@ spec =
       worldVar     <- newTVarIO $ World Map.empty []
       stepVar      <- newTVarIO 0
       let rndSource = mkRndSource2 stepVar
-      aiNet <- atomically $ initZPNet idCounterVar rndSource worldVar
 
-      result1 <- atomically $ selectAction aiNet guard01Name
+      aiNet   <- atomically $ initZPNet idCounterVar rndSource worldVar
+      result1 <- atomically $ selectNextAction aiNet guard01Name
       result2 <- atomically $ evaluateCurrentAction aiNet guard01Name
 
-      result1 `shouldBe` "Action set: Essence \"observing\""
       result2 `shouldBe` "Observing action"
 
     it "Actions rotation logic test" $ do
@@ -150,7 +153,15 @@ spec =
       aiNet <- atomically $ initZPNet idCounterVar rndSource worldVar
 
       result1 <- atomically $ selectNextAction aiNet guard01Name
-      result2 <- atomically $ evaluateCurrentAction aiNet guard01Name
+      result2 <- atomically $ selectNextAction aiNet guard01Name
+      result3 <- atomically $ selectNextAction aiNet guard01Name
+      result4 <- atomically $ selectNextAction aiNet guard01Name
+      result5 <- atomically $ selectNextAction aiNet guard01Name
+      result6 <- atomically $ selectNextAction aiNet guard01Name
 
-      result1 `shouldBe` "Action set: Essence \"observing\""
-      result2 `shouldBe` "Observing action"
+      result1  `shouldBe` "Action set: Essence \"observing\""
+      result2  `shouldBe` "Action set: Essence \"discovering\""
+      result3  `shouldBe` "Action set: Essence \"setting goals\""
+      result4  `shouldBe` "Action set: Essence \"planning\""
+      result5  `shouldBe` "Action set: Essence \"following a plan\""
+      result6  `shouldBe` "Action set: Essence \"observing\""
