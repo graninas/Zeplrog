@@ -144,10 +144,26 @@ discover aiNet self other = do
   when known $ trace "discover: discovering known object not needed." $ pure ()
 
 
+addForDiscover :: ActingObject -> ActingObject -> STM ()
+addForDiscover self@(ActingObject {actionsByEssenceVar}) other = do
+  acts <- readTVar actionsByEssenceVar
+  case Map.lookup discoveringEssence acts of
+    Nothing -> pure ()                              -- may happen (self is incapable of discovering)
+    Just (ActiveProperty {propertyValueVar}) -> do
+      propVal <- readTVar propertyValueVar
+      case propVal of
+        PairValue nextEss (ListValue objsForDiscover) -> do
+          let objs = ActingObjectValue other : objsForDiscover
+          writeTVar propertyValueVar $ PairValue nextEss $ ListValue objs
+        PairValue nextEss NoValue ->
+          writeTVar propertyValueVar $ PairValue nextEss $ ListValue [ActingObjectValue other]
+        _ -> pure ()      -- should not happen (a bug in data or logic)
+
+
 evaluateObservingAction :: ZPNet -> ActingObject -> STM String
-evaluateObservingAction aiNet@(ZPNet {..}) actObj@(ActingObject {..}) = do
+evaluateObservingAction aiNet actObj = do
   objs <- observe aiNet actObj
-  mapM_ (discover aiNet actObj) objs
+  mapM_ (addForDiscover actObj) objs
   pure "Observing action"
 
 evaluateGoalSettingAction :: ZPNet -> ActingObject -> STM String

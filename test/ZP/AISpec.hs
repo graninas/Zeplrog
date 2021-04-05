@@ -29,19 +29,23 @@ materializeActiveObject
   -> Essence
   -> PropertiesSetter
   -> STM (Maybe ActingObject)
-materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) noActProp name essence propsSetter = do
-  case Map.lookup essence essences of
+materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) noActProp name ess propsSetter = do
+  case Map.lookup ess essences of
     Nothing ->
-      trace ("materializeActiveObject: Essence not found: " <> show essence) $ pure Nothing
+      trace ("materializeActiveObject: Essence not found: " <> show ess) $ pure Nothing
     Just sProp -> do
       rootProp  <- materializeStaticProperty idCounterVar kb propsSetter sProp
       actProps  <- getPropertiesOfType rootProp actionPropType
+
+      let f' actProp = (essence $ staticProperty actProp, actProp)
+      actsByEssenseVar <- newTVar $ Map.fromList $ map f' actProps
+
       curActVar <- newTVar $ case actProps of
         []    -> noActProp
         (p:_) -> p
       knownObjsVar <- newTVar Map.empty
       actObjId     <- getActingObjectId idCounterVar
-      pure $ Just $ ActingObject name actObjId rootProp curActVar knownObjsVar
+      pure $ Just $ ActingObject name actObjId rootProp curActVar actsByEssenseVar knownObjsVar
 
 
 guard01Name :: ActingObjectName
@@ -149,7 +153,7 @@ spec =
       result <- atomically $ selectNextAction aiNet guard01Name
       result `shouldBe` "Action set: Essence \"observing\""
 
-    it "Evaluating the observing & discovering actions" $ do
+    it "Evaluating the observing action" $ do
       idCounterVar <- newTVarIO 0
       worldVar     <- newTVarIO $ World Map.empty []
       stepVar      <- newTVarIO 0

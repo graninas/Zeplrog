@@ -34,6 +34,7 @@ data PropertyValue
   | PositionValue (Int, Int)
   | IntValue Int
   | EssenceValue Essence
+  | ActingObjectValue ActingObject
   | ActivePropertyValue ActiveProperty
 
 type ActivePropertyMap = Map.Map PropertyType (TVar [ActiveProperty])
@@ -77,6 +78,7 @@ data ActingObject = ActingObject
   , actingObjectId        :: ActingObjectId
   , rootProperty          :: ActiveProperty
   , currentActionVar      :: TVar ActiveProperty
+  , actionsByEssenceVar   :: TVar (Map Essence ActiveProperty)     -- cache for quick search
   , knownActingObjectsVar :: TVar KnownActingObjects
   }
 
