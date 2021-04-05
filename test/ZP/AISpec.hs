@@ -21,9 +21,14 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 
 
-materializeActiveObject :: IdCounter -> KnowledgeBase -> ActingObjectName -> Essence -> (Int, Int) -> STM (Maybe ActingObject)
-materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) name essence pos = do
-  let propsSetter = Map.singleton posEssence (PositionValue pos)
+materializeActiveObject
+  :: IdCounter
+  -> KnowledgeBase
+  -> ActingObjectName
+  -> Essence
+  -> PropertiesSetter
+  -> STM (Maybe ActingObject)
+materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) name essence propsSetter =
   case Map.lookup essence essences of
     Nothing ->
       trace ("materializeActiveObject: Essence not found: " <> show essence) $ pure Nothing
@@ -42,9 +47,18 @@ dog01Name   = ActingObjectName "dog 01"
 
 initActiveObjects :: IdCounter -> KnowledgeBase -> STM (Map ActingObjectId ActingObject)
 initActiveObjects idCounterVar kb = do
+  let guardProps = Map.fromList
+        [ (posEssence, PositionValue (3, 3))
+        , (hpEssence, IntValue 100)
+        ]
+  let dogProps = Map.fromList
+        [ (posEssence, PositionValue (3, 5))
+        , (hpEssence, IntValue 100)
+        ]
+
   mbObjs <- sequence
-    [ materializeActiveObject idCounterVar kb guard01Name guardEssence (3, 3)
-    , materializeActiveObject idCounterVar kb dog01Name   dogEssence   (3, 5)
+    [ materializeActiveObject idCounterVar kb guard01Name guardEssence guardProps
+    , materializeActiveObject idCounterVar kb dog01Name   dogEssence   dogProps
     ]
   pure $ Map.fromList $ map (\obj -> (actingObjectId obj, obj)) $ catMaybes mbObjs
 

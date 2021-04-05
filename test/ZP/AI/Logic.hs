@@ -62,6 +62,15 @@ selectAction aiNet@(ZPNet {actingObjectsByName}) name = do
     Just obj -> selectAction' aiNet obj
 
 --------
+traceStep :: String -> ActiveProperty -> STM ()
+traceStep stepName ActiveProperty {..} = do
+  let ess = essence staticProperty
+  let statPropId = staticPropertyId staticProperty
+  trace (stepName <> ", essence: " <> show ess
+      <> ", actObjId: " <> show activePropertyId
+      <> ", statPropId: " <> show statPropId)
+    $ pure ()
+
 
 observe :: ZPNet -> ActingObject -> STM [ActingObject]
 observe aiNet@(ZPNet {actingObjects, worldVar}) _ = do
@@ -86,26 +95,26 @@ discoverPropertiesByTypes (propType, activePropsVar) = do
   mbProps     <- mapM discoverProperty activeProps
   pure (propType, catMaybes mbProps)
 
-
-discoverChunk :: StaticProperty -> ActiveProperty -> STM KnownActiveProperty
-discoverChunk statProp activeProp@(ActiveProperty {propertiesVar}) = do
-  trace "discoverChunk" $ pure ()
+discoverChunk :: ActiveProperty -> STM KnownActiveProperty
+discoverChunk activeProp@(ActiveProperty {propertiesVar, propertyValue, staticProperty}) = do
+  traceStep "discoverChunk" activeProp
   activeProps   <- readTVar propertiesVar
   knownProps    <- mapM discoverPropertiesByTypes $ Map.toList activeProps
   knownPropsVar <- newTVar $ Map.fromList knownProps
-  knownVal      <- newTVar 0    -- known prop val dummy
-  pure $ KnownActiveProperty statProp activeProp knownPropsVar knownVal
+  knownVal      <- case (activeValueDiscover staticProperty, propertyValue) of
+    (ActiveValueDiscoverable, Just valVar) -> readTVar valVar >>= newTVar >>= pure . Just
+    (ActiveValueNonDiscoverable, _) -> pure Nothing
+  pure $ KnownActiveProperty activeProp knownPropsVar knownVal
 
 
 discoverProperty :: ActiveProperty -> STM (Maybe KnownActiveProperty)
-discoverProperty activeProp@(ActiveProperty{staticProperty}) = do
-  trace "discoverProperty" $ pure ()
+discoverProperty activeProp@(ActiveProperty{staticProperty}) =
   case () of
     () | staticPropertyDiscover staticProperty == StaticDiscoverRoot
-        -> Just <$> discoverChunk staticProperty activeProp
+        -> Just <$> discoverChunk activeProp
 
     () | staticPropertyDiscover staticProperty == StaticDiscoverLeaf
-        -> Just <$> discoverChunk staticProperty activeProp
+        -> Just <$> discoverChunk activeProp
 
     () | staticPropertyDiscover staticProperty == StaticNonDiscoverable
         -> pure Nothing
