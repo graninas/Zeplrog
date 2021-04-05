@@ -25,9 +25,16 @@ newtype Essence = Essence String
 newtype PropertyType = PropertyType String
   deriving (Show, Eq, Ord)
 
+data Description = String
+
 data PropertyValue
-  = PositionValue (Int, Int)
+  = NoValue
+  | PairValue PropertyValue PropertyValue
+  | ListValue [PropertyValue]
+  | PositionValue (Int, Int)
   | IntValue Int
+  | EssenceValue Essence
+  | ActivePropertyValue ActiveProperty
 
 type ActivePropertyMap = Map.Map PropertyType (TVar [ActiveProperty])
 type StaticPropertyMap = Map.Map PropertyType [StaticProperty]
@@ -69,7 +76,7 @@ data ActingObject = ActingObject
   { actingObjectName      :: ActingObjectName
   , actingObjectId        :: ActingObjectId
   , rootProperty          :: ActiveProperty
-  , currentActionVar      :: TVar (Maybe ActiveProperty)
+  , currentActionVar      :: TVar ActiveProperty
   , knownActingObjectsVar :: TVar KnownActingObjects
   }
 

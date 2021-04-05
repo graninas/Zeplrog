@@ -21,9 +21,15 @@ knownActingObjectsPropType :: PropertyType
 knownActingObjectsPropType = PropertyType "known acting objects"
 
 abstractGoalEssence = Essence "abstract goal"
-observingEssence    = Essence "observing"
-settingGoalsEssence = Essence "setting goals"
-planningEssence     = Essence "planning"
+
+
+observingEssence     = Essence "observing"
+discoveringEssence   = Essence "discovering"
+settingGoalsEssence  = Essence "setting goals"
+planningEssence      = Essence "planning"
+followingPlanEssence = Essence "following a plan"
+
+noActionEssence = Essence "no action"
 
 posEssence      = Essence "pos"
 hpEssence       = Essence "hp"
