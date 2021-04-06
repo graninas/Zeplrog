@@ -52,10 +52,10 @@ materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) noActProp nam
 
 guard01Name :: ActingObjectName
 guard01Name = ActingObjectName "guard 01"
-dog01Name   :: ActingObjectName
-dog01Name   = ActingObjectName "dog 01"
-dog02Name   :: ActingObjectName
-dog02Name   = ActingObjectName "dog 02"
+rat01Name   :: ActingObjectName
+rat01Name   = ActingObjectName "rat 01"
+rat02Name   :: ActingObjectName
+rat02Name   = ActingObjectName "rat 02"
 
 
 {- Actions loop
@@ -92,11 +92,11 @@ initActiveObjects idCounterVar (kb, commonSProps) = do
         [ (posEssence, PositionValue (3, 3))
         , (hpEssence, IntValue 100)
         ] <> commonActionsLoop
-  let dog01Props = Map.fromList
+  let rat01Props = Map.fromList
         [ (posEssence, PositionValue (3, 5))
         , (hpEssence, IntValue 100)
         ]
-  let dog02Props = Map.fromList
+  let rat02Props = Map.fromList
         [ (posEssence, PositionValue (3, 4))
         , (hpEssence, IntValue 100)
         ]
@@ -105,8 +105,8 @@ initActiveObjects idCounterVar (kb, commonSProps) = do
 
   mbObjs <- sequence
     [ materializeActiveObject idCounterVar kb noActProp guard01Name guardEssence guardProps
-    , materializeActiveObject idCounterVar kb noActProp dog01Name   dogEssence   dog01Props
-    , materializeActiveObject idCounterVar kb noActProp dog02Name   dogEssence   dog02Props
+    , materializeActiveObject idCounterVar kb noActProp rat01Name   ratEssence   rat01Props
+    , materializeActiveObject idCounterVar kb noActProp rat02Name   ratEssence   rat02Props
     ]
   pure $ Map.fromList $ map (\obj -> (actingObjectId obj, obj)) $ catMaybes mbObjs
 
@@ -143,12 +143,27 @@ mkRndSource2 stepVar input = do
     _ -> 0
 
 
+clearReporter :: ActingObject -> IO ()
+clearReporter ActingObject {actingObjectReporter} =
+  case actingObjectReporter of
+    Nothing -> pure ()
+    Just reporterVar -> atomically $ writeTVar reporterVar []
+
+clearGlobalReporter :: ZPNet -> IO ()
+clearGlobalReporter ZPNet {zpNetReporter} =
+  case zpNetReporter of
+    Nothing -> pure ()
+    Just reporterVar -> atomically $ writeTVar reporterVar []
+
 verifyReport :: ActingObject -> Report -> IO ()
 verifyReport ActingObject {actingObjectReporter} expectedReport =
   case actingObjectReporter of
     Nothing -> pure ()
     Just reporterVar -> do
-      report <- readTVarIO reporterVar
+      report <- atomically $ do
+        rep <- readTVar reporterVar
+        writeTVar reporterVar []
+        pure rep
       reverse report `shouldBe` expectedReport
 
 verifyReport' :: ZPNet -> ActingObjectName -> Report -> IO ()
@@ -163,7 +178,10 @@ verifyGlobalReport ZPNet {zpNetReporter} expectedReport =
   case zpNetReporter of
     Nothing -> pure ()
     Just reporterVar -> do
-      report <- readTVarIO reporterVar
+      report <- atomically $ do
+        rep <- readTVar reporterVar
+        writeTVar reporterVar []
+        pure rep
       reverse report `shouldBe` expectedReport
 
 
@@ -217,14 +235,14 @@ spec =
         [ "Action set: Essence \"observing\""
         , "Action set: Essence \"discovering\""
         , "discover: discovering acting object"
-        , "discoverChunk, essence: Essence \"dog\", actObjId: ActivePropertyId 37, statPropId: StaticPropertyId 11"
+        , "discoverChunk, essence: Essence \"rat\", actObjId: ActivePropertyId 37, statPropId: StaticPropertyId 11"
         , "discoverPropertiesByTypesPropertyType \"actions\""
         , "discoverPropertiesByTypesPropertyType \"inventory\""
         , "discoverChunk, essence: Essence \"pos\", actObjId: ActivePropertyId 39, statPropId: StaticPropertyId 0"
         , "discoverChunk, essence: Essence \"hp\", actObjId: ActivePropertyId 40, statPropId: StaticPropertyId 1"
         , "discover': discoverPropety returned prop"
         , "discover: discovering acting object"
-        , "discoverChunk, essence: Essence \"dog\", actObjId: ActivePropertyId 32, statPropId: StaticPropertyId 11"
+        , "discoverChunk, essence: Essence \"rat\", actObjId: ActivePropertyId 32, statPropId: StaticPropertyId 11"
         , "discoverPropertiesByTypesPropertyType \"actions\""
         , "discoverPropertiesByTypesPropertyType \"inventory\""
         , "discoverChunk, essence: Essence \"pos\", actObjId: ActivePropertyId 34, statPropId: StaticPropertyId 0"
@@ -232,7 +250,6 @@ spec =
         , "discover': discoverPropety returned prop"
         , "discover: discovering self not needed."
         ]
-
 
     it "Actions rotation logic test" $ do
       idCounterVar <- newTVarIO 0
@@ -256,3 +273,31 @@ spec =
         , "Action set: Essence \"following a plan\""
         , "Action set: Essence \"observing\""
         ]
+
+    it "Evaluating the goals setting action" $ do
+      idCounterVar <- newTVarIO 0
+      worldVar     <- newTVarIO $ World Map.empty []
+      stepVar      <- newTVarIO 0
+      let rndSource = mkRndSource2 stepVar
+
+      zpNet <- atomically $ initZPNet idCounterVar rndSource worldVar
+
+      actObj <- fromJust <$> (atomically $ getActingObject zpNet guard01Name)
+
+      -- observing
+      atomically $ selectNextAction actObj
+      atomically $ evaluateCurrentAction zpNet actObj
+
+      -- discovering
+      atomically $ selectNextAction actObj
+      atomically $ evaluateCurrentAction zpNet actObj
+
+      clearReporter actObj
+      clearGlobalReporter zpNet
+
+      -- setting goals
+      atomically $ selectNextAction actObj
+      atomically $ evaluateCurrentAction zpNet actObj
+
+      verifyReport actObj
+        ["Action set: Essence \"setting goals\"","Goals setting action"]

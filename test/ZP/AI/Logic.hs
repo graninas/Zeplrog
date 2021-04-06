@@ -190,8 +190,11 @@ evaluateDiscoveringAction zpNet self (ActiveProperty {propertyValueVar}) = do
     _ -> pure ()
 
 
-evaluateGoalSettingAction :: ZPNet -> ActingObject -> STM ()
-evaluateGoalSettingAction _ self = report self "Goal setting action"
+evaluateGoalsSettingAction :: ZPNet -> ActingObject -> STM ()
+evaluateGoalsSettingAction _ self = do
+
+
+  report self "Goals setting action"
 
 evaluatePlanningAction :: ZPNet -> ActingObject -> STM ()
 evaluatePlanningAction _ self = report self "Planning action"
@@ -203,7 +206,7 @@ evaluateCurrentAction zpNet@(ZPNet {..}) self@(ActingObject {..}) = do
     ActiveProperty {staticProperty} -> case () of
       () | essence staticProperty == observingEssence    -> evaluateObservingAction zpNet self
       () | essence staticProperty == discoveringEssence  -> evaluateDiscoveringAction zpNet self actProp
-      () | essence staticProperty == settingGoalsEssence -> evaluateGoalSettingAction zpNet self
+      () | essence staticProperty == settingGoalsEssence -> evaluateGoalsSettingAction zpNet self
       () | essence staticProperty == planningEssence     -> evaluatePlanningAction zpNet self
       _ -> report self $ "Action is not yet supported: " <> show (essence staticProperty)
 
