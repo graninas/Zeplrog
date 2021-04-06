@@ -241,12 +241,12 @@ spec =
       let rndSource = mkRndSource2 stepVar
       zpNet <- atomically $ initZPNet idCounterVar rndSource worldVar
 
-      result1 <- atomically $ selectNextActionForObjName zpNet guard01Name
-      result2 <- atomically $ selectNextActionForObjName zpNet guard01Name
-      result3 <- atomically $ selectNextActionForObjName zpNet guard01Name
-      result4 <- atomically $ selectNextActionForObjName zpNet guard01Name
-      result5 <- atomically $ selectNextActionForObjName zpNet guard01Name
-      result6 <- atomically $ selectNextActionForObjName zpNet guard01Name
+      atomically $ selectNextActionForObjName zpNet guard01Name
+      atomically $ selectNextActionForObjName zpNet guard01Name
+      atomically $ selectNextActionForObjName zpNet guard01Name
+      atomically $ selectNextActionForObjName zpNet guard01Name
+      atomically $ selectNextActionForObjName zpNet guard01Name
+      atomically $ selectNextActionForObjName zpNet guard01Name
 
       verifyReport' zpNet guard01Name
         [ "Action set: Essence \"observing\""
