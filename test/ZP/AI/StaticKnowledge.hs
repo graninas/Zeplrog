@@ -11,16 +11,19 @@ import qualified Data.Set as Set
 inventoryPropType :: PropertyType
 inventoryPropType = PropertyType "inventory"
 
-actionPropType :: PropertyType
-actionPropType = PropertyType "action"
+actionsPropType :: PropertyType
+actionsPropType = PropertyType "actions"
 
-abstractGoalPropType :: PropertyType
-abstractGoalPropType = PropertyType "abstract goal"
+goalsPropType :: PropertyType
+goalsPropType = PropertyType "goals"
+
+killTargetPropType :: PropertyType
+killTargetPropType = PropertyType "kill target"
 
 knownActingObjectsPropType :: PropertyType
 knownActingObjectsPropType = PropertyType "known acting objects"
 
-abstractGoalEssence = Essence "abstract goal"
+goalEssence = Essence "goal"
 
 
 noActionEssence      = Essence "no action"
