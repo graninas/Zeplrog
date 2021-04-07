@@ -41,32 +41,33 @@ data CommonStaticProperties = CommonStaticProperties
 mkStaticProperty
   :: Essence
   -> StaticPropertyMap
+  -> PropertyValue
   -> StaticPropertyDiscoverability
   -> ActiveValueDiscoverability
   -> KBBuilder StaticProperty
-mkStaticProperty essence props statDisc actDisc = do
+mkStaticProperty essence props propVal statDisc actDisc = do
   KBBuilderEnv idCounterVar essencesVar <- ask
   propId <- lift $ getStaticPropertyId idCounterVar
-  let prop = StaticProperty propId essence props statDisc actDisc
+  let prop = StaticProperty propId essence props propVal statDisc actDisc
   lift $ modifyTVar' essencesVar $ Map.insert essence prop
   pure prop
 
 mkCommonStaticProperties :: KBBuilder CommonStaticProperties
 mkCommonStaticProperties =
   CommonStaticProperties
-    <$> mkStaticProperty posEssence      Map.empty StaticDiscoverLeaf    ActiveValueDiscoverable
-    <*> mkStaticProperty hpEssence       Map.empty StaticDiscoverLeaf    ActiveValueNonDiscoverable
-    <*> mkStaticProperty fireWandEssence Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkStaticProperty iceWandEssence  Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+    <$> mkStaticProperty posEssence      Map.empty NoValue StaticDiscoverLeaf    ActiveValueDiscoverable
+    <*> mkStaticProperty hpEssence       Map.empty NoValue StaticDiscoverLeaf    ActiveValueNonDiscoverable
+    <*> mkStaticProperty fireWandEssence Map.empty NoValue StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty iceWandEssence  Map.empty NoValue StaticNonDiscoverable ActiveValueNonDiscoverable
 
-    <*> mkStaticProperty observingEssence     Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkStaticProperty discoveringEssence   Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkStaticProperty settingGoalsEssence  Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkStaticProperty planningEssence      Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkStaticProperty followingPlanEssence Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkStaticProperty noActionEssence      Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty observingEssence     Map.empty NoValue StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty discoveringEssence   Map.empty NoValue StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty settingGoalsEssence  Map.empty NoValue StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty planningEssence      Map.empty NoValue StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty followingPlanEssence Map.empty NoValue StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty noActionEssence      Map.empty NoValue StaticNonDiscoverable ActiveValueNonDiscoverable
 
-    <*> mkStaticProperty goalEssence Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty goalEssence Map.empty NoValue StaticNonDiscoverable ActiveValueNonDiscoverable
 
 
 killGoalStaticProperty :: StaticProperty -> KBBuilder StaticProperty
@@ -74,6 +75,7 @@ killGoalStaticProperty targetSProp =
   mkStaticProperty
     goalEssence
     (Map.singleton targetPropType [targetSProp])            -- TODO: need different types of goals
+    NoValue
     StaticNonDiscoverable
     ActiveValueNonDiscoverable
 

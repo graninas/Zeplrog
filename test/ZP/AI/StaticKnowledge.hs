@@ -20,10 +20,15 @@ goalsPropType = PropertyType "goals"
 targetPropType :: PropertyType
 targetPropType = PropertyType "target"
 
+statesPropType :: PropertyType
+statesPropType = PropertyType "states"
+
 knownActingObjectsPropType :: PropertyType
 knownActingObjectsPropType = PropertyType "known acting objects"
 
 goalEssence = Essence "goal"
+
+conditionEssence = Essence "condition"
 
 
 noActionEssence      = Essence "no action"
@@ -36,3 +41,8 @@ followingPlanEssence = Essence "following a plan"
 
 posEssence      = Essence "pos"
 hpEssence       = Essence "hp"
+
+
+doorEssence = Essence "door"
+openEssence = Essence "open"
+closedEssence = Essence "closed"

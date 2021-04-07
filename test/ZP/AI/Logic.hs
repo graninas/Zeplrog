@@ -74,7 +74,7 @@ selectNextAction self@(ActingObject {currentActionVar}) = do
   ActiveProperty{propertyValueVar} <- readTVar currentActionVar
   propVal <- readTVar propertyValueVar
   case propVal of
-    PairValue (EssenceValue nextActEssence) _ -> selectNextAction'' self nextActEssence
+    PairValue (EssenceValue _ nextActEssence) _ -> selectNextAction'' self nextActEssence
     _ -> report self "selectNextAction': no next action"
 
 -- Property values for actions are treated as input parameters of those actions.
