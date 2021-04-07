@@ -222,7 +222,7 @@ spec =
         [ "Action set: Essence \"observing\""
         ]
 
-    it "Evaluating the discovery action" $ do
+    xit "Evaluating the discovery action" $ do
       idCounterVar <- newTVarIO 0
       worldVar     <- newTVarIO $ World Map.empty []
       stepVar      <- newTVarIO 0
@@ -321,20 +321,8 @@ spec =
 
       actObj <- fromJust <$> (atomically $ getActingObject zpNet door01)
 
-      -- observing
-      atomically $ selectNextAction actObj
-      atomically $ evaluateCurrentAction zpNet actObj
+      activations <- atomically $ getAllActivations actObj
+      print activations
 
-      -- discovering
-      atomically $ selectNextAction actObj
-      atomically $ evaluateCurrentAction zpNet actObj
-
-      clearReporter actObj
-      clearGlobalReporter zpNet
-
-      -- setting goals
-      atomically $ selectNextAction actObj
-      atomically $ evaluateCurrentAction zpNet actObj
-
-      verifyReport actObj
+      verifyGlobalReport zpNet
         ["Action set: Essence \"setting goals\"","Goals setting action"]
