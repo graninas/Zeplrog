@@ -32,6 +32,9 @@ buildValueNode parentName val = do
     IntValue v -> do
       let chName = parentName <> "-int: " <> show v
       pure [ quoted parentName <> " -> " <> quoted chName <> toValueNodeArrStyle]
+    PositionValue pos -> do
+      let chName = parentName <> "-pos: " <> show pos
+      pure [ quoted parentName <> " -> " <> quoted chName <> toValueNodeArrStyle]
     EssenceValue d (Essence e) -> do
       let chName = parentName <> "-esscence: " <> e <> "-" <> d
       pure [ quoted parentName <> " -> " <> quoted chName <> toValueNodeArrStyle]
@@ -111,8 +114,16 @@ buildActivePropertyNode ActiveProperty{..} = do
   let thisNodePointsToChildren = filter (not . null) $ join $ map (f thisNodeName) propsByTypeStrings
   let childrenStrings          = filter (not . null) $ join $ map (\(_, _, xs) -> xs) propsByTypeStrings
 
+  propValue <- readTVar propertyValueVar
+  thisNodeValues <- buildValueNode thisNodeName propValue
+
   pure (thisNodeName,
-    childrenStrings <> [""] <> thisNodePointsToChildren <> [toSPropRow]
+    childrenStrings
+    <> [""]
+    <> [toSPropRow]
+    <> thisNodePointsToChildren
+    <> [""]
+    <> thisNodeValues
     )
 
   where
@@ -158,6 +169,6 @@ buildGraph ZPNet{knowledgeBase, actingObjects} = do
   pure $ start
     <> [ staticPropsNodeStyle ]
     <> staticPropsStrings
-    <> [ ""]
+    <> [""]
     <> join actingObjectsStrings
     <> end
