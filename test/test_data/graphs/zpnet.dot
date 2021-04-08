@@ -2,13 +2,29 @@ digraph finite_state_machine {
 graph [ dpi = 600 ];
 size="8,5";
 node [shape=Mcircle];
+"S:9:no action" -> "no value/0" [arrowhead=dot];
+"S:0:pos" -> "no value/1" [arrowhead=dot];
+"S:1:hp" -> "no value/2" [arrowhead=dot];
 
 "S:11:rat" -> "S:9:no action" [label="actions"];
 "S:11:rat" -> "S:0:pos" [label="inventory"];
 "S:11:rat" -> "S:1:hp" [label="inventory"];
 
-"S:12:goal" -> "S:12:goal-target" [arrowhead=dot];
-"S:12:goal-target" -> "S:11:rat" [arrowhead=dot];
+"S:11:rat" -> "no value/3" [arrowhead=dot];
+
+"S:9:no action" -> "no value/4" [arrowhead=dot];
+"S:4:observing" -> "no value/5" [arrowhead=dot];
+"S:5:discovering" -> "no value/6" [arrowhead=dot];
+"S:6:setting goals" -> "no value/7" [arrowhead=dot];
+"S:7:planning" -> "no value/8" [arrowhead=dot];
+"S:8:following a plan" -> "no value/9" [arrowhead=dot];
+"S:12:goal" -> "target/10" [arrowhead=dot];
+"target/10" -> "sProp/11" [arrowhead=dot];
+"sProp/11" -> "S:11:rat" [arrowhead=dot];
+"S:0:pos" -> "no value/12" [arrowhead=dot];
+"S:1:hp" -> "no value/13" [arrowhead=dot];
+"S:2:fire wand" -> "no value/14" [arrowhead=dot];
+"S:3:ice wand" -> "no value/15" [arrowhead=dot];
 
 "S:13:guard" -> "S:9:no action" [label="actions"];
 "S:13:guard" -> "S:4:observing" [label="actions"];
@@ -22,60 +38,84 @@ node [shape=Mcircle];
 "S:13:guard" -> "S:2:fire wand" [label="inventory"];
 "S:13:guard" -> "S:3:ice wand" [label="inventory"];
 
+"S:13:guard" -> "no value/16" [arrowhead=dot];
+
 
 node [shape=circle];
 
 "A:15:no action" -> "S:9:no action" [arrowhead=onormal];
 
-"A:15:no action" -> "A:15:no action-pair1" [arrowhead=dot];
-"A:15:no action" -> "A:15:no action-pair1" [arrowhead=dot];
-"A:15:no action-pair1" -> "A:15:no action-pair1-esscence: observing-observing" [arrowhead=dot];
+"A:15:no action" -> "pair/17" [arrowhead=dot];
+
+"pair/17" -> "essence/18" [arrowhead=dot];
+"pair/17" -> "no value/19" [arrowhead=dot];
+"essence/18" -> "observing" [arrowhead=dot];
 
 "A:16:observing" -> "S:4:observing" [arrowhead=onormal];
 
-"A:16:observing" -> "A:16:observing-pair1" [arrowhead=dot];
-"A:16:observing" -> "A:16:observing-pair1" [arrowhead=dot];
-"A:16:observing-pair1" -> "A:16:observing-pair1-esscence: discovering-discovering" [arrowhead=dot];
+"A:16:observing" -> "pair/20" [arrowhead=dot];
+
+"pair/20" -> "essence/21" [arrowhead=dot];
+"pair/20" -> "no value/22" [arrowhead=dot];
+"essence/21" -> "discovering" [arrowhead=dot];
 
 "A:17:discovering" -> "S:5:discovering" [arrowhead=onormal];
 
-"A:17:discovering" -> "A:17:discovering-pair1" [arrowhead=dot];
-"A:17:discovering" -> "A:17:discovering-pair1" [arrowhead=dot];
-"A:17:discovering-pair1" -> "A:17:discovering-pair1-esscence: setting goals-settingGoals" [arrowhead=dot];
+"A:17:discovering" -> "pair/23" [arrowhead=dot];
+
+"pair/23" -> "essence/24" [arrowhead=dot];
+"pair/23" -> "no value/25" [arrowhead=dot];
+"essence/24" -> "setting goals" [arrowhead=dot];
 
 "A:18:setting goals" -> "S:6:setting goals" [arrowhead=onormal];
 
-"A:18:setting goals" -> "A:18:setting goals-pair1" [arrowhead=dot];
-"A:18:setting goals" -> "A:18:setting goals-pair1" [arrowhead=dot];
-"A:18:setting goals-pair1" -> "A:18:setting goals-pair1-esscence: planning-planning" [arrowhead=dot];
+"A:18:setting goals" -> "pair/26" [arrowhead=dot];
+
+"pair/26" -> "essence/27" [arrowhead=dot];
+"pair/26" -> "no value/28" [arrowhead=dot];
+"essence/27" -> "planning" [arrowhead=dot];
 
 "A:19:planning" -> "S:7:planning" [arrowhead=onormal];
 
-"A:19:planning" -> "A:19:planning-pair1" [arrowhead=dot];
-"A:19:planning" -> "A:19:planning-pair1" [arrowhead=dot];
-"A:19:planning-pair1" -> "A:19:planning-pair1-esscence: following a plan-followingPlan" [arrowhead=dot];
+"A:19:planning" -> "pair/29" [arrowhead=dot];
+
+"pair/29" -> "essence/30" [arrowhead=dot];
+"pair/29" -> "no value/31" [arrowhead=dot];
+"essence/30" -> "following a plan" [arrowhead=dot];
 
 "A:20:following a plan" -> "S:8:following a plan" [arrowhead=onormal];
 
-"A:20:following a plan" -> "A:20:following a plan-pair1" [arrowhead=dot];
-"A:20:following a plan" -> "A:20:following a plan-pair1" [arrowhead=dot];
-"A:20:following a plan-pair1" -> "A:20:following a plan-pair1-esscence: observing-observing" [arrowhead=dot];
+"A:20:following a plan" -> "pair/32" [arrowhead=dot];
+
+"pair/32" -> "essence/33" [arrowhead=dot];
+"pair/32" -> "no value/34" [arrowhead=dot];
+"essence/33" -> "observing" [arrowhead=dot];
 
 "A:21:goal" -> "S:12:goal" [arrowhead=onormal];
+
+"A:21:goal" -> "no value/35" [arrowhead=dot];
 
 
 "A:22:pos" -> "S:0:pos" [arrowhead=onormal];
 
-"A:22:pos" -> "A:22:pos-pos: (3,3)" [arrowhead=dot];
+"A:22:pos" -> "pos/36" [arrowhead=dot];
+
+"pos/36" -> "(3,3)" [arrowhead=dot];
 
 "A:23:hp" -> "S:1:hp" [arrowhead=onormal];
 
-"A:23:hp" -> "A:23:hp-int: 100" [arrowhead=dot];
+"A:23:hp" -> "int/37" [arrowhead=dot];
+
+"int/37" -> "100" [arrowhead=dot];
 
 "A:24:fire wand" -> "S:2:fire wand" [arrowhead=onormal];
 
+"A:24:fire wand" -> "no value/38" [arrowhead=dot];
+
 
 "A:25:ice wand" -> "S:3:ice wand" [arrowhead=onormal];
+
+"A:25:ice wand" -> "no value/39" [arrowhead=dot];
 
 
 "A:26:guard" -> "S:13:guard" [arrowhead=onormal];
@@ -91,6 +131,8 @@ node [shape=circle];
 "A:26:guard" -> "A:24:fire wand" [label="inventory"];
 "A:26:guard" -> "A:25:ice wand" [label="inventory"];
 
+"A:26:guard" -> "no value/40" [arrowhead=dot];
+
 
 node [shape=box];
 "AO:27:guard 01" -> "A:26:guard" [arrowhead=onormal];
@@ -98,19 +140,27 @@ node [shape=circle];
 
 "A:28:no action" -> "S:9:no action" [arrowhead=onormal];
 
+"A:28:no action" -> "no value/41" [arrowhead=dot];
+
 
 "A:29:pos" -> "S:0:pos" [arrowhead=onormal];
 
-"A:29:pos" -> "A:29:pos-pos: (3,5)" [arrowhead=dot];
+"A:29:pos" -> "pos/42" [arrowhead=dot];
+
+"pos/42" -> "(3,5)" [arrowhead=dot];
 
 "A:30:hp" -> "S:1:hp" [arrowhead=onormal];
 
-"A:30:hp" -> "A:30:hp-int: 100" [arrowhead=dot];
+"A:30:hp" -> "int/43" [arrowhead=dot];
+
+"int/43" -> "100" [arrowhead=dot];
 
 "A:31:rat" -> "S:11:rat" [arrowhead=onormal];
 "A:31:rat" -> "A:28:no action" [label="actions"];
 "A:31:rat" -> "A:29:pos" [label="inventory"];
 "A:31:rat" -> "A:30:hp" [label="inventory"];
+
+"A:31:rat" -> "no value/44" [arrowhead=dot];
 
 
 node [shape=box];
@@ -119,19 +169,27 @@ node [shape=circle];
 
 "A:33:no action" -> "S:9:no action" [arrowhead=onormal];
 
+"A:33:no action" -> "no value/45" [arrowhead=dot];
+
 
 "A:34:pos" -> "S:0:pos" [arrowhead=onormal];
 
-"A:34:pos" -> "A:34:pos-pos: (3,4)" [arrowhead=dot];
+"A:34:pos" -> "pos/46" [arrowhead=dot];
+
+"pos/46" -> "(3,4)" [arrowhead=dot];
 
 "A:35:hp" -> "S:1:hp" [arrowhead=onormal];
 
-"A:35:hp" -> "A:35:hp-int: 100" [arrowhead=dot];
+"A:35:hp" -> "int/47" [arrowhead=dot];
+
+"int/47" -> "100" [arrowhead=dot];
 
 "A:36:rat" -> "S:11:rat" [arrowhead=onormal];
 "A:36:rat" -> "A:33:no action" [label="actions"];
 "A:36:rat" -> "A:34:pos" [label="inventory"];
 "A:36:rat" -> "A:35:hp" [label="inventory"];
+
+"A:36:rat" -> "no value/48" [arrowhead=dot];
 
 
 node [shape=box];
