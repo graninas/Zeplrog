@@ -17,8 +17,9 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 
 
-initKnowledgeBase :: IdCounter -> STM (KnowledgeBase, CommonStaticProperties)
-initKnowledgeBase idCounterVar = do
+-- agents
+initKnowledgeBase1 :: IdCounter -> STM (KnowledgeBase, CommonStaticProperties)
+initKnowledgeBase1 idCounterVar = do
   essencesVar <- newTVar Map.empty
   let env = KBBuilderEnv idCounterVar essencesVar
 
@@ -28,7 +29,22 @@ initKnowledgeBase idCounterVar = do
     ratSProp <- ratStaticProperty csp
     statProps <- sequence
       [ guardStaticProperty ratSProp csp
-      , doorStaticProperty csp
+      ]
+    essences <- lift $ readTVar essencesVar
+    pure (KnowledgeBase statProps essences, csp)
+
+
+-- Doors, etc.
+initKnowledgeBase2 :: IdCounter -> STM (KnowledgeBase, CommonStaticProperties)
+initKnowledgeBase2 idCounterVar = do
+  essencesVar <- newTVar Map.empty
+  let env = KBBuilderEnv idCounterVar essencesVar
+
+  flip runReaderT env $ do
+    csp <- mkCommonStaticProperties
+
+    statProps <- sequence
+      [ doorStaticProperty csp
       ]
     essences <- lift $ readTVar essencesVar
     pure (KnowledgeBase statProps essences, csp)

@@ -41,6 +41,8 @@ import           Universum.Functor.Fmap       as X ((<<$>>))
 import           Universum.Unsafe             as X (head, init, last, tail,
                                                     (!!))
 
+import Debug.Trace as X (trace)
+
 import qualified Control.Monad.Free.Church    as CF
 import qualified Control.Monad.Free.Class     as MF
 
