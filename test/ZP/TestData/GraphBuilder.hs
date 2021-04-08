@@ -11,6 +11,7 @@ import ZP.TestData.KnowledgeBase.Common
 
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import qualified Data.List as List
 
 type NodeUID = TVar Int
 type NodeStyle = String
@@ -41,19 +42,22 @@ addNodeStyle stylesVar style node = do
     Just nodes -> writeTVar stylesVar $ Map.insert style (quoted node : nodes) styles
     Nothing    -> writeTVar stylesVar $ Map.insert style [quoted node] styles
 
+whenNotNull' [] _ = []
+whenNotNull' _ res = res
+
 buildValueNodeAlg2 :: NodeUID -> NodeStyles -> PropertyValue -> STM (String, [String])
 buildValueNodeAlg2 uidVar stylesVar val = do
   uid <- getNodeUID uidVar
   let mkUName n = n <> "/" <> show uid
   let mkQUName n = quoted $ mkUName n
   (nName, strs) <- case val of
-    NoValue -> pure (mkUName "no value", [])
+    NoValue -> pure ("", [])
     PairValue v1 v2 -> do
       (chName1, lStrs) <- buildValueNodeAlg2 uidVar stylesVar v1
       (chName2, rStrs) <- buildValueNodeAlg2 uidVar stylesVar v2
       pure (mkUName "pair",
-        [ mkQUName "pair" <> " -> " <> quoted chName1 <> toValueNodeArrStyle
-        , mkQUName "pair" <> " -> " <> quoted chName2 <> toValueNodeArrStyle
+        [ whenNotNull' chName1 $ mkQUName "pair" <> " -> " <> quoted chName1 <> toValueNodeArrStyle
+        , whenNotNull' chName2 $ mkQUName "pair" <> " -> " <> quoted chName2 <> toValueNodeArrStyle
         ] <> lStrs <> rStrs
         )
     IntValue v -> do
@@ -81,7 +85,7 @@ buildValueNodeAlg2 uidVar stylesVar val = do
     TargetValue v -> do
       (chName, tStrs) <- buildValueNodeAlg2 uidVar stylesVar v
       pure (mkUName "target",
-           [ mkQUName "target" <> " -> " <> quoted chName <> toValueNodeArrStyle
+           [ whenNotNull' chName $ mkQUName "target" <> " -> " <> quoted chName <> toValueNodeArrStyle
            ] <> tStrs
           )
     ConditionValue -> do
@@ -89,7 +93,7 @@ buildValueNodeAlg2 uidVar stylesVar val = do
     StateValue v -> do
       (chName, tStrs) <- buildValueNodeAlg2 uidVar stylesVar v
       pure (mkUName "state",
-           [ mkQUName "state" <> " -> " <> quoted chName <> toValueNodeArrStyle
+           [ whenNotNull' chName $ mkQUName "state" <> " -> " <> quoted chName <> toValueNodeArrStyle
            ] <> tStrs
           )
     ListValue vals -> do
@@ -99,7 +103,7 @@ buildValueNodeAlg2 uidVar stylesVar val = do
       xs <- mapM (buildValueNodeAlg2 uidVar stylesVar) vals
       let rows = join $ map f' xs
       pure (mkUName "list", rows)
-  addNodeStyle stylesVar valueNodeStyle nName
+  when (not $ null nName) $ addNodeStyle stylesVar valueNodeStyle nName
   pure (nName, strs)
 
 buildStaticPropertiesByType
@@ -125,7 +129,9 @@ buildStaticPropertyNode uidVar stylesVar StaticProperty{staticPropertyId, static
     mapM (buildStaticPropertiesByType uidVar stylesVar) $ Map.toList staticProperties
 
   (valuesRootName, thisNodeValues) <- buildValueNodeAlg2 uidVar stylesVar staticPropertyValue
-  let thisNodeToValuesRow = quoted thisNodeName <> " -> " <> quoted valuesRootName <> toValueNodeArrStyle
+  let thisNodeToValuesRow =
+        if null valuesRootName then []
+          else quoted thisNodeName <> " -> " <> quoted valuesRootName <> toValueNodeArrStyle
 
   let thisNodeChildrenProps = filter (not . null) $ join $ map (f thisNodeName) propsByTypeStrings
   let rootProps             = filter (not . null) $ join $ map (\(_, _, xs) -> xs) propsByTypeStrings
@@ -175,7 +181,9 @@ buildActivePropertyNode uidVar stylesVar ActiveProperty{..} = do
 
   propValue <- readTVar propertyValueVar
   (valuesRootName, thisNodeValues) <- buildValueNodeAlg2 uidVar stylesVar propValue
-  let thisNodeToValuesRow = quoted thisNodeName <> " -> " <> quoted valuesRootName <> toValueNodeArrStyle
+  let thisNodeToValuesRow =
+        if null valuesRootName then []
+          else quoted thisNodeName <> " -> " <> quoted valuesRootName <> toValueNodeArrStyle
 
   pure (thisNodeName,
     childrenStrings
