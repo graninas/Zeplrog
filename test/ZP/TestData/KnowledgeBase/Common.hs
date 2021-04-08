@@ -74,8 +74,8 @@ killGoalStaticProperty :: StaticProperty -> KBBuilder StaticProperty
 killGoalStaticProperty targetSProp =
   mkStaticProperty
     goalEssence
-    (Map.singleton targetPropType [targetSProp])            -- TODO: need different types of goals
-    NoValue
+    Map.empty
+    (TargetValue (StaticPropertyValue targetSProp))
     StaticNonDiscoverable
     ActiveValueNonDiscoverable
 
