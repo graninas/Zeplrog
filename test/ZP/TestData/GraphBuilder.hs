@@ -20,7 +20,7 @@ actingObjectNodeStyle = "node [shape=box];"
 activePropsNodeStyle = "node [shape=circle];"
 actingObjectToActivePropStyle  = " [arrowhead=onormal];"
 staticPropsNodeStyle = "node [shape=Mcircle];"
-valueNodeStyle = "node [shape=plaintext]"
+valueNodeStyle = "node [shape=plaintext];"
 
 getNodeUID :: NodeUID -> STM Int
 getNodeUID uidVar = do
@@ -141,7 +141,7 @@ buildStaticPropertyNode uidVar StaticProperty{staticPropertyId, staticPropertyVa
     <> [""]
     <> thisNodeChildrenProps
 
-    <> ["", valueNodeStyle, thisNodeToValuesRow, ""]
+    <> ["", valueNodeStyle, "", thisNodeToValuesRow, ""]
     <> thisNodeValues
     <> ["", staticPropsNodeStyle]
     )
@@ -187,7 +187,7 @@ buildActivePropertyNode uidVar ActiveProperty{..} = do
     <> [""]
     <> [toSPropRow]
     <> thisNodePointsToChildren
-    <> ["", valueNodeStyle, thisNodeToValuesRow, ""]
+    <> ["", thisNodeToValuesRow, "", valueNodeStyle, ""]
     <> thisNodeValues
     <> ["", activePropsNodeStyle]
     )
