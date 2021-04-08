@@ -13,15 +13,7 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 
 
-buildStaticPropertiesByType
-  :: (PropertyType, [StaticProperty])
-  -> STM (PropertyType, [String], [String])
-buildStaticPropertiesByType (pType, props) = do
-  strs :: [(String, [String])] <- mapM buildStaticPropertyNode props
-  let names = map fst strs
-  pure (pType, names, join $ map snd strs)
-
-
+quoted str = "\"" <> str <> "\""
 
 buildValueNode :: String -> PropertyValue -> STM [String]
 buildValueNode parentName val = do
@@ -34,51 +26,67 @@ buildValueNode parentName val = do
       lStrs <- buildValueNode chName1 v1
       rStrs <- buildValueNode chName2 v2
       pure $
-        [ parentName <> " -> " <> chName1 <> toValueNodeArrStyle
-        , parentName <> " -> " <> chName1 <> toValueNodeArrStyle
+        [ quoted parentName <> " -> " <> quoted chName1 <> toValueNodeArrStyle
+        , quoted parentName <> " -> " <> quoted chName1 <> toValueNodeArrStyle
         ] <> lStrs <> rStrs
     IntValue v -> do
       let chName = parentName <> "-int: " <> show v
-      pure [parentName <> " -> " <> chName <> toValueNodeArrStyle]
+      pure [ quoted parentName <> " -> " <> quoted chName <> toValueNodeArrStyle]
     EssenceValue d (Essence e) -> do
       let chName = parentName <> "-esscence: " <> e <> "-" <> d
-      pure [parentName <> " -> " <> chName <> toValueNodeArrStyle]
+      pure [ quoted parentName <> " -> " <> quoted chName <> toValueNodeArrStyle]
     StaticPropertyValue sProp -> do
       let Essence ess = essence sProp
-      let chName = parentName <> "-sprop: " <> ess
-      pure [parentName <> " -> " <> chName <> toValueNodeArrStyle]
+      let StaticPropertyId sPId = staticPropertyId sProp
+      let sPropName = "S:" <> show sPId <> ":" <> ess
+      pure [ quoted parentName <> " -> " <> quoted sPropName <> toValueNodeArrStyle]
     TargetValue v -> do
       let chName = parentName <> "-target"
       tStrs <- buildValueNode chName v
       pure $
-        [ parentName <> " -> " <> chName <> toValueNodeArrStyle
+        [ quoted parentName <> " -> " <> quoted chName <> toValueNodeArrStyle
         ] <> tStrs
     _ -> error " values not implemented"
+
+buildStaticPropertiesByType
+  :: (PropertyType, [StaticProperty])
+  -> STM (PropertyType, [String], [String])
+buildStaticPropertiesByType (pType, props) = do
+  strs :: [(String, [String])] <- mapM buildStaticPropertyNode props
+  let names = map fst strs
+  pure (pType, names, join $ map snd strs)
 
 
 buildStaticPropertyNode :: StaticProperty -> STM (String, [String])
 buildStaticPropertyNode StaticProperty{staticPropertyId, staticPropertyValue, essence, staticProperties} = do
   let Essence ess = essence
   let StaticPropertyId sPId = staticPropertyId
-  let name = "\"S:" <> show sPId <> ":" <> ess <>"\""
-  let nodeStyle = "node [shape=Mcircle];"
+  let thisNodeName = "S:" <> show sPId <> ":" <> ess
 
   propsByTypeStrings :: [(PropertyType, [String], [String])] <-
     mapM buildStaticPropertiesByType $ Map.toList staticProperties
 
-  valStrings <- buildValueNode name staticPropertyValue
+  thisNodeValues <- buildValueNode thisNodeName staticPropertyValue
 
-  let xs = join $ map (f name) propsByTypeStrings
-  pure (name, [nodeStyle] <> [""] <> xs <> [""] <> valStrings)
+  let thisNodeChildrenProps = filter (not . null) $ join $ map (f thisNodeName) propsByTypeStrings
+  let rootProps = filter (not . null) $ join $ map (\(_, _, xs) -> xs) propsByTypeStrings
+
+  pure (thisNodeName,
+    rootProps
+    <> [""]
+    <> thisNodeChildrenProps
+    <> [""]
+    <> thisNodeValues
+    )
   where
     f thisNodeName (PropertyType pType, targetNames, _) = map (f' thisNodeName pType) targetNames
-    f' thisNodeName pType targetName = thisNodeName <> " -> " <> targetName <> " [label=\"" <> pType <> "\"];"
+    f' thisNodeName pType targetName = quoted thisNodeName <> " -> " <> quoted targetName <> " [label=\"" <> pType <> "\"];"
 
 
-buildPropertiesByType
+buildActivePropertiesByType
   :: (PropertyType, TVar [ActiveProperty])
   -> STM (PropertyType, [String], [String])
-buildPropertiesByType (pType, psVar) = do
+buildActivePropertiesByType (pType, psVar) = do
   props <- readTVar psVar
   strs :: [(String, [String])] <- mapM buildActivePropertyNode props
   let names = map fst strs
@@ -87,46 +95,50 @@ buildPropertiesByType (pType, psVar) = do
 
 buildActivePropertyNode :: ActiveProperty -> STM (String, [String])
 buildActivePropertyNode ActiveProperty{..} = do
-  (sPropName, sPropStrings) <- buildStaticPropertyNode staticProperty
-
-  let nodeStyle = "node [shape=circle];"
   let toSPropArrStyle  = " [arrowhead=onormal];"
-
-  let StaticProperty {essence} = staticProperty
+  let StaticProperty {staticPropertyId, essence} = staticProperty
+  let StaticPropertyId sPId = staticPropertyId
   let Essence ess = essence
-
   let ActivePropertyId propId = activePropertyId
-  let name = "\"A:" <> show propId <> ":" <> ess <>"\""
-
-  let toOwnStaticProp = name <> " -> " <> sPropName <> toSPropArrStyle
+  let thisNodeName = "A:" <> show propId <> ":" <> ess <>""
+  let staticPropName = "S:" <> show sPId <> ":" <> ess
+  let toSPropRow = quoted thisNodeName <> " -> " <> quoted staticPropName <> toSPropArrStyle
 
   props <- readTVar propertiesVar
   propsByTypeStrings :: [(PropertyType, [String], [String])] <-
-    mapM buildPropertiesByType $ Map.toList props
+    mapM buildActivePropertiesByType $ Map.toList props
 
-  let xs = join $ map (f name) propsByTypeStrings
+  let thisNodePointsToChildren = filter (not . null) $ join $ map (f thisNodeName) propsByTypeStrings
+  let childrenStrings          = filter (not . null) $ join $ map (\(_, _, xs) -> xs) propsByTypeStrings
 
-  pure (name, sPropStrings <> [""] <> [nodeStyle, toOwnStaticProp] <> [""] <> xs)
+  pure (thisNodeName,
+    childrenStrings <> [""] <> thisNodePointsToChildren <> [toSPropRow]
+    )
 
   where
     f thisNodeName (PropertyType pType, targetNames, _) = map (f' thisNodeName pType) targetNames
-    f' thisNodeName pType targetName = thisNodeName <> " -> " <> targetName <> " [label=\"" <> pType <> "\"];"
+    f' thisNodeName pType targetName = quoted thisNodeName <> " -> " <> quoted targetName <> " [label=\"" <> pType <> "\"];"
 
 
 buildActingObjectNode :: (ActingObjectId, ActingObject) -> STM [String]
 buildActingObjectNode (_, ActingObject {..}) = do
-  (rootPropNode, strings) <- buildActivePropertyNode rootProperty
+  (rootPropNodeName, activePropStrings) <- buildActivePropertyNode rootProperty
 
-  let nodeStyle = "node [shape=box];"
+  let actingObjectNodeStyle = "node [shape=box];"
+  let activePropsNodeStyle = "node [shape=circle];"
   let arrStyle  = " [arrowhead=onormal];"
   let ActingObjectId oId = actingObjectId
   let ActingObjectName aName = actingObjectName
-  let row = "\"AO:" <> show oId <> ":" <> aName <> "\" -> " <> rootPropNode <> arrStyle
+  let name = "AO:" <> show oId <> ":" <> aName
+  let row = quoted name <> " -> " <> quoted rootPropNodeName <> arrStyle
 
-  pure $ strings <> [""] <> [ nodeStyle, row ]
+  pure $
+    [ activePropsNodeStyle ]
+    <> activePropStrings
+    <> ["", actingObjectNodeStyle, row ]
 
 buildGraph :: ZPNet -> STM [String]
-buildGraph ZPNet{actingObjects} = do
+buildGraph ZPNet{knowledgeBase, actingObjects} = do
   let start =
        [ "digraph finite_state_machine {"
        , "graph [ dpi = 600 ];"
@@ -134,6 +146,18 @@ buildGraph ZPNet{actingObjects} = do
        ]
   let end = [ "}" ]
 
-  middles <- mapM buildActingObjectNode $ Map.toList actingObjects
+  let staticPropsNodeStyle = "node [shape=Mcircle];"
 
-  pure $ start <> join middles <> end
+  let KnowledgeBase {staticProperties} = knowledgeBase
+
+  staticPropsStrings'   <- mapM buildStaticPropertyNode staticProperties
+  let staticPropsStrings = join $ map snd staticPropsStrings'
+
+  actingObjectsStrings <- mapM buildActingObjectNode $ Map.toList actingObjects
+
+  pure $ start
+    <> [ staticPropsNodeStyle ]
+    <> staticPropsStrings
+    <> [ ""]
+    <> join actingObjectsStrings
+    <> end
