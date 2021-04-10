@@ -117,10 +117,10 @@ data KnownActiveProperty = KnownActiveProperty
   }
 
 type RndSource = Int -> STM Int
- 
-type Essences = Map.Map Essence MaterializationLink
+
+type Essences = Map.Map Essence StaticProperty
 data KnowledgeBase = KnowledgeBase
-  { staticProperties :: [MaterializationLink]
+  { materializationLinks :: [MaterializationLink]
   , essences :: Essences
   }
 
