@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 78380eebb4048d210528954919f7cf454c23f1e64a1586ae15bb2307ec907f55
+-- hash: 4aececa03d28ba78448493ffaa62be5df6c471160c597b3612b1b919e27b9747
 
 name:           zeplrog
 version:        0.0.0.1
@@ -132,7 +132,7 @@ executable zeplrog
     , void
   default-language: Haskell2010
 
-test-suite functional-tests
+test-suite tests
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
