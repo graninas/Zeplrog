@@ -72,7 +72,7 @@ buildStaticValueNode uidVar stylesVar valVar = do
       addNodeStyle stylesVar valueNodeStyle jointPointName
 
       pure (nName,
-          [ nName                 <> " -> " <> quoted jointPointName <> toValueNodeArrStyle
+          [ quoted nName          <> " -> " <> quoted jointPointName <> toValueNodeArrStyle
           , quoted jointPointName <> " -> " <> quoted sPropName <> toValueNodeArrStyle
           ])
     MaterializableStateValue d (SharedMaterialization sProp) -> do
@@ -80,14 +80,14 @@ buildStaticValueNode uidVar stylesVar valVar = do
       let StaticPropertyId sPId = staticPropertyId sProp
       let sPropName = "S:" <> show sPId <> ":" <> ess
 
-      let nName = mkUName "sProp"
+      let nName = mkUName "mat value"
       let jointPointName = "○/" <> show uid2
 
       addNodeStyle stylesVar valueNodeStyle nName
       addNodeStyle stylesVar valueNodeStyle jointPointName
 
       pure (nName,
-          [ nName                 <> " -> " <> quoted jointPointName <> toValueNodeArrStyle
+          [ quoted nName          <> " -> " <> quoted jointPointName <> toValueNodeArrStyle
           , quoted jointPointName <> " -> " <> quoted sPropName <> toValueNodeArrStyle
           ])
 
@@ -127,8 +127,8 @@ buildValueNode uidVar stylesVar val = do
       let Essence ess = essence sProp
       let StaticPropertyId sPId = staticPropertyId sProp
       let sPropName = "S:" <> show sPId <> ":" <> ess
-      pure (mkUName "sProp",
-          [ mkQUName "sProp" <> " -> " <> quoted sPropName <> toValueNodeArrStyle]
+      pure (mkUName "value",
+          [ mkQUName "value" <> " -> " <> quoted sPropName <> toValueNodeArrStyle]
           )
     TargetValue v -> do
       (chName, tStrs) <- buildValueNode uidVar stylesVar v
