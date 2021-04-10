@@ -58,17 +58,17 @@ node [shape=plaintext];
 "int/68"
 "pos/67"
 "pair/63"
-"essence /64"
+"/64"
 "pair/60"
-"essence /61"
+"/61"
 "pair/57"
-"essence /58"
+"/58"
 "pair/54"
-"essence /55"
+"/55"
 "pair/51"
-"essence /52"
+"/52"
 "pair/48"
-"essence /49"
+"/49"
 "●/43"
 "●/40"
 "●/37"
@@ -120,34 +120,34 @@ node [shape=plaintext];
 
 "A:15:no action" -> "S:9:no action" [arrowhead=onormal];
 "A:15:no action" -> "pair/48" [arrowhead=dot];
-"pair/48" -> "essence /49" [arrowhead=dot];
+"pair/48" -> "/49" [arrowhead=dot];
 
-"essence/49" -> "observing" [arrowhead=dot];
+"/49" -> "observing" [arrowhead=dot];
 "A:16:observing" -> "S:4:observing" [arrowhead=onormal];
 "A:16:observing" -> "pair/51" [arrowhead=dot];
-"pair/51" -> "essence /52" [arrowhead=dot];
+"pair/51" -> "/52" [arrowhead=dot];
 
-"essence/52" -> "discovering" [arrowhead=dot];
+"/52" -> "discovering" [arrowhead=dot];
 "A:17:discovering" -> "S:5:discovering" [arrowhead=onormal];
 "A:17:discovering" -> "pair/54" [arrowhead=dot];
-"pair/54" -> "essence /55" [arrowhead=dot];
+"pair/54" -> "/55" [arrowhead=dot];
 
-"essence/55" -> "setting goals" [arrowhead=dot];
+"/55" -> "setting goals" [arrowhead=dot];
 "A:18:setting goals" -> "S:6:setting goals" [arrowhead=onormal];
 "A:18:setting goals" -> "pair/57" [arrowhead=dot];
-"pair/57" -> "essence /58" [arrowhead=dot];
+"pair/57" -> "/58" [arrowhead=dot];
 
-"essence/58" -> "planning" [arrowhead=dot];
+"/58" -> "planning" [arrowhead=dot];
 "A:19:planning" -> "S:7:planning" [arrowhead=onormal];
 "A:19:planning" -> "pair/60" [arrowhead=dot];
-"pair/60" -> "essence /61" [arrowhead=dot];
+"pair/60" -> "/61" [arrowhead=dot];
 
-"essence/61" -> "following a plan" [arrowhead=dot];
+"/61" -> "following a plan" [arrowhead=dot];
 "A:20:following a plan" -> "S:8:following a plan" [arrowhead=onormal];
 "A:20:following a plan" -> "pair/63" [arrowhead=dot];
-"pair/63" -> "essence /64" [arrowhead=dot];
+"pair/63" -> "/64" [arrowhead=dot];
 
-"essence/64" -> "observing" [arrowhead=dot];
+"/64" -> "observing" [arrowhead=dot];
 "A:21:goal" -> "S:12:goal" [arrowhead=onormal];
 
 "A:22:pos" -> "S:0:pos" [arrowhead=onormal];

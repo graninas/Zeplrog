@@ -29,16 +29,27 @@ type Description = String
 
 data PropertyValue
   = NoValue
+
+  -- Currently used for actions loop
   | PairValue PropertyValue PropertyValue
+  | EssenceValue Description Essence
+
+  -- Currently used for arguments for actions
   | ListValue [PropertyValue]
+  | ActingObjectValue ActingObject
+
+  -- Used for value-kind properties: HP, Pos...
   | PositionValue (Int, Int)
   | IntValue Int
-  | EssenceValue Description Essence
-  | ActingObjectValue ActingObject
-  | ActivePropertyValue ActiveProperty
-  | StaticPropertyValue StaticProperty
-  | ConditionValue  -- Condition
-  | TargetValue PropertyValue
+
+  -- Currently used for state subgraphs
+  | ActivePropertyValue Description ActiveProperty
+
+
+  -- | StaticPropertyValue StaticProperty
+  -- | ConditionValue  -- Condition
+  -- | TargetValue PropertyValue
+
 
 data StaticPropertyValue
   = NoStaticValue

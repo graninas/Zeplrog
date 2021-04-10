@@ -30,17 +30,17 @@ closedStateStaticProperty CommonStaticProperties{..} = do
 
 
 openingConditionStaticProperty :: CommonStaticProperties -> StaticProperty -> KBBuilder StaticProperty
-openingConditionStaticProperty csp stateSProp = do
+openingConditionStaticProperty csp openStateSProp = do
   valVar <- lift $ newTVar NoStaticValue
-  let props = Map.singleton targetPropType [(DirectMaterialization stateSProp)]
+  let props = Map.singleton targetPropType [(SharedMaterialization openStateSProp)]
   -- TODO: condition value
   -- NoValue == no condition
   mkStaticProperty conditionEssence props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
 closingConditionStaticProperty :: CommonStaticProperties -> StaticProperty -> KBBuilder StaticProperty
-closingConditionStaticProperty csp stateSProp = do
+closingConditionStaticProperty csp closedStateSProp = do
   valVar <- lift $ newTVar NoStaticValue
-  let props = Map.singleton targetPropType [(DirectMaterialization stateSProp)]
+  let props = Map.singleton targetPropType [(SharedMaterialization closedStateSProp)]
   -- TODO: condition value
   -- NoValue == no condition
   mkStaticProperty conditionEssence props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
