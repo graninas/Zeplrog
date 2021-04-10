@@ -24,7 +24,7 @@ ratStaticProperty CommonStaticProperties{..} = do
                               , DirectMaterialization hpSProp ])
         , (actionsPropType,   [ DirectMaterialization noActionSProp ])              -- this rat doesn't do anything...
         ]
-  mkStaticProperty ratEssence props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty ratEssence "" props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
 
 
@@ -44,7 +44,7 @@ guardStaticProperty ratSProp commonSProps@(CommonStaticProperties{..}) = do
         , (actionsPropType, map DirectMaterialization $ commonActionsSProps commonSProps)
         , (goalsPropType,     [ DirectMaterialization killRatGoalSProp ])
         ]
-  mkStaticProperty guardEssence props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty guardEssence "" props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
 
 

@@ -15,27 +15,18 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 
 
-getAllActivations :: ActingObject -> STM [(Description, Essence)]
+getAllActivations :: ActingObject -> STM [(Description, ActiveProperty)]
 getAllActivations actObj = do
   props <- getPropertiesOfType (rootProperty actObj) statesPropType
-  traceM $ "states count:" <> (show $ length props)
-  activations' <- mapM getActivation' props
-  pure $ join activations'
-  where
-    -- Receives a condition property which points to its targets.
-    -- (There can be many targets of activation)
-    -- The target property has a value with activation
-    getActivation' :: ActiveProperty -> STM [(Description, Essence)]
-    getActivation' prop = do
-      targets <- getPropertiesOfType prop targetPropType
-      xs <- mapM getActivationName targets
-      traceM $ "targets: " <> show xs
-      pure $ catMaybes xs
-    getActivationName :: ActiveProperty -> STM (Maybe (Description, Essence))
-    getActivationName (ActiveProperty {propertyValueVar}) = do
-      val <- readTVar propertyValueVar
-      case val of
-        EssenceValue aN aTN -> pure $ Just (aN, aTN)
-        _ -> do
-          report actObj $ "Actinvation object is malformed: unknown property value"
-          pure $ Nothing
+  pure $ map (\prop -> (activePropertyDescription prop, prop)) props
+
+getCurrentActivations :: ActingObject -> STM [(Description, ActiveProperty)]
+getCurrentActivations actObj = do
+  val <- readTVar $ propertyValueVar $ rootProperty actObj
+  case val of
+    ActivePropertyValue _ curStateProp -> do
+      props <- getPropertiesOfType curStateProp activationsPropType
+      pure $ map (\prop -> (activePropertyDescription prop, prop)) props
+    _ -> do
+      report actObj "Malformed state object: unknown property value."
+      pure []

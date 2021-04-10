@@ -40,44 +40,46 @@ data CommonStaticProperties = CommonStaticProperties
 
 mkStaticProperty
   :: Essence
+  -> Description
   -> StaticPropertyMap
   -> TVar StaticPropertyValue
   -> StaticPropertyDiscoverability
   -> ActiveValueDiscoverability
   -> KBBuilder StaticProperty
-mkStaticProperty ess props valVar statDisc actDisc = do
+mkStaticProperty ess descr props valVar statDisc actDisc = do
   KBBuilderEnv idCounterVar essencesVar <- ask
   propId <- lift $ getStaticPropertyId idCounterVar
-  let prop = StaticProperty propId ess props valVar statDisc actDisc
+  let prop = StaticProperty propId ess descr props valVar statDisc actDisc
   lift $ modifyTVar' essencesVar $ Map.insert ess prop
   pure prop
 
 mkCommonStaticProperty
   :: Essence
+  -> Description
   -> StaticPropertyDiscoverability
   -> ActiveValueDiscoverability
   -> KBBuilder StaticProperty
-mkCommonStaticProperty essence statDisc actDisc = do
+mkCommonStaticProperty ess descr statDisc actDisc = do
   valVar <- lift $ newTVar NoStaticValue
-  mkStaticProperty essence Map.empty valVar statDisc actDisc
+  mkStaticProperty ess descr Map.empty valVar statDisc actDisc
 
 mkCommonStaticProperties :: KBBuilder CommonStaticProperties
 mkCommonStaticProperties = do
 
   CommonStaticProperties
-    <$> mkCommonStaticProperty posEssence      StaticDiscoverLeaf    ActiveValueDiscoverable
-    <*> mkCommonStaticProperty hpEssence       StaticDiscoverLeaf    ActiveValueNonDiscoverable
-    <*> mkCommonStaticProperty fireWandEssence StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkCommonStaticProperty iceWandEssence  StaticNonDiscoverable ActiveValueNonDiscoverable
+    <$> mkCommonStaticProperty posEssence      "" StaticDiscoverLeaf    ActiveValueDiscoverable
+    <*> mkCommonStaticProperty hpEssence       "" StaticDiscoverLeaf    ActiveValueNonDiscoverable
+    <*> mkCommonStaticProperty fireWandEssence "" StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkCommonStaticProperty iceWandEssence  "" StaticNonDiscoverable ActiveValueNonDiscoverable
 
-    <*> mkCommonStaticProperty observingEssence     StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkCommonStaticProperty discoveringEssence   StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkCommonStaticProperty settingGoalsEssence  StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkCommonStaticProperty planningEssence      StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkCommonStaticProperty followingPlanEssence StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkCommonStaticProperty noActionEssence      StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkCommonStaticProperty observingEssence     "" StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkCommonStaticProperty discoveringEssence   "" StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkCommonStaticProperty settingGoalsEssence  "" StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkCommonStaticProperty planningEssence      "" StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkCommonStaticProperty followingPlanEssence "" StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkCommonStaticProperty noActionEssence      "" StaticNonDiscoverable ActiveValueNonDiscoverable
 
-    <*> mkCommonStaticProperty goalEssence StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkCommonStaticProperty goalEssence "" StaticNonDiscoverable ActiveValueNonDiscoverable
 
 
 killGoalStaticProperty :: StaticProperty -> KBBuilder StaticProperty
@@ -85,6 +87,7 @@ killGoalStaticProperty targetSProp = do
   valVar <- lift $ newTVar NoStaticValue   -- (TargetValue (StaticPropertyValue targetSProp))
   mkStaticProperty
     goalEssence           --- not unique??? (used in common stat props)
+    ""
     Map.empty
     valVar
     StaticNonDiscoverable

@@ -17,6 +17,8 @@ type MaterializedProperties = TVar (Map.Map StaticPropertyId ActiveProperty)
 
 type DelayedVariables = TVar (Map.Map StaticPropertyId [(Description, TVar PropertyValue)])
 
+outputDbg msg = if True then traceM msg else pure ()
+
 getActingObjectId :: IdCounter -> STM ActingObjectId
 getActingObjectId idCounterVar = do
   propId <- getId idCounterVar
@@ -34,7 +36,7 @@ updateDelayedVars
   -> MaterializedProperties
   -> STM ()
 updateDelayedVars pad delayedVarsVar matPropsVar = do
-  -- traceM $ pad <> "updateDelayedVars"
+  outputDbg $ pad <> "updateDelayedVars"
   delayedVars <- readTVar delayedVarsVar
   matProps' <- readTVar matPropsVar
   let matProps = Map.toList matProps'
@@ -44,10 +46,10 @@ updateDelayedVars pad delayedVarsVar matPropsVar = do
   let f (sPropId, prop) = do
           case Map.lookup sPropId delayedVars of
             Nothing -> do
-              -- traceM $ pad <> "-- prop is not found for delayed var for sPropId: " <> show sPropId
+              outputDbg $ pad <> "-- prop is not found for delayed var for sPropId: " <> show sPropId
               pure ()
             Just vars -> do
-              -- traceM $ pad <> "-- prop is found for delayed var for sPropId: " <> show sPropId
+              outputDbg $ pad <> "-- prop is found for delayed var for sPropId: " <> show sPropId
               mapM_ (\(descr, var) -> writeTVar var $ ActivePropertyValue descr prop) vars
 
   mapM_ f matProps
@@ -78,10 +80,10 @@ materializeStaticProperty
   -> STM ActiveProperty
 materializeStaticProperty
   pad idCounterVar kb matPropsVar delayedVarsVar propsSetter
-  sProp@(StaticProperty {staticProperties, staticPropertyValueVar}) = do
+  sProp@(StaticProperty {staticProperties, staticPropertyDescription, staticPropertyValueVar}) = do
     let ess = essence sProp
-    -- traceM $ pad <> "materializeStaticProperty"
-    -- traceM $ pad <> "-- sProp: " <> show (staticPropertyId sProp) <> " essence: " <> show ess
+    outputDbg $ pad <> "materializeStaticProperty"
+    outputDbg $ pad <> "-- sProp: " <> show (staticPropertyId sProp) <> " essence: " <> show ess
 
     props <- mapM (materializeLinksByType (pad <> "  ") idCounterVar kb matPropsVar delayedVarsVar propsSetter)
                 $ Map.toList staticProperties
@@ -101,31 +103,31 @@ materializeStaticProperty
       -- (ignoring externally defined values).
       -- May cause infinite materialization loops if the source data is done wrongly.
       MaterializableStateValue descr (DirectMaterialization linkedSProp) -> do
-        -- traceM $ pad <> "-- state val, direct materialization. Linked sProp: "
-            -- <> show (staticPropertyId linkedSProp)
-            -- <> " essence: " <> show (essence linkedSProp)
-        -- traceM $ pad <> "-- materializing"
+        outputDbg $ pad <> "-- state val, direct materialization. Linked sProp: "
+            <> show (staticPropertyId linkedSProp)
+            <> " essence: " <> show (essence linkedSProp)
+        outputDbg $ pad <> "-- materializing"
         linkedProp <- materializeStaticProperty (pad <> "  ") idCounterVar kb matPropsVar delayedVarsVar propsSetter linkedSProp
         newTVar $ ActivePropertyValue descr linkedProp
 
       -- The same, just delaying the materialization.
       -- This should prevent for loops.
       MaterializableStateValue descr (SharedMaterialization linkedSProp) -> do
-        -- traceM $ pad <> "-- state val, shared materialization. Linked sProp: "
-            -- <> show (staticPropertyId linkedSProp)
-            -- <> " essence: " <> show (essence linkedSProp)
-        -- traceM $ pad <> "-- storing delayed var"
+        outputDbg $ pad <> "-- state val, shared materialization. Linked sProp: "
+            <> show (staticPropertyId linkedSProp)
+            <> " essence: " <> show (essence linkedSProp)
+        outputDbg $ pad <> "-- storing delayed var"
         let linkedSPropId = staticPropertyId linkedSProp
         delayedVar <- newTVar NoValue
         delayedVars <- readTVar delayedVarsVar
         writeTVar delayedVarsVar $ Map.insertWith (++) linkedSPropId [(descr, delayedVar)] delayedVars
         pure delayedVar
 
-    -- traceM $ pad <> "-- active property created. propId: " <> show propId
-    let prop = ActiveProperty propId sProp propValVar propsVar
+    outputDbg $ pad <> "-- active property created. propId: " <> show propId
+    let prop = ActiveProperty propId staticPropertyDescription sProp propValVar propsVar
 
     -- Store brand new active property for the future
-    -- traceM $ pad <> "-- storing active property into materialized props"
+    outputDbg $ pad <> "-- storing active property into materialized props"
     modifyTVar' matPropsVar $ Map.insert (staticPropertyId sProp) prop
 
     pure prop
@@ -140,15 +142,15 @@ materializeLink'
   -> MaterializationLink
   -> STM ActiveProperty
 materializeLink' pad idCounterVar kb matPropsVar delayedVarsVar propsSetter matLink = do
-  -- traceM $ pad <> "materializeLink'"
+  outputDbg $ pad <> "materializeLink'"
 
   case matLink of
 
     -- Materialize the static property into the new active property.
     DirectMaterialization sProp -> do
-      -- traceM $ pad <> "-- direct mat, sProp: "
-        -- <> show (staticPropertyId sProp)
-        -- <> " essence: " <> show (essence sProp)
+      outputDbg $ pad <> "-- direct mat, sProp: "
+        <> show (staticPropertyId sProp)
+        <> " essence: " <> show (essence sProp)
       matProp <- materializeStaticProperty (pad <> "  ") idCounterVar kb matPropsVar delayedVarsVar propsSetter sProp
       modifyTVar' matPropsVar $ Map.insert (staticPropertyId sProp) matProp
       pure matProp
@@ -156,19 +158,17 @@ materializeLink' pad idCounterVar kb matPropsVar delayedVarsVar propsSetter matL
     -- If static property is already materialized, search for it.
     -- Otherwise, materialize into a new active property and remember it for the future.
     SharedMaterialization sProp -> do
-      -- traceM $ pad <> "-- shared mat, sProp: "
-        -- <> show (staticPropertyId sProp)
-        -- <> " essence: " <> show (essence sProp)
+      outputDbg $ pad <> "-- shared mat, sProp: "
+        <> show (staticPropertyId sProp)
+        <> " essence: " <> show (essence sProp)
       mProps <- readTVar matPropsVar      -- already materialized props
       case Map.lookup (staticPropertyId sProp) mProps of
         Just matProp -> do
-          -- traceM $ pad <> "-- -- found mat prop: " <> show (staticPropertyId sProp)
+          outputDbg $ pad <> "-- -- found mat prop: " <> show (staticPropertyId sProp)
           pure matProp
         Nothing -> do
-          -- traceM $ pad <> "-- -- mat prop not found. Materializing"
+          outputDbg $ pad <> "-- -- mat prop not found. Materializing"
           materializeStaticProperty (pad <> "  ") idCounterVar kb matPropsVar delayedVarsVar propsSetter sProp
-
-
 
 
 materializeLink
@@ -181,12 +181,12 @@ materializeLink
   -> MaterializationLink
   -> STM ActiveProperty
 materializeLink pad idCounterVar kb matPropsVar delayedVarsVar propsSetter matLink = do
-  -- traceM $ pad <> "materializeLink"
+  outputDbg $ pad <> "materializeLink"
 
   prop <- materializeLink' (pad <> "  ") idCounterVar kb matPropsVar delayedVarsVar propsSetter matLink
 
   -- Search for delayed vars and update
-  -- traceM $ pad <> "-- checking delayed vars"
+  outputDbg $ pad <> "-- checking delayed vars"
   updateDelayedVars (pad <> "  ") delayedVarsVar matPropsVar
 
   pure prop
