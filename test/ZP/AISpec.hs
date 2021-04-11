@@ -272,7 +272,7 @@ spec =
 
       zpNet <- atomically $ initZPNet1 idCounterVar rndSource worldVar
 
-      outputGraph zpNet "zpnet.dot"
+      -- outputGraph zpNet "zpnet.dot"
 
       actObj <- fromJust <$> (atomically $ getActingObject zpNet guard01Name)
 
@@ -363,11 +363,25 @@ spec =
       zpNet <- atomically $ initZPNet2 idCounterVar rndSource worldVar
       actObj <- fromJust <$> (atomically $ getActingObject zpNet door01)
 
-      outputGraph zpNet "doors.dot"
+      -- outputGraph zpNet "doors1.dot"
 
-      activations <- atomically $ getAllActivations actObj
-      length activations `shouldBe` 2
+      allActivations <- atomically $ getAllActivations actObj
+      Map.size allActivations `shouldBe` 2
 
-      -- atomically $ activate actObj $ activations !! 0
+      currentActivations <- atomically $ getCurrentActivations actObj
+      Map.size currentActivations `shouldBe` 1
 
+      mbNewStateProp <- atomically
+        $ activate zpNet actObj
+        $ fst $ Map.findMin currentActivations
+
+      -- outputGraph zpNet "doors2.dot"
+
+      mbCurStateProp <- atomically $ getCurrentStateProperty actObj
+      case (mbNewStateProp, mbCurStateProp) of
+        (Just prop1, Just prop2) -> activePropertyId prop1 `shouldBe` activePropertyId prop2
+        (_, Nothing) -> fail "Invalid activation2"
+        (Nothing, _) -> fail "Invalid activation1"
+
+      verifyReport actObj []
       verifyGlobalReport zpNet []
