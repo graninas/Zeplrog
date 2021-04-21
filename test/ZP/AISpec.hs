@@ -327,7 +327,7 @@ spec =
         , "Action set: Essence \"observing\""
         ]
 
-    xit "Evaluating the goals setting action" $ do
+    it "Evaluating the goals setting action" $ do
       idCounterVar <- newTVarIO 0
       worldVar     <- newTVarIO $ World Map.empty []
       stepVar      <- newTVarIO 0
@@ -380,8 +380,8 @@ spec =
       mbCurStateProp <- atomically $ getCurrentStateProperty actObj
       case (mbNewStateProp, mbCurStateProp) of
         (Just prop1, Just prop2) -> activePropertyId prop1 `shouldBe` activePropertyId prop2
-        (_, Nothing) -> fail "Invalid activation2"
         (Nothing, _) -> fail "Invalid activation1"
+        (_, Nothing) -> fail "Invalid activation2"
 
       verifyReport actObj []
       verifyGlobalReport zpNet []

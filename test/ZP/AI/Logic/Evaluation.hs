@@ -13,6 +13,7 @@ import ZP.AI.Logic.Common
 import ZP.AI.Logic.Discovering
 import ZP.AI.Logic.Observing
 import ZP.AI.Logic.Activation
+import ZP.AI.Logic.SettingGoals
 
 import Debug.Trace (trace)
 
@@ -52,12 +53,6 @@ selectNextActionForObjName zpNet objName = do
     Nothing  -> reportGlobal zpNet $ "Acting object not found: " <> show objName
     Just obj -> selectNextAction obj
 
-
-evaluateGoalsSettingAction :: ZPNet -> ActingObject -> STM ()
-evaluateGoalsSettingAction _ self = do
-
-
-  report self "Goals setting action"
 
 evaluatePlanningAction :: ZPNet -> ActingObject -> STM ()
 evaluatePlanningAction _ self = report self "Planning action"
