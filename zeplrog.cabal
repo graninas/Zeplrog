@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 69b539d09004ed37f0fc4c71771f37def15b66b22ec748ea2e6625fb8364994a
+-- hash: 6f61d7f8a99d47a41df0e6e575bb14e8c8534b54991158edeb322b09d832b6e8
 
 name:           zeplrog
 version:        0.0.0.1
@@ -144,6 +144,7 @@ test-suite tests
       ZP.AI.Logic.Discovering
       ZP.AI.Logic.Evaluation
       ZP.AI.Logic.Observing
+      ZP.AI.Logic.SettingGoals
       ZP.AI.Materialization
       ZP.AI.StaticKnowledge
       ZP.AI.Types
