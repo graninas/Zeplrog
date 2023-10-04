@@ -1,4 +1,5 @@
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE DataKinds #-}
 
 module ZP.TestData.KnowledgeBase.Agents where
 
@@ -13,6 +14,11 @@ import ZP.TestData.KnowledgeBase.Common
 
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+
+
+
+
+
 
 
 

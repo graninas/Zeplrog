@@ -48,7 +48,7 @@ dependencies:
 - fmt
 - free
 - generic-lens
-- gloss
+# - gloss
 - lens
 - MonadRandom
 - mtl

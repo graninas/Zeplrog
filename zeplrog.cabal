@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 69b539d09004ed37f0fc4c71771f37def15b66b22ec748ea2e6625fb8364994a
+-- hash: b173fb2df71869ab86cec2244a8ab06ab631ec852039a1b891540ae723faede6
 
 name:           zeplrog
 version:        0.0.0.1
@@ -29,10 +29,6 @@ library
       ZP.Game.Logic
       ZP.Game.State
       ZP.Game.Types
-      ZP.Gloss.Conv
-      ZP.Gloss.Render.Renderer
-      ZP.Gloss.Render.Shapes
-      ZP.Gloss.Types
       ZP.Hardcode
       ZP.Prelude
       ZP.Types
@@ -40,7 +36,32 @@ library
       Paths_zeplrog
   hs-source-dirs:
       src
-  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  default-extensions:
+      NoImplicitPrelude
+      GADTs
+      RankNTypes
+      DeriveFunctor
+      DeriveGeneric
+      OverloadedStrings
+      LambdaCase
+      MultiParamTypeClasses
+      ExplicitNamespaces
+      TypeApplications
+      ScopedTypeVariables
+      TypeOperators
+      TypeFamilies
+      DataKinds
+      FlexibleContexts
+      FlexibleInstances
+      PatternSynonyms
+      PolyKinds
+      DefaultSignatures
+      ConstraintKinds
+      NamedFieldPuns
+      TupleSections
+      ViewPatterns
+      MultiWayIf
+      RecordWildCards
   ghc-options: -Wall
   build-depends:
       MonadRandom
@@ -57,7 +78,6 @@ library
     , fmt
     , free
     , generic-lens
-    , gloss
     , lens
     , mtl
     , newtype-generics
@@ -85,17 +105,38 @@ executable zeplrog
       ZP.Game.Logic
       ZP.Game.State
       ZP.Game.Types
-      ZP.Gloss.Conv
-      ZP.Gloss.Render.Renderer
-      ZP.Gloss.Render.Shapes
-      ZP.Gloss.Types
       ZP.Hardcode
       ZP.Prelude
       ZP.Types
       Paths_zeplrog
   hs-source-dirs:
       src/
-  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  default-extensions:
+      NoImplicitPrelude
+      GADTs
+      RankNTypes
+      DeriveFunctor
+      DeriveGeneric
+      OverloadedStrings
+      LambdaCase
+      MultiParamTypeClasses
+      ExplicitNamespaces
+      TypeApplications
+      ScopedTypeVariables
+      TypeOperators
+      TypeFamilies
+      DataKinds
+      FlexibleContexts
+      FlexibleInstances
+      PatternSynonyms
+      PolyKinds
+      DefaultSignatures
+      ConstraintKinds
+      NamedFieldPuns
+      TupleSections
+      ViewPatterns
+      MultiWayIf
+      RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       MonadRandom
@@ -112,7 +153,6 @@ executable zeplrog
     , fmt
     , free
     , generic-lens
-    , gloss
     , lens
     , mtl
     , newtype-generics
@@ -155,10 +195,41 @@ test-suite tests
       ZP.TestData.KnowledgeBase.Doors
       ZP.TestData.KnowledgeBase.Essences
       ZP.TestData.KnowledgeBase.KnowledgeBase
+      ZP.Typed.KnowledgeBase.Agents
+      ZP.Typed.KnowledgeBase.Common
+      ZP.Typed.KnowledgeBase.Doors
+      ZP.Typed.KnowledgeBase.Essences
+      ZP.Typed.Model.Property
+      ZP.TypedAISpec
       Paths_zeplrog
   hs-source-dirs:
       test/
-  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  default-extensions:
+      NoImplicitPrelude
+      GADTs
+      RankNTypes
+      DeriveFunctor
+      DeriveGeneric
+      OverloadedStrings
+      LambdaCase
+      MultiParamTypeClasses
+      ExplicitNamespaces
+      TypeApplications
+      ScopedTypeVariables
+      TypeOperators
+      TypeFamilies
+      DataKinds
+      FlexibleContexts
+      FlexibleInstances
+      PatternSynonyms
+      PolyKinds
+      DefaultSignatures
+      ConstraintKinds
+      NamedFieldPuns
+      TupleSections
+      ViewPatterns
+      MultiWayIf
+      RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       MonadRandom
@@ -175,7 +246,6 @@ test-suite tests
     , fmt
     , free
     , generic-lens
-    , gloss
     , hspec
     , lens
     , mtl
