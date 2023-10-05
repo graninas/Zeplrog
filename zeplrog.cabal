@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b173fb2df71869ab86cec2244a8ab06ab631ec852039a1b891540ae723faede6
+-- hash: 8f15e0650484f0f782c0f8aa1e352b14835d326e517002c4e196f29c1cf410ec
 
 name:           zeplrog
 version:        0.0.0.1
@@ -24,14 +24,12 @@ source-repository head
 library
   exposed-modules:
       Main
-      ZP.App
-      ZP.Game.Debug
-      ZP.Game.Logic
-      ZP.Game.State
-      ZP.Game.Types
-      ZP.Hardcode
+      ZP.Assets.KnowledgeBase.Agents
+      ZP.Assets.KnowledgeBase.Common
+      ZP.Assets.KnowledgeBase.Doors
+      ZP.Assets.KnowledgeBase.Essences
+      ZP.Domain.Static.Property
       ZP.Prelude
-      ZP.Types
   other-modules:
       Paths_zeplrog
   hs-source-dirs:
@@ -100,14 +98,12 @@ library
 executable zeplrog
   main-is: Main.hs
   other-modules:
-      ZP.App
-      ZP.Game.Debug
-      ZP.Game.Logic
-      ZP.Game.State
-      ZP.Game.Types
-      ZP.Hardcode
+      ZP.Assets.KnowledgeBase.Agents
+      ZP.Assets.KnowledgeBase.Common
+      ZP.Assets.KnowledgeBase.Doors
+      ZP.Assets.KnowledgeBase.Essences
+      ZP.Domain.Static.Property
       ZP.Prelude
-      ZP.Types
       Paths_zeplrog
   hs-source-dirs:
       src/
@@ -176,31 +172,7 @@ test-suite tests
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      ZP.AI.Debug
-      ZP.AI.Logic
-      ZP.AI.Logic.Activation
-      ZP.AI.Logic.Common
-      ZP.AI.Logic.Conditions
-      ZP.AI.Logic.Discovering
-      ZP.AI.Logic.Evaluation
-      ZP.AI.Logic.Observing
-      ZP.AI.Materialization
-      ZP.AI.StaticKnowledge
-      ZP.AI.Types
-      ZP.AISpec
-      ZP.TestData.GraphBuilder
-      ZP.TestData.KnowledgeBase
-      ZP.TestData.KnowledgeBase.Agents
-      ZP.TestData.KnowledgeBase.Common
-      ZP.TestData.KnowledgeBase.Doors
-      ZP.TestData.KnowledgeBase.Essences
-      ZP.TestData.KnowledgeBase.KnowledgeBase
-      ZP.Typed.KnowledgeBase.Agents
-      ZP.Typed.KnowledgeBase.Common
-      ZP.Typed.KnowledgeBase.Doors
-      ZP.Typed.KnowledgeBase.Essences
-      ZP.Typed.Model.Property
-      ZP.TypedAISpec
+      ZP.MaterializationSpec
       Paths_zeplrog
   hs-source-dirs:
       test/

@@ -1,15 +1,12 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 
-module ZP.TypedAISpec where
+module ZP.MaterializationSpec where
 
 import ZP.Prelude
-import ZP.Types
-import ZP.App
-import ZP.Game.Types
-import ZP.Game.Logic
-import ZP.Typed.Model.Property
-import ZP.Typed.KnowledgeBase.Essences
-import ZP.Typed.KnowledgeBase.Agents
+
+import ZP.Domain.Static.Property
+import ZP.Assets.KnowledgeBase.Essences
+import ZP.Assets.KnowledgeBase.Agents
 
 import Test.Hspec
 

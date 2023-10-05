@@ -2,14 +2,12 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 
-module ZP.Typed.Model.Property where
+module ZP.Domain.Static.Property where
 
 import Prelude (Bool)
 import GHC.TypeLits
 
------- Query and Action ------------
-
-
+------ Query and Procedure Script ------------
 
 type VarName = Symbol
 
