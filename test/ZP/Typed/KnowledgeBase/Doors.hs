@@ -8,6 +8,7 @@ import ZP.Typed.Model.Property
 import ZP.Typed.KnowledgeBase.Essences
 import ZP.Typed.KnowledgeBase.Common
 
+import Prelude (Bool(..))
 import GHC.TypeLits
 
 -- TODO: condition value
@@ -33,7 +34,7 @@ import GHC.TypeLits
 --
 -- --
 -- type OpeningCondition2 = Query
---   '[ QueryBag EIntrinsics
+--   '[ QueryKeyBag EIntrinsics
 --    , QueryPropVal EStateVal (MatchVal (EssenceVal EOpenState))
 --    ]
 
@@ -61,17 +62,18 @@ type CloseStateRef = PropRef
    , EStateClose
    ]
 
-type PushableScript = Script EPushable
-  '[ PreQuery QueryOpen           -- assuming query returns True or False
-      (BoolValue "is open" True)  -- TODO: query returns any values.
-      (BoolValue "is open" False)
+type PushableScript = SimpleScript EPushable
+  '[ SimpleQuery
+        '[ FollowReferences ]
+        '[ QEssence EState, QGetEssence ]
+         (BoolVar "is open")
    ]
-  '[ Action
-      (Condition "is open" True)
-      (ReplacePropRef '[ EState ] CloseStateRef)
-   , Action
-      (Condition "is open" False)
-      (ReplacePropRef '[ EState ] OpenStateRef)
+  '[ ConditionalAction
+      (ConditionDef "is open" Eq (BoolValDef True))
+      (ReplaceProp '[ EState ] CloseStateRef)
+   , ConditionalAction
+      (ConditionDef "is open" Eq (BoolValDef False))
+      (ReplaceProp '[ EState ] OpenStateRef)
    ]
 
 type Door = PropDict (EssRoot EDoor)
@@ -91,7 +93,9 @@ type Door = PropDict (EssRoot EDoor)
       '[ SharedProp (PropScript PushableScript)
        ]
    ]
---
+
+
+
 --
 -- Door
 --   EPos <shared> -------------> (PosConst 3 5)

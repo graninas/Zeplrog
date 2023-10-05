@@ -4,38 +4,75 @@
 
 module ZP.Typed.Model.Property where
 
+import Prelude (Bool)
 import GHC.TypeLits
 
-
--- Common
-
-data Value where
-  EssenceVal :: Essence -> Value
+------ Query and Action ------------
 
 
--- Query
 
-data ValueMatcher where
-  MatchType :: ValDefType -> ValueMatcher
-  MatchVal :: Value -> ValueMatcher
+type VarName = Symbol
 
-data PropertyMatcher where
-  QueryBag :: Essence -> PropertyMatcher
-  QueryPropVal :: Essence -> ValueMatcher -> PropertyMatcher
+data VarDef where
+  IntVar        :: VarName -> VarDef
+  IntRangeVar   :: VarName -> VarDef
+  BoolVar       :: VarName -> VarDef
+  PairVar       :: VarName -> VarDef -> VarDef -> VarDef
 
-data QueryLang where
-  Query :: [PropertyMatcher] -> QueryLang
+data QuerySetting where
+  FollowReferences :: QuerySetting
+
+data CompareOp where
+  Eq :: CompareOp
+
+data QueryTerm where
+  QEssence :: Essence -> QueryTerm
+  QGetEssence :: QueryTerm
+
+type QueryPath = [QueryTerm]
+
+data Query where
+  SimpleQuery
+    :: [QuerySetting]
+    -> QueryPath
+    -> VarDef
+    -> Query
+
+data Condition where
+  ConditionDef
+    :: VarName
+    -> CompareOp
+    -> ValDefType
+    -> Condition
+
+data Procedure where
+  ReplaceProp
+    :: [Essence]
+    -> Property
+    -> Procedure
+
+data Action where
+  ConditionalAction
+    :: Condition
+    -> Procedure
+    -> Action
+
+data Script where
+  SimpleScript
+    :: Essence
+    -> [Query]       -- ^ Query specific values before the script
+    -> [Action]
+    -> Script
 
 
 ------ Property -----
 
 
 data ValDefType where
-  IntValDef        :: Nat -> ValDefType
-  IntRangeValDef   :: (Nat, Nat) -> ValDefType
-  BoolValDef       :: Bool -> ValDefType
-  PairValDef       :: ValDefType -> ValDefType -> ValDefType
-  StaticPropRefDef :: Property -> ValDefType
+  IntValDef      :: Nat -> ValDefType
+  IntRangeValDef :: (Nat, Nat) -> ValDefType
+  BoolValDef     :: Bool -> ValDefType
+  PairValDef     :: ValDefType -> ValDefType -> ValDefType
 
 
 data Essence where
@@ -74,15 +111,6 @@ data PropertyKeyValue where
 
 data StaticProperty where
   StaticProp :: StaticPropertyRoot -> StaticProperty
-
-data PreQuery where
-
-
-data Script where
-  SimpleScript
-    :: Essence
-    -> [PreQuery]
-    -> Script
 
 data Property where
   -- | Static prop reference. Will not be materialized.

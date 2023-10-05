@@ -19,12 +19,10 @@ type KillGoal = StaticProp (EssStaticRoot EGoal)
 
 type RatActor = PropDict (EssRoot ERat)
   '[ PropKeyBag EIntrinsics '[]
-   , PropKeyBag EAction '[]
    ]
 
 type GuardActor = PropDict (EssRoot EGuard)
   '[ PropKeyBag EIntrinsics '[]
-   , PropKeyBag EAction '[]
    ]
 
 
