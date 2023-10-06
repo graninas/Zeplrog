@@ -142,17 +142,3 @@ getStaticPropertyId :: IdCounter -> STM StaticPropertyId
 getStaticPropertyId idCounterVar = do
   propId <- getId idCounterVar
   pure $ StaticPropertyId propId
-
-mkStaticProperty
-  :: IdCounter
-  -> TVar Essences
-  -> Essence
-  -> StaticPropertyMap
-  -> StaticPropertyDiscoverability
-  -> ActiveValueDiscoverability
-  -> STM StaticProperty
-mkStaticProperty idCounterVar essencesVar essence props statDisc actDisc = do
-  propId <- getStaticPropertyId idCounterVar
-  let prop = StaticProperty propId essence props statDisc actDisc
-  modifyTVar' essencesVar $ Map.insert essence prop
-  pure prop

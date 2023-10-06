@@ -17,8 +17,8 @@ actionsPropType = PropertyType "actions"
 goalsPropType :: PropertyType
 goalsPropType = PropertyType "goals"
 
-killTargetPropType :: PropertyType
-killTargetPropType = PropertyType "kill target"
+targetPropType :: PropertyType
+targetPropType = PropertyType "target"
 
 knownActingObjectsPropType :: PropertyType
 knownActingObjectsPropType = PropertyType "known acting objects"

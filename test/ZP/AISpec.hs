@@ -274,7 +274,35 @@ spec =
         , "Action set: Essence \"observing\""
         ]
 
-    it "Evaluating the goals setting action" $ do
+    -- it "Evaluating the goals setting action" $ do
+    --   idCounterVar <- newTVarIO 0
+    --   worldVar     <- newTVarIO $ World Map.empty []
+    --   stepVar      <- newTVarIO 0
+    --   let rndSource = mkRndSource2 stepVar
+    --
+    --   zpNet <- atomically $ initZPNet idCounterVar rndSource worldVar
+    --
+    --   actObj <- fromJust <$> (atomically $ getActingObject zpNet guard01Name)
+    --
+    --   -- observing
+    --   atomically $ selectNextAction actObj
+    --   atomically $ evaluateCurrentAction zpNet actObj
+    --
+    --   -- discovering
+    --   atomically $ selectNextAction actObj
+    --   atomically $ evaluateCurrentAction zpNet actObj
+    --
+    --   clearReporter actObj
+    --   clearGlobalReporter zpNet
+    --
+    --   -- setting goals
+    --   atomically $ selectNextAction actObj
+    --   atomically $ evaluateCurrentAction zpNet actObj
+    --
+    --   verifyReport actObj
+    --     ["Action set: Essence \"setting goals\"","Goals setting action"]
+
+    it "Switching door states" $ do
       idCounterVar <- newTVarIO 0
       worldVar     <- newTVarIO $ World Map.empty []
       stepVar      <- newTVarIO 0
