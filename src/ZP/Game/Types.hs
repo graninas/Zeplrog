@@ -8,32 +8,29 @@ import Graphics.Gloss
 import qualified Data.Map as Map
 
 data ActorGoal = FindExit
+type ActorPath = [CellIdxs]
+
+newtype ObjectId = ObjectId Int
+  deriving (Show, Eq, Ord)
+
+data PathDisplay = PathIsBlinking Picture Int
+data ActivePath = ActivePath ObjectId ActorPath (Maybe PathDisplay)
 
 data ObservingResult
-  = PathFound ActorPath
+  = PathFound (TVar ActivePath)
 
 data ActorActivity
   = Idling Int
-  | Observing Int (Maybe ObservingResult)
-  | FollowingPath
+  | Observing Bool Int (Maybe ObservingResult)
+  | FollowingPath (TVar ActivePath)
 
-
-
-type ActorPath = [CellIdxs]
-
-data PathDisplay
-  = PathIsBlinking Int
-  | PathIsInvisible
 
 data ActorState = ActorState
   { goalVar            :: TVar ActorGoal
   , currentActivityVar :: TVar ActorActivity
 
   , currentPosVar   :: TVar CellIdxs
-  , currentPathVar  :: TVar ActorPath
   , currentShapeVar :: TVar Picture
 
   , currentPathPointShapeVar :: TVar Picture
-  , currentPathDisplayVar :: TVar PathDisplay
-  , staticShape :: Picture
   }

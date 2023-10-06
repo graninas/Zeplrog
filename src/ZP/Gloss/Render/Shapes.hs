@@ -69,9 +69,9 @@ playerActorShape :: BareCellSize -> Picture
 playerActorShape (BareCellSize bareCellSize) =
   Color red $ circleSolid $ fromIntegral (bareCellSize `div` 2)
 
-pathPointShape :: BareCellSize -> Picture
-pathPointShape (BareCellSize bareCellSize) =
-  Color (dark green) $ circleSolid $ (fromIntegral bareCellSize / 4)
+-- pathPointShape :: BareCellSize -> Picture
+-- pathPointShape (BareCellSize bareCellSize) =
+--   Color (dark green) $ circleSolid $ (fromIntegral bareCellSize / 4)
 
 
 toGlossCell :: GlossBareCellSize -> Char -> Picture
