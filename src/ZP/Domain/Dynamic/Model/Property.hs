@@ -20,6 +20,8 @@ data DynamicPropertyOwning
 
 data StaticPropertyRef where
   StaticPropRef
+    -- N.B. This is a very strange way to browse static properties.
+    -- It will require A LOT boilerplate.
     :: Browser.Browse Browser.GetEssence p Essence
     => Proxy (p :: SMod.Property)
     -> StaticPropertyRef
