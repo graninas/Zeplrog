@@ -2,6 +2,8 @@ digraph finite_state_machine {
 graph [ dpi = 600 ];
 size="8,5";
 node [shape=Mcircle];
+"S:12:goal" -> "S:12:goal-target" [arrowhead=dot];
+"S:12:goal-target" -> "S:11:rat" [arrowhead=dot];
 
 "S:13:guard" -> "S:9:no action" [label="actions"];
 "S:13:guard" -> "S:4:observing" [label="actions"];
@@ -17,52 +19,55 @@ node [shape=Mcircle];
 
 
 node [shape=circle];
-"A:15:guard" -> "S:13:guard" [arrowhead=onormal];
+"A:15:no action" -> "S:9:no action" [arrowhead=onormal];
+"A:16:observing" -> "S:4:observing" [arrowhead=onormal];
+"A:17:discovering" -> "S:5:discovering" [arrowhead=onormal];
+"A:18:setting goals" -> "S:6:setting goals" [arrowhead=onormal];
+"A:19:planning" -> "S:7:planning" [arrowhead=onormal];
+"A:20:following a plan" -> "S:8:following a plan" [arrowhead=onormal];
+"A:21:goal" -> "S:12:goal" [arrowhead=onormal];
+"A:22:pos" -> "S:0:pos" [arrowhead=onormal];
+"A:23:hp" -> "S:1:hp" [arrowhead=onormal];
+"A:24:fire wand" -> "S:2:fire wand" [arrowhead=onormal];
+"A:25:ice wand" -> "S:3:ice wand" [arrowhead=onormal];
 
-"A:15:guard" -> "A:16:no action" [label="actions"];
-"A:15:guard" -> "A:17:observing" [label="actions"];
-"A:15:guard" -> "A:18:discovering" [label="actions"];
-"A:15:guard" -> "A:19:setting goals" [label="actions"];
-"A:15:guard" -> "A:20:planning" [label="actions"];
-"A:15:guard" -> "A:21:following a plan" [label="actions"];
-"A:15:guard" -> "A:22:goal" [label="goals"];
-"A:15:guard" -> "A:23:pos" [label="inventory"];
-"A:15:guard" -> "A:24:hp" [label="inventory"];
-"A:15:guard" -> "A:25:fire wand" [label="inventory"];
-"A:15:guard" -> "A:26:ice wand" [label="inventory"];
+"A:26:guard" -> "A:15:no action" [label="actions"];
+"A:26:guard" -> "A:16:observing" [label="actions"];
+"A:26:guard" -> "A:17:discovering" [label="actions"];
+"A:26:guard" -> "A:18:setting goals" [label="actions"];
+"A:26:guard" -> "A:19:planning" [label="actions"];
+"A:26:guard" -> "A:20:following a plan" [label="actions"];
+"A:26:guard" -> "A:21:goal" [label="goals"];
+"A:26:guard" -> "A:22:pos" [label="inventory"];
+"A:26:guard" -> "A:23:hp" [label="inventory"];
+"A:26:guard" -> "A:24:fire wand" [label="inventory"];
+"A:26:guard" -> "A:25:ice wand" [label="inventory"];
+"A:26:guard" -> "S:13:guard" [arrowhead=onormal];
 
 node [shape=box];
-"AO:27:guard 01" -> "A:15:guard" [arrowhead=onormal];
-node [shape=Mcircle];
-
-"S:11:rat" -> "S:9:no action" [label="actions"];
-"S:11:rat" -> "S:0:pos" [label="inventory"];
-"S:11:rat" -> "S:1:hp" [label="inventory"];
-
-
+"AO:27:guard 01" -> "A:26:guard" [arrowhead=onormal];
 node [shape=circle];
-"A:28:rat" -> "S:11:rat" [arrowhead=onormal];
+"A:28:no action" -> "S:9:no action" [arrowhead=onormal];
+"A:29:pos" -> "S:0:pos" [arrowhead=onormal];
+"A:30:hp" -> "S:1:hp" [arrowhead=onormal];
 
-"A:28:rat" -> "A:29:no action" [label="actions"];
-"A:28:rat" -> "A:30:pos" [label="inventory"];
-"A:28:rat" -> "A:31:hp" [label="inventory"];
+"A:31:rat" -> "A:28:no action" [label="actions"];
+"A:31:rat" -> "A:29:pos" [label="inventory"];
+"A:31:rat" -> "A:30:hp" [label="inventory"];
+"A:31:rat" -> "S:11:rat" [arrowhead=onormal];
 
 node [shape=box];
-"AO:32:rat 01" -> "A:28:rat" [arrowhead=onormal];
-node [shape=Mcircle];
-
-"S:11:rat" -> "S:9:no action" [label="actions"];
-"S:11:rat" -> "S:0:pos" [label="inventory"];
-"S:11:rat" -> "S:1:hp" [label="inventory"];
-
-
+"AO:32:rat 01" -> "A:31:rat" [arrowhead=onormal];
 node [shape=circle];
-"A:33:rat" -> "S:11:rat" [arrowhead=onormal];
+"A:33:no action" -> "S:9:no action" [arrowhead=onormal];
+"A:34:pos" -> "S:0:pos" [arrowhead=onormal];
+"A:35:hp" -> "S:1:hp" [arrowhead=onormal];
 
-"A:33:rat" -> "A:34:no action" [label="actions"];
-"A:33:rat" -> "A:35:pos" [label="inventory"];
-"A:33:rat" -> "A:36:hp" [label="inventory"];
+"A:36:rat" -> "A:33:no action" [label="actions"];
+"A:36:rat" -> "A:34:pos" [label="inventory"];
+"A:36:rat" -> "A:35:hp" [label="inventory"];
+"A:36:rat" -> "S:11:rat" [arrowhead=onormal];
 
 node [shape=box];
-"AO:37:rat 02" -> "A:33:rat" [arrowhead=onormal];
+"AO:37:rat 02" -> "A:36:rat" [arrowhead=onormal];
 }
