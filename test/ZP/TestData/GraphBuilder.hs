@@ -120,31 +120,39 @@ buildValueNode uidVar stylesVar val = do
         )
     EssenceValue descr (Essence e) -> do
       let chName = e
-      pure (mkUName ("essence " <> descr),
-        [ mkQUName ("essence" <> descr) <> " -> " <> quoted chName <> toValueNodeArrStyle]
+      pure (mkUName descr,
+        [ mkQUName descr <> " -> " <> quoted chName <> toValueNodeArrStyle]
         )
-    StaticPropertyValue sProp -> do
-      let Essence ess = essence sProp
-      let StaticPropertyId sPId = staticPropertyId sProp
-      let sPropName = "S:" <> show sPId <> ":" <> ess
-      pure (mkUName "value",
-          [ mkQUName "value" <> " -> " <> quoted sPropName <> toValueNodeArrStyle]
-          )
-    TargetValue v -> do
-      (chName, tStrs) <- buildValueNode uidVar stylesVar v
-      pure (mkUName "target",
-           [ whenNotNull' chName $ mkQUName "target" <> " -> " <> quoted chName <> toValueNodeArrStyle
-           ] <> tStrs
-          )
-    ConditionValue -> do
-      pure (mkUName "condition", [])
-    -- MaterializableStateValue descr sProp -> do
+    -- StaticPropertyValue sProp -> do
     --   let Essence ess = essence sProp
     --   let StaticPropertyId sPId = staticPropertyId sProp
     --   let sPropName = "S:" <> show sPId <> ":" <> ess
-    --   pure (mkUName $ "mat sProp " <> descr,
-    --       [ mkQUName ("mat sProp " <> descr) <> " -> " <> quoted sPropName <> toValueNodeArrStyle]
+    --   pure (mkUName "value",
+    --       [ mkQUName "value" <> " -> " <> quoted sPropName <> toValueNodeArrStyle]
     --       )
+    ActingObjectValue (ActingObject {actingObjectId, actingObjectName}) -> do
+      let ActingObjectName aoName = actingObjectName
+      let name = "AO:" <> show actingObjectId <> ":" <> aoName
+      pure (mkUName "ao",
+          [ mkQUName "ao" <> " -> " <> quoted name <> toValueNodeArrStyle ]
+          )
+    ActivePropertyValue descr (ActiveProperty {activePropertyId, staticProperty}) -> do
+      let StaticProperty {staticPropertyId, essence} = staticProperty
+      let StaticPropertyId sPId = staticPropertyId
+      let Essence ess = essence
+      let ActivePropertyId propId = activePropertyId
+      let targetNodeName = "A:" <> show propId <> ":" <> ess <>""
+      pure (mkUName descr,
+          [ mkQUName descr <> " -> " <> quoted targetNodeName <> toValueNodeArrStyle ]
+          )
+    -- TargetValue v -> do
+    --   (chName, tStrs) <- buildValueNode uidVar stylesVar v
+    --   pure (mkUName "target",
+    --        [ whenNotNull' chName $ mkQUName "target" <> " -> " <> quoted chName <> toValueNodeArrStyle
+    --        ] <> tStrs
+    --       )
+    -- ConditionValue -> do
+    --   pure (mkUName "condition", [])
     ListValue vals -> do
       let thisNodeQUName = mkQUName "list"
       let f' (chName, tStrs) = [thisNodeQUName <> " -> " <> quoted chName <> toValueNodeArrStyle]
@@ -209,37 +217,6 @@ buildJointedStaticPropertyNode uidVar stylesVar jointPointName
     where
       f thisNodeName (PropertyType pType, targetNames, _) = map (f' thisNodeName pType) targetNames
       f' thisNodeName pType targetName = quoted thisNodeName <> " -> " <> quoted targetName <> " [label=\"" <> pType <> "\"];"
-
--- buildStaticPropertyNode :: NodeUID -> NodeStyles -> StaticProperty -> STM (String, [String])
--- buildStaticPropertyNode uidVar stylesVar
---   StaticProperty{staticPropertyId, staticPropertyValueVar, essence, staticProperties} = do
---     let Essence ess = essence
---     let StaticPropertyId sPId = staticPropertyId
---     let thisNodeName = "S:" <> show sPId <> ":" <> ess
---
---     addNodeStyle stylesVar staticPropsNodeStyle thisNodeName
---
---     propsByTypeStrings :: [(PropertyType, [String], [String])] <-
---       mapM (buildStaticPropertiesByType uidVar stylesVar)
---         $ Map.toList staticProperties
---
---     (valuesRootName, thisNodeValues) <- buildStaticValueNode uidVar stylesVar staticPropertyValueVar
---     let thisNodeToValuesRow =
---           if null valuesRootName then []
---             else quoted thisNodeName <> " -> " <> quoted valuesRootName <> toValueNodeArrStyle
---
---     let thisNodeChildrenProps = filter (not . null) $ join $ map (f thisNodeName) propsByTypeStrings
---     let rootProps             = filter (not . null) $ join $ map (\(_, _, xs) -> xs) propsByTypeStrings
---
---     pure (thisNodeName,
---       rootProps
---       <> thisNodeChildrenProps
---       <> [thisNodeToValuesRow]
---       <> thisNodeValues
---       )
---     where
---       f thisNodeName (PropertyType pType, targetNames, _) = map (f' thisNodeName pType) targetNames
---       f' thisNodeName pType targetName = quoted thisNodeName <> " -> " <> quoted targetName <> " [label=\"" <> pType <> "\"];"
 
 
 buildActivePropertiesByType

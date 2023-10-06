@@ -27,15 +27,16 @@ node [shape=circle];
 }
 {
 node [shape=plaintext];
+"close/23"
 "○/20"
 "mat value/19"
 "○/16"
 "mat value/15"
-"●/14"
+"○/14"
 "○/13"
 "○/10"
 "mat value/9"
-"●/8"
+"○/8"
 "○/7"
 "●/4"
 "●/1"
@@ -45,17 +46,17 @@ node [shape=plaintext];
 "●/1" -> "S:0:pos" [arrowhead=onormal];
 "●/4" -> "S:1:hp" [arrowhead=onormal];
 "○/7" -> "S:13:condition" [arrowhead=onormal];
-"●/8" -> "S:11:open" [arrowhead=onormal];
+"○/8" -> "S:11:open" [arrowhead=onormal];
 "S:11:open" -> "mat value/9" [arrowhead=dot];
 "mat value/9" -> "○/10" [arrowhead=dot];
 "○/10" -> "S:14:condition" [arrowhead=dot];
-"S:13:condition" -> "●/8" [label="target"];
+"S:13:condition" -> "○/8" [label="target"];
 "○/13" -> "S:14:condition" [arrowhead=onormal];
-"●/14" -> "S:12:closed" [arrowhead=onormal];
+"○/14" -> "S:12:closed" [arrowhead=onormal];
 "S:12:closed" -> "mat value/15" [arrowhead=dot];
 "mat value/15" -> "○/16" [arrowhead=dot];
 "○/16" -> "S:13:condition" [arrowhead=dot];
-"S:14:condition" -> "●/14" [label="target"];
+"S:14:condition" -> "○/14" [label="target"];
 "S:15:door" -> "●/1" [label="inventory"];
 "S:15:door" -> "●/4" [label="inventory"];
 "S:15:door" -> "○/7" [label="states"];
@@ -68,7 +69,8 @@ node [shape=plaintext];
 "A:18:hp" -> "S:1:hp" [arrowhead=onormal];
 
 "A:19:open" -> "S:11:open" [arrowhead=onormal];
-
+"A:19:open" -> "close/23" [arrowhead=dot];
+"close/23" -> "A:22:condition" [arrowhead=dot];
 "A:20:condition" -> "S:13:condition" [arrowhead=onormal];
 "A:20:condition" -> "A:19:open" [label="target"];
 

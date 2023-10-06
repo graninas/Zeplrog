@@ -38,9 +38,10 @@ materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) noActProp nam
     Nothing ->
       trace ("materializeActiveObject: nothing to materialize, static property essence not found: " <> show ess) $ pure Nothing
     Just sProp -> do
-      matPropsVar <- newTVar Map.empty
+      matPropsVar    <- newTVar Map.empty   -- already materialized props
+      delayedVarsVar <- newTVar Map.empty   -- delayed vars (for preventing loops)
 
-      rootProp  <- materializeLink idCounterVar kb matPropsVar propsSetter $ DirectMaterialization sProp
+      rootProp  <- materializeLink "" idCounterVar kb matPropsVar delayedVarsVar propsSetter $ DirectMaterialization sProp
       actProps  <- getPropertiesOfType rootProp actionsPropType
 
       let f' actProp = (essence $ staticProperty actProp, actProp)
@@ -110,8 +111,9 @@ initActiveObjects1 idCounterVar (kb, commonSProps) = do
         , (hpEssence, IntValue 100)
         ]
 
-  matPropsVar <- newTVar Map.empty
-  noActProp <- materializeLink idCounterVar kb matPropsVar Map.empty
+  matPropsVar    <- newTVar Map.empty
+  delayedVarsVar <- newTVar Map.empty
+  noActProp      <- materializeLink "" idCounterVar kb matPropsVar delayedVarsVar Map.empty
     $ DirectMaterialization $ noActionSProp commonSProps
 
   mbObjs <- sequence
@@ -133,7 +135,8 @@ initActiveObjects2 idCounterVar (kb, commonSProps) = do
         ]
 
   matPropsVar <- newTVar Map.empty
-  noActProp <- materializeLink idCounterVar kb matPropsVar Map.empty
+  delayedVarsVar <- newTVar Map.empty
+  noActProp <- materializeLink "" idCounterVar kb matPropsVar delayedVarsVar Map.empty
     $ DirectMaterialization $ noActionSProp commonSProps
 
   mbObjs <- sequence
