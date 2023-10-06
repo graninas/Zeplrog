@@ -14,7 +14,7 @@ import qualified Data.Set as Set
 
 fireWandEssence = Essence "fire wand"
 iceWandEssence  = Essence "ice wand"
-dogEssence      = Essence "dog"
+ratEssence      = Essence "rat"
 guardEssence    = Essence "guard"
 
 -- -----------------------------------------------------------------------------
@@ -72,13 +72,13 @@ commonActionsSProps CommonStaticProperties {..} =
   , followingPlanSProp
   ]
 
-dogStaticProperty :: IdCounter -> TVar Essences -> CommonStaticProperties -> STM StaticProperty
-dogStaticProperty idCounterVar essencesVar CommonStaticProperties{..} = do
+ratStaticProperty :: IdCounter -> TVar Essences -> CommonStaticProperties -> STM StaticProperty
+ratStaticProperty idCounterVar essencesVar CommonStaticProperties{..} = do
   let props = Map.fromList
         [ (inventoryPropType, [ posSProp, hpSProp ])
-        , (actionsPropType,   [ noActionSProp ])              -- this dog doesn't do anything...
+        , (actionsPropType,   [ noActionSProp ])              -- this rat doesn't do anything...
         ]
-  mkStaticProperty idCounterVar essencesVar dogEssence props StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty idCounterVar essencesVar ratEssence props StaticDiscoverRoot ActiveValueNonDiscoverable
 
 guardStaticProperty
   :: IdCounter
@@ -86,13 +86,13 @@ guardStaticProperty
   -> StaticProperty
   -> CommonStaticProperties
   -> STM StaticProperty
-guardStaticProperty idCounterVar essencesVar dogSProp commonSProps@(CommonStaticProperties{..}) = do
+guardStaticProperty idCounterVar essencesVar ratSProp commonSProps@(CommonStaticProperties{..}) = do
   -- TODO: add a new type of a dynamic discoverability: discoverability on usage
-  killDogGoalSProp <- killGoalStaticProperty idCounterVar essencesVar dogSProp
+  killRatGoalSProp <- killGoalStaticProperty idCounterVar essencesVar ratSProp
   let props = Map.fromList
         [ (inventoryPropType, [ posSProp, hpSProp, fireWandSProp, iceWandSProp ])
         , (actionsPropType,    commonActionsSProps commonSProps)
-        , (goalsPropType,     [ killDogGoalSProp ])
+        , (goalsPropType,     [ killRatGoalSProp ])
         ]
   mkStaticProperty idCounterVar essencesVar guardEssence props StaticDiscoverRoot ActiveValueNonDiscoverable
 
@@ -100,24 +100,24 @@ initKnowledgeBase :: IdCounter -> STM (KnowledgeBase, CommonStaticProperties)
 initKnowledgeBase idCounterVar = do
   essencesVar <- newTVar Map.empty
   commonStatProps <- mkCommonStaticProperties idCounterVar essencesVar
-  dogSProp <- dogStaticProperty   idCounterVar essencesVar commonStatProps
+  ratSProp <- ratStaticProperty   idCounterVar essencesVar commonStatProps
   statProps <- sequence
-    [ guardStaticProperty idCounterVar essencesVar dogSProp commonStatProps
+    [ guardStaticProperty idCounterVar essencesVar ratSProp commonStatProps
     ]
   essences <- readTVar essencesVar
   pure (KnowledgeBase statProps essences, commonStatProps)
 
 ------------------
 
--- mkAbstractKillDogGoal :: IdCounter -> StaticProperty -> STM ActiveProperty
--- mkAbstractKillDogGoal idCounterVar dogStatProp = do
+-- mkAbstractKillRatGoal :: IdCounter -> StaticProperty -> STM ActiveProperty
+-- mkAbstractKillRatGoal idCounterVar ratStatProp = do
 --   propId <- getActivePropertyId idCounterVar
 --   propsVar <- newTVar Map.empty
---   pure $ ActiveProperty propId abstractGoalEssence (Just dogStatProp) propsVar
+--   pure $ ActiveProperty propId abstractGoalEssence (Just ratStatProp) propsVar
 
 
 -- guardActingObject :: IdCounter -> StaticProperty -> STM (ActingObjectId, ActingObject)
--- guardActingObject idCounterVar dogSProp = do
+-- guardActingObject idCounterVar ratSProp = do
 --
 --   posProp       <- mkProperty posEssence      idCounterVar
 --   hpProp        <- mkProperty hpEssence       idCounterVar
@@ -128,7 +128,7 @@ initKnowledgeBase idCounterVar = do
 --   setGoalsAct <- mkProperty settingGoalsEssence idCounterVar
 --   planAct     <- mkProperty planningEssence     idCounterVar
 --
---   killDogGoal <- mkAbstractKillDogGoal idCounterVar dogSProp
+--   killRatGoal <- mkAbstractKillRatGoal idCounterVar ratSProp
 --
 --   invVar <- newTVar
 --       [ posProp
@@ -143,7 +143,7 @@ initKnowledgeBase idCounterVar = do
 --     , planAct
 --     ]
 --
---   goalsVar <- newTVar [killDogGoal]
+--   goalsVar <- newTVar [killRatGoal]
 --
 --   rootPropsVar <- newTVar $ Map.fromList
 --     [ (inventoryPropType, invVar)
