@@ -82,12 +82,12 @@ The noActionsEssence is used as entry point into the loop.
 
 commonActionsLoop :: [(Essence, PropertyValue)]
 commonActionsLoop =
-  [ (noActionEssence,      PairValue (EssenceValue "observing"     observingEssence)     NoValue)  -- starting point
-  , (observingEssence,     PairValue (EssenceValue "discovering"   discoveringEssence)   NoValue)  -- no input params yet
-  , (discoveringEssence,   PairValue (EssenceValue "settingGoals"  settingGoalsEssence)  NoValue)  -- no input params yet
-  , (settingGoalsEssence,  PairValue (EssenceValue "planning"      planningEssence)      NoValue)  -- no input params yet
-  , (planningEssence,      PairValue (EssenceValue "followingPlan" followingPlanEssence) NoValue)  -- no input params yet
-  , (followingPlanEssence, PairValue (EssenceValue "observing"     observingEssence)     NoValue)  -- no input params yet
+  [ (noActionEssence,      PairValue (EssenceValue "" observingEssence)     NoValue)  -- starting point
+  , (observingEssence,     PairValue (EssenceValue "" discoveringEssence)   NoValue)  -- no input params yet
+  , (discoveringEssence,   PairValue (EssenceValue "" settingGoalsEssence)  NoValue)  -- no input params yet
+  , (settingGoalsEssence,  PairValue (EssenceValue "" planningEssence)      NoValue)  -- no input params yet
+  , (planningEssence,      PairValue (EssenceValue "" followingPlanEssence) NoValue)  -- no input params yet
+  , (followingPlanEssence, PairValue (EssenceValue "" observingEssence)     NoValue)  -- no input params yet
   ]
 
 initActiveObjects1
