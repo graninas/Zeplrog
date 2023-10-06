@@ -42,9 +42,11 @@ defaultDbgOptions = DebugOptions True white True (dark green) True "Hi, this is 
 
 initialPlayerActorState :: BareCellSize -> IO ActorState
 initialPlayerActorState bareCellSize = ActorState
-    <$> newTVarIO FindExit
-    <*> newTVarIO (CellIdxs (3, 3))
-    <*> newTVarIO
+    <$> newTVarIO FindExit            -- goal (TODO)
+    <*> newTVarIO FollowingPath       -- current activity
+
+    <*> newTVarIO (CellIdxs (3, 3))   -- current pos
+    <*> newTVarIO                     -- current path
       [ CellIdxs (4,3)
       , CellIdxs (4,4)
       , CellIdxs (5,4)
@@ -53,8 +55,8 @@ initialPlayerActorState bareCellSize = ActorState
       , CellIdxs (8,4)
       , CellIdxs (8,5)
       ]
-    <*> newTVarIO (playerActorShape bareCellSize)
 
+    <*> newTVarIO (playerActorShape bareCellSize)
     <*> newTVarIO (pathPointShape bareCellSize)
     <*> newTVarIO (PathIsBlinking 2)          -- TODO: not hardcoded blink period
     <*> pure (pathPointShape bareCellSize)
