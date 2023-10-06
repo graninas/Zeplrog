@@ -58,7 +58,7 @@ doorStaticProperty csp@(CommonStaticProperties{posSProp, hpSProp}) = do
   -- Initial value (points to the door state itself, not to its condition)
   let currentState = StateValue $ StaticPropertyValue openStateSProp
   -- StateValue => object is interactible
-  -- possible actions via statesPropType
+  -- Possible actions via statesPropType
 
   -- In runtime, propertyValueVar holds the current state
 
