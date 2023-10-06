@@ -10,6 +10,6 @@ import ZP.Typed.KnowledgeBase.Essences
 import GHC.TypeLits
 
 
-type HPVal range  = PropVal (EssRoot EHP) (IntRangeValDef range)
+type HPVal hp     = PropVal (EssRoot EHP) (IntValDef hp)
 type PosVal x y   = PropVal (EssRoot EPos) (PairValDef (IntValDef x) (IntValDef y))
 type PosConst x y = PropConst (EssRoot EPos) (PairValDef (IntValDef x) (IntValDef y))

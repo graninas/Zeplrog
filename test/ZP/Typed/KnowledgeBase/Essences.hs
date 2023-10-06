@@ -25,6 +25,8 @@ type EStates        = Ess "category:states"
 
 type EState         = Ess "state"
 type EStateRef      = Ess "ref:state"
+type EOpen          = Ess "open"
+type EClose         = Ess "close"
 type EStateOpen     = Ess "state:open"
 type EStateClose    = Ess "state:close"
 
