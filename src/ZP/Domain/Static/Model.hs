@@ -1,13 +1,25 @@
-{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE GADTs #-}
 
-module ZP.Domain.Static.Property where
+module ZP.Domain.Static.Model where
 
 import Prelude (Bool)
 import GHC.TypeLits
 
------- Query and Procedure Script ------------
+------ Common and General -----------------
+
+-- | Sudo ID of a property
+data Essence where
+  Ess :: Symbol -> Essence
+
+-- | Value definition
+
+data ValDefType where
+  IntValDef      :: Nat -> ValDefType
+  IntRangeValDef :: (Nat, Nat) -> ValDefType
+  BoolValDef     :: Bool -> ValDefType
+  PairValDef     :: ValDefType -> ValDefType -> ValDefType
+
+-- | Variable definition
 
 type VarName = Symbol
 
@@ -16,6 +28,9 @@ data VarDef where
   IntRangeVar   :: VarName -> VarDef
   BoolVar       :: VarName -> VarDef
   PairVar       :: VarName -> VarDef -> VarDef -> VarDef
+
+------ Query and Procedure Script ------------
+
 
 data QuerySetting where
   FollowReferences :: QuerySetting
@@ -65,16 +80,6 @@ data Script where
 
 ------ Property -----
 
-
-data ValDefType where
-  IntValDef      :: Nat -> ValDefType
-  IntRangeValDef :: (Nat, Nat) -> ValDefType
-  BoolValDef     :: Bool -> ValDefType
-  PairValDef     :: ValDefType -> ValDefType -> ValDefType
-
-
-data Essence where
-  Ess :: Symbol -> Essence
 
 -- | Used to make property hierarchies.
 -- Essence arg: own essence

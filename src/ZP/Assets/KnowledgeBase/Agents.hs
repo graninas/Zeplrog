@@ -1,10 +1,9 @@
-{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 
 module ZP.Assets.KnowledgeBase.Agents where
 
-import ZP.Domain.Static.Property
+import ZP.Domain.Static.Model
 import ZP.Assets.KnowledgeBase.Essences
 import ZP.Assets.KnowledgeBase.Common
 

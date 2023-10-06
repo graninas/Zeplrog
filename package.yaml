@@ -20,8 +20,9 @@ default-extensions:
 - TypeApplications
 - ScopedTypeVariables
 - TypeOperators
+- FunctionalDependencies
 - TypeFamilies
-- DataKinds
+# - DataKinds
 - FlexibleContexts
 - FlexibleInstances
 - PatternSynonyms

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8f15e0650484f0f782c0f8aa1e352b14835d326e517002c4e196f29c1cf410ec
+-- hash: d24593c08854030c95bc208d508b43d0ef4fc5add70ef9dafcdf404663642835
 
 name:           zeplrog
 version:        0.0.0.1
@@ -28,7 +28,9 @@ library
       ZP.Assets.KnowledgeBase.Common
       ZP.Assets.KnowledgeBase.Doors
       ZP.Assets.KnowledgeBase.Essences
-      ZP.Domain.Static.Property
+      ZP.Domain.Dynamic.Materialization
+      ZP.Domain.Dynamic.Model
+      ZP.Domain.Static.Model
       ZP.Prelude
   other-modules:
       Paths_zeplrog
@@ -47,8 +49,8 @@ library
       TypeApplications
       ScopedTypeVariables
       TypeOperators
+      FunctionalDependencies
       TypeFamilies
-      DataKinds
       FlexibleContexts
       FlexibleInstances
       PatternSynonyms
@@ -102,7 +104,9 @@ executable zeplrog
       ZP.Assets.KnowledgeBase.Common
       ZP.Assets.KnowledgeBase.Doors
       ZP.Assets.KnowledgeBase.Essences
-      ZP.Domain.Static.Property
+      ZP.Domain.Dynamic.Materialization
+      ZP.Domain.Dynamic.Model
+      ZP.Domain.Static.Model
       ZP.Prelude
       Paths_zeplrog
   hs-source-dirs:
@@ -120,8 +124,8 @@ executable zeplrog
       TypeApplications
       ScopedTypeVariables
       TypeOperators
+      FunctionalDependencies
       TypeFamilies
-      DataKinds
       FlexibleContexts
       FlexibleInstances
       PatternSynonyms
@@ -189,8 +193,8 @@ test-suite tests
       TypeApplications
       ScopedTypeVariables
       TypeOperators
+      FunctionalDependencies
       TypeFamilies
-      DataKinds
       FlexibleContexts
       FlexibleInstances
       PatternSynonyms

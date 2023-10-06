@@ -1,21 +1,62 @@
-{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE TypeApplications #-}
 
 module ZP.MaterializationSpec where
 
 import ZP.Prelude
 
-import ZP.Domain.Static.Property
+import qualified ZP.Domain.Static.Model as SMod
+import ZP.Domain.Dynamic.Model
+import ZP.Domain.Dynamic.Materialization
+import qualified ZP.Domain.Dynamic.Materialization as M
 import ZP.Assets.KnowledgeBase.Essences
+import ZP.Assets.KnowledgeBase.Common
 import ZP.Assets.KnowledgeBase.Agents
+import ZP.Assets.KnowledgeBase.Doors
 
 import Test.Hspec
 
 import Debug.Trace (trace)
 
+import Data.Proxy
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.List as L
+
+
+
+-- type Door = PropDict (EssRoot EDoor)
+--   '[ PropKeyVal EHP (OwnProp (HPVal 100))
+--    , PropKeyVal EPos (SharedProp (PosConst 3 5))        -- TODO: identified from the map
+
+--     -- | Current state
+--    , PropKeyVal EState (OwnProp OpenStateRef)
+
+--     -- | Possible states
+--    , PropKeyBag EStates
+--       '[ OwnProp (StaticPropRef StateOpen)
+--        , OwnProp (StaticPropRef StateClose)
+--        ]
+
+--     -- | Abilities to react to effects
+--    , PropKeyBag EAbilities
+--       '[ SharedProp (PropScript PushableScript)
+--        ]
+--    ]
+
+data DynamicProperty = DynamicProperty
+  { props :: Map.Map String ()
+  }
+
+
+door :: DynamicProperty
+door = DynamicProperty
+  (Map.fromList
+    [ (M.mat (Proxy @EHP), ())
+
+    ]
+  )
+
 
 
 
