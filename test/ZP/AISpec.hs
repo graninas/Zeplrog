@@ -62,12 +62,19 @@ data ActiveProperty = ActiveProperty
 newtype ActingObjectName = ActingObjectName String
   deriving (Show, Eq, Ord)
 
+type KnownActingObjects = Map.Map ActingObjectId KnownActingObject
+
 data ActingObject = ActingObject
   { name             :: ActingObjectName
   , objectId         :: ActingObjectId
   , rootProperty     :: ActiveProperty
   , currentActionVar :: TVar (Maybe ActiveProperty)
-  , knownActingObjectsVar :: TVar (Set.Set ActingObjectId)
+  , knownActingObjectsVar :: TVar KnownActingObjects
+  }
+
+data KnownActingObject = KnownActingObject
+  { knownActingObjectId  :: ActingObjectId
+  , rootKnownActiveProperty :: KnownActiveProperty
   }
 
 type KnownPropertiesMap = Map.Map PropertyType [KnownActiveProperty]
@@ -248,7 +255,7 @@ guardActingObject idCounterVar dogSProp = do
   rootPropId <- getActivePropertyId idCounterVar
   actObjId   <- getActingObjectId idCounterVar
   let rootProp = ActiveProperty rootPropId guardEssence Nothing rootPropsVar
-  knownObjsVar <- newTVar Set.empty
+  knownObjsVar <- newTVar Map.empty
   let actObj = ActingObject (ActingObjectName "guard 01") actObjId rootProp curActVar knownObjsVar
   pure
     -- $ traceShow actObjId
@@ -272,7 +279,7 @@ dogActingObject idCounterVar dosSProp = do
   actObjId   <- getActingObjectId idCounterVar
   let rootProp = ActiveProperty rootPropId dogEssence (Just dosSProp) rootPropsVar
 
-  knownObjsVar <- newTVar Set.empty
+  knownObjsVar <- newTVar Map.empty
   let actObj = ActingObject (ActingObjectName "dog 01") actObjId rootProp curActVar knownObjsVar
   pure
     -- $ traceShow actObjId
@@ -338,17 +345,16 @@ selectAction aiNet@(AINet {..}) objId = do
 
 observe :: AINet -> ActingObject -> STM [ActingObject]
 observe aiNet@(AINet {actingObjects, worldVar}) _ = do
-  -- Initial observing logic
+  -- Initial observing logic.
+  -- Should be improved to use local world properties to do observing.
   World {worldObjects} <- readTVar worldVar
   let objIds = map actingObjectId worldObjects
-
-  -- hardcode goes here
   pure $ Map.elems actingObjects
 
 isAlreadyKnownActingObject :: ActingObject -> ActingObject -> STM Bool
-isAlreadyKnownActingObject self other = do
+isAlreadyKnownActingObject self ActingObject{objectId} = do
   knownObjs <- readTVar $ knownActingObjectsVar self
-  pure $ Set.member (objectId other) knownObjs
+  pure $ Map.member objectId knownObjs
 
 
 discoverPropertiesByTypes
@@ -382,14 +388,16 @@ discoverProperty activeProp@(ActiveProperty{staticPoint}) = do
       | staticPropertyDiscover == StaticNonDiscoverable ->
           trace "discoverProperty: static prop is not discoverable." $ pure Nothing
 
-
--- TODO
-discover' :: AINet -> ActingObject -> ActingObject -> STM ()
-discover' _ self other = do
+discover' :: ActingObject -> ActingObject -> STM ()
+discover' ActingObject{knownActingObjectsVar} other@(ActingObject{objectId}) = do
   mbKnownActiveProp <- discoverProperty $ rootProperty other
   case mbKnownActiveProp of
     Nothing -> trace "discover': discoveryPropety returned Nothing" $ pure ()
-    Just knownActiveProp -> trace "discover': discoverPropety returned prop" $ pure ()
+    Just knownActiveProp -> do
+      let knownObj = KnownActingObject objectId knownActiveProp
+      knownObjs <- readTVar knownActingObjectsVar
+      writeTVar knownActingObjectsVar $ Map.insert objectId knownObj knownObjs
+      trace "discover': discoverPropety returned prop" $ pure ()
 
 discover :: AINet -> ActingObject -> ActingObject -> STM ()
 discover _ self other | objectId self == objectId other = do
@@ -398,7 +406,7 @@ discover aiNet self other = do
   known <- isAlreadyKnownActingObject self other
   when (not known) $ do
     trace "discover: discovering acting object" $ pure ()
-    discover' aiNet self other
+    discover' self other
   when known $ trace "discover: known object" $ pure ()
 
 
