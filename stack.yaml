@@ -3,3 +3,33 @@ resolver: lts-16.16
 
 packages:
 - .
+
+# extra-deps:
+# - git: https://github.com/graninas/Hydra
+#   commit: 60d591b1300528f5ffd93efa205012eebdd0286c
+#   subdirs:
+#     - ./lib/hydra-base
+#     - ./lib/hydra-church-free
+#
+# - base58-bytestring-0.1.0
+# - time-units-1.0.0
+# - rocksdb-haskell-1.0.1
+#
+#
+# - git: https://github.com/juspay/beam
+#   commit: 185ff060e63ab0b8a72775ee2742621dd6fefeb1
+#   subdirs:
+#     - beam-core
+#     - beam-migrate
+#     - beam-sqlite
+#     - beam-postgres
+#
+# # Needed for beam
+# - dependent-map-0.4.0.0@sha256:ca2b131046f4340a1c35d138c5a003fe4a5be96b14efc26291ed35fd08c62221,1657
+# - dependent-sum-0.7.1.0@sha256:5599aa89637db434431b1dd3fa7c34bc3d565ee44f0519bfbc877be1927c2531,2068
+# - haskell-src-exts-1.21.1@sha256:11d18ec3f463185f81b7819376b532e3087f8192cffc629aac5c9eec88897b35,4541
+# - sqlite-simple-0.4.18.0@sha256:3ceea56375c0a3590c814e411a4eb86943f8d31b93b110ca159c90689b6b39e5,3002
+# - constraints-extras-0.3.0.2@sha256:bf6884be65958e9188ae3c9e5547abfd6d201df021bff8a4704c2c4fe1e1ae5b,1784
+# - direct-sqlite-2.3.26@sha256:04e835402f1508abca383182023e4e2b9b86297b8533afbd4e57d1a5652e0c23,3718
+#
+# - constraints-0.11.2@sha256:d028005d93f891b48b61ff0c82c6f868859eb728010dea3e355b0c55d0f57cf9,2219
