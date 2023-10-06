@@ -44,14 +44,14 @@ type Door = PropDict (EssRoot EDoor)
   '[ PropKeyVal EHP (OwnProp (HPVal 100))
    , PropKeyVal EPos (SharedProp (PosConst 3 5))        -- TODO: identified from the map
 
-    -- | Current state
-   , PropKeyVal EState (OwnProp OpenStateRef)
-
     -- | Possible states
    , PropKeyBag EStates
       '[ OwnProp (StaticPropRef StateOpen)
        , OwnProp (StaticPropRef StateClose)
        ]
+
+    -- | Current state
+   , PropKeyVal EState (OwnProp OpenStateRef)
 
     -- | Abilities to react to effects
    , PropKeyBag EAbilities

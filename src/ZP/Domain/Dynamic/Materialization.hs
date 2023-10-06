@@ -184,24 +184,33 @@ instance
 
 instance
   Mat ('PropRef essPath) DMod.DynamicProperty where
-  mat False _ = do
-    error "PropRef False not implemented"
-  mat True proxy = do
-    error "PropRef True not implemented"
+  mat _ _ = error "PropRef not implemented"
 
 instance
+  ( Mat staticProp (DMod.DynEssence)
+  , Browser.Browse Browser.GetEssence ('StaticPropRef staticProp) DMod.DynEssence
+  ) =>
   Mat ('StaticPropRef staticProp) DMod.DynamicProperty where
-  mat False _ = do
-    error "StaticPropRef False not implemented"
-  mat True proxy = do
-    error "StaticPropRef True not implemented"
+  mat _ _ = do
+    ess <- mat False $ Proxy @staticProp
+    propsVar  <- liftIO $ newTVarIO Map.empty
+    dynValVar <- liftIO $ newTVarIO Nothing
+    let staticProp = Proxy @('StaticPropRef staticProp)
+    pure $ DMod.DynamicProperty
+      ess
+      (DMod.StaticPropRef staticProp)
+      propsVar
+      dynValVar
 
 instance
   Mat ('PropScript script) DMod.DynamicProperty where
-  mat False _ = do
-    error "PropScript False not implemented"
-  mat True proxy = do
-    error "PropScript True not implemented"
+  mat _ _ = error "PropScript not implemented"
+
+-- Materialize static prop
+
+instance
+  Mat ('StaticProp sp) DMod.DynEssence where
+  mat _ _ = error "Mat StaticProp not implemented"
 
 
 -- Materialize Prop Key Val

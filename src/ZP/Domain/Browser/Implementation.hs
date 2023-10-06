@@ -31,7 +31,6 @@ instance
   Browse GetEssence ('PropConst root v) DMod.DynEssence where
   browse _ _ = browse GetEssence $ Proxy @root
 
-
 instance
   Browse GetEssence root DMod.DynEssence =>
   Browse GetEssence ('PropVal root val) DMod.DynEssence where
@@ -43,5 +42,14 @@ instance
   browse _ _ = browse GetEssence $ Proxy @root
 
 instance
+  Browse GetEssence ('StaticPropRef staticProp) DMod.DynEssence where
+  browse _ _ = error "Browse not implemented"
+
+
+
+-- Browse Dyn
+
+instance
   BrowseDyn GetEssence DMod.StaticPropertyRef DMod.DynEssence where
   browseDyn _ (DMod.StaticPropRef proxy) = browse GetEssence proxy
+

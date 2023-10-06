@@ -142,7 +142,7 @@ data Property where
     :: PropertyRoot
     -> [PropertyKeyValue]
     -> Property
-
+  -- | Property script
   PropScript
     :: Script
     -> Property

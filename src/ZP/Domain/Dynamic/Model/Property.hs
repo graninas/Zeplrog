@@ -30,8 +30,8 @@ data StaticPropertyRef where
 
 data DynamicProperty
   = DynamicProperty
-  { dpEssence       :: DynEssence              -- TODO: take DynEssence from static prop
-  , dpStaticPropRef :: StaticPropertyRef
-  , dpsMap          :: TVar (Map.Map DynEssence DynamicPropertyOwning)
-  , dpValue         :: TVar (Maybe DynamicValue)
+  { dpEssence    :: DynEssence              -- TODO: take DynEssence from static prop
+  , dpStaticProp :: StaticPropertyRef
+  , dpsMap       :: TVar (Map.Map DynEssence DynamicPropertyOwning)
+  , dpValue      :: TVar (Maybe DynamicValue)
   }
