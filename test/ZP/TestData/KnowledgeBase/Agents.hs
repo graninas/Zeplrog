@@ -18,11 +18,13 @@ import qualified Data.Set as Set
 
 ratStaticProperty :: CommonStaticProperties -> KBBuilder StaticProperty
 ratStaticProperty CommonStaticProperties{..} = do
+  valVar <- lift $ newTVar NoStaticValue
   let props = Map.fromList
-        [ (inventoryPropType, [ posSProp, hpSProp ])
-        , (actionsPropType,   [ noActionSProp ])              -- this rat doesn't do anything...
+        [ (inventoryPropType, [ DirectMaterialization posSProp
+                              , DirectMaterialization hpSProp ])
+        , (actionsPropType,   [ DirectMaterialization noActionSProp ])              -- this rat doesn't do anything...
         ]
-  mkStaticProperty ratEssence props NoValue StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty ratEssence props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
 
 
@@ -31,14 +33,18 @@ guardStaticProperty
   -> CommonStaticProperties
   -> KBBuilder StaticProperty
 guardStaticProperty ratSProp commonSProps@(CommonStaticProperties{..}) = do
+  valVar <- lift $ newTVar NoStaticValue
   -- TODO: add a new type of a dynamic discoverability: discoverability on usage
   killRatGoalSProp <- killGoalStaticProperty ratSProp
   let props = Map.fromList
-        [ (inventoryPropType, [ posSProp, hpSProp, fireWandSProp, iceWandSProp ])
-        , (actionsPropType,    commonActionsSProps commonSProps)
-        , (goalsPropType,     [ killRatGoalSProp ])
+        [ (inventoryPropType, [ DirectMaterialization posSProp
+                              , DirectMaterialization hpSProp
+                              , DirectMaterialization fireWandSProp
+                              , DirectMaterialization iceWandSProp ])
+        , (actionsPropType, map DirectMaterialization $ commonActionsSProps commonSProps)
+        , (goalsPropType,     [ DirectMaterialization killRatGoalSProp ])
         ]
-  mkStaticProperty guardEssence props NoValue StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty guardEssence props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
 
 

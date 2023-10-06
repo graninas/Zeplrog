@@ -17,33 +17,33 @@ import qualified Data.Set as Set
 
 openStateStaticProperty :: CommonStaticProperties -> KBBuilder StaticProperty
 openStateStaticProperty CommonStaticProperties{..} = do
+  valVar <- lift $ newTVar NoStaticValue
   -- TODO: passable property & discoverability
-  -- Essence description == action name to activate the target
-  let nextStateEssenceVal = EssenceValue "close" closedEssence
-  mkStaticProperty openEssence Map.empty nextStateEssenceVal StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty openEssence Map.empty valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
 
 closedStateStaticProperty :: CommonStaticProperties -> KBBuilder StaticProperty
 closedStateStaticProperty CommonStaticProperties{..} = do
+  valVar <- lift $ newTVar NoStaticValue
   -- TODO: passable property & discoverability
-  -- Essence description == action name to activate the target
-  let nextStateEssenceVal = EssenceValue "open" openEssence
-  mkStaticProperty closedEssence Map.empty nextStateEssenceVal StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty closedEssence Map.empty valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
 
 openingConditionStaticProperty :: CommonStaticProperties -> StaticProperty -> KBBuilder StaticProperty
 openingConditionStaticProperty csp stateSProp = do
-  let props = Map.singleton targetPropType [stateSProp]
+  valVar <- lift $ newTVar NoStaticValue
+  let props = Map.singleton targetPropType [(DirectMaterialization stateSProp)]
   -- TODO: condition value
   -- NoValue == no condition
-  mkStaticProperty conditionEssence props NoValue StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty conditionEssence props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
 closingConditionStaticProperty :: CommonStaticProperties -> StaticProperty -> KBBuilder StaticProperty
 closingConditionStaticProperty csp stateSProp = do
-  let props = Map.singleton targetPropType [stateSProp]
+  valVar <- lift $ newTVar NoStaticValue
+  let props = Map.singleton targetPropType [(DirectMaterialization stateSProp)]
   -- TODO: condition value
   -- NoValue == no condition
-  mkStaticProperty conditionEssence props NoValue StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty conditionEssence props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
 
 
@@ -55,16 +55,21 @@ doorStaticProperty csp@(CommonStaticProperties{posSProp, hpSProp}) = do
   openingCondSProp <- openingConditionStaticProperty csp openStateSProp
   closingCondSProp <- closingConditionStaticProperty csp closedStateSProp
 
-  -- Initial value (points to the door state itself, not to its condition)
-  let currentState = StateValue $ StaticPropertyValue openStateSProp
-  -- StateValue => object is interactible
-  -- Possible actions via statesPropType
+  -- Making a loop of states
+  lift $ writeTVar (staticPropertyValueVar openStateSProp)
+       $ MaterializableStateValue "close"
+       $ SharedMaterialization closingCondSProp
+  lift $ writeTVar (staticPropertyValueVar closedStateSProp)
+       $ MaterializableStateValue "open"
+       $ SharedMaterialization openingCondSProp
 
-  -- In runtime, propertyValueVar holds the current state
+  currentStateVar <- lift $ newTVar $ MaterializableStateValue "cur state" (SharedMaterialization closedStateSProp)
 
   let props = Map.fromList
-        [ (statesPropType,    [ openingCondSProp, closingCondSProp ])
-        , (inventoryPropType, [ posSProp, hpSProp ])
+        [ (statesPropType,    [ (SharedMaterialization openingCondSProp)
+                              , (SharedMaterialization closingCondSProp) ])
+        , (inventoryPropType, [ (DirectMaterialization posSProp)
+                              , (DirectMaterialization hpSProp) ])
         ]
 
-  mkStaticProperty doorEssence props currentState StaticDiscoverRoot ActiveValueDiscoverable
+  mkStaticProperty doorEssence props currentStateVar StaticDiscoverRoot ActiveValueDiscoverable

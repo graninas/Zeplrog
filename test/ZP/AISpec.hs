@@ -37,8 +37,10 @@ materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) noActProp nam
   case Map.lookup ess essences of
     Nothing ->
       trace ("materializeActiveObject: nothing to materialize, static property essence not found: " <> show ess) $ pure Nothing
-    Just sProp -> do
-      rootProp  <- materializeStaticProperty idCounterVar kb propsSetter sProp
+    Just matLink -> do
+      matPropsVar <- newTVar Map.empty
+
+      rootProp  <- materializeStaticProperty idCounterVar kb matPropsVar propsSetter matLink
       actProps  <- getPropertiesOfType rootProp actionsPropType
 
       let f' actProp = (essence $ staticProperty actProp, actProp)
@@ -108,7 +110,8 @@ initActiveObjects1 idCounterVar (kb, commonSProps) = do
         , (hpEssence, IntValue 100)
         ]
 
-  noActProp <- materializeStaticProperty idCounterVar kb Map.empty $ noActionSProp commonSProps
+  matPropsVar <- newTVar Map.empty
+  noActProp <- materializeStaticProperty idCounterVar kb matPropsVar Map.empty $ DirectMaterialization $ noActionSProp commonSProps
 
   mbObjs <- sequence
     [ materializeActiveObject idCounterVar kb noActProp guard01Name guardEssence guardProps
@@ -127,7 +130,8 @@ initActiveObjects2 idCounterVar (kb, commonSProps) = do
         , (hpEssence, IntValue 100)
         ]
 
-  noActProp <- materializeStaticProperty idCounterVar kb Map.empty $ noActionSProp commonSProps
+  matPropsVar <- newTVar Map.empty
+  noActProp <- materializeStaticProperty idCounterVar kb matPropsVar Map.empty $ DirectMaterialization $ noActionSProp commonSProps
 
   mbObjs <- sequence
     [ materializeActiveObject idCounterVar kb noActProp door01 doorEssence  Map.empty
@@ -220,6 +224,11 @@ verifyGlobalReport ZPNet {zpNetReporter} expectedReport =
         pure rep
       reverse report `shouldBe` expectedReport
 
+outputGraph :: ZPNet -> String -> IO ()
+outputGraph zpNet fileName = do
+  graphLines <- atomically $ buildGraph zpNet
+  writeFile ("./test/test_data/graphs/" <> fileName) $ T.pack $ L.intercalate "\n" graphLines
+
 
 spec :: Spec
 spec =
@@ -256,6 +265,8 @@ spec =
       let rndSource = mkRndSource2 stepVar
 
       zpNet <- atomically $ initZPNet1 idCounterVar rndSource worldVar
+
+      -- outputGraph zpNet "zpnet.dot"
 
       actObj <- fromJust <$> (atomically $ getActingObject zpNet guard01Name)
 
@@ -337,18 +348,18 @@ spec =
 
       verifyReport actObj []
 
-    xit "Switching door states" $ do
+    it "Switching door states" $ do
       idCounterVar <- newTVarIO 0
       worldVar     <- newTVarIO $ World Map.empty []
       stepVar      <- newTVarIO 0
       let rndSource = mkRndSource2 stepVar
 
       zpNet <- atomically $ initZPNet2 idCounterVar rndSource worldVar
+      actObj <- fromJust <$> (atomically $ getActingObject zpNet door01)
 
-      -- graphLines <- atomically $ buildGraph zpNet
-      --
-      -- actObj <- fromJust <$> (atomically $ getActingObject zpNet door01)
-      --
-      -- activations <- atomically $ getAllActivations actObj
+      outputGraph zpNet "doors.dot"
 
+      activations <- atomically $ getAllActivations actObj
+
+      print activations
       verifyGlobalReport zpNet []

@@ -38,11 +38,25 @@ data PropertyValue
   | ActivePropertyValue ActiveProperty
   | StaticPropertyValue StaticProperty
   | ConditionValue  -- Condition
-  | StateValue PropertyValue
   | TargetValue PropertyValue
 
+data StaticPropertyValue
+  = NoStaticValue
+  -- Points to a target static property from the host static property.
+  -- On materialization:
+  --   - host static property turns into host active property
+  --   - target static property turns into target active property.
+  -- Host active property should have target active property as the current value.
+  -- N.B. we could specify Essence instead the static proprty itself
+  | MaterializableStateValue Description MaterializationLink
+
+data MaterializationLink
+  = DirectMaterialization StaticProperty
+  | SharedMaterialization StaticProperty
+
+type StaticPropertyMap = Map.Map PropertyType [MaterializationLink]
+
 type ActivePropertyMap = Map.Map PropertyType (TVar [ActiveProperty])
-type StaticPropertyMap = Map.Map PropertyType [StaticProperty]
 
 data StaticPropertyDiscoverability
   = StaticDiscoverRoot      -- ^ static property can be discovered, its chidren too
@@ -61,7 +75,7 @@ data StaticProperty = StaticProperty
   { staticPropertyId       :: StaticPropertyId
   , essence                :: Essence
   , staticProperties       :: StaticPropertyMap
-  , staticPropertyValue    :: PropertyValue
+  , staticPropertyValueVar :: TVar StaticPropertyValue        -- Should be impure for making loops properly
   , staticPropertyDiscover :: StaticPropertyDiscoverability
   , activeValueDiscover    :: ActiveValueDiscoverability
   }
@@ -103,10 +117,10 @@ data KnownActiveProperty = KnownActiveProperty
   }
 
 type RndSource = Int -> STM Int
-
-type Essences = Map.Map Essence StaticProperty
+ 
+type Essences = Map.Map Essence MaterializationLink
 data KnowledgeBase = KnowledgeBase
-  { staticProperties :: [StaticProperty]
+  { staticProperties :: [MaterializationLink]
   , essences :: Essences
   }
 

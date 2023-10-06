@@ -27,7 +27,7 @@ getAllActivations actObj = do
     -- The target property has a value with activation
     getActivation' :: ActiveProperty -> STM [(Description, Essence)]
     getActivation' prop = do
-      targets <- getPropertiesOfType (rootProperty actObj) targetPropType
+      targets <- getPropertiesOfType prop targetPropType
       xs <- mapM getActivationName targets
       traceM $ "targets: " <> show xs
       pure $ catMaybes xs
