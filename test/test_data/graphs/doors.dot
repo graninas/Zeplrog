@@ -27,6 +27,8 @@ node [shape=circle];
 }
 {
 node [shape=plaintext];
+"cur state/27"
+"open/25"
 "close/23"
 "○/20"
 "mat value/19"
@@ -75,7 +77,8 @@ node [shape=plaintext];
 "A:20:condition" -> "A:19:open" [label="target"];
 
 "A:21:closed" -> "S:12:closed" [arrowhead=onormal];
-
+"A:21:closed" -> "open/25" [arrowhead=dot];
+"open/25" -> "A:20:condition" [arrowhead=dot];
 "A:22:condition" -> "S:14:condition" [arrowhead=onormal];
 "A:22:condition" -> "A:21:closed" [label="target"];
 
@@ -84,6 +87,7 @@ node [shape=plaintext];
 "A:23:door" -> "A:18:hp" [label="inventory"];
 "A:23:door" -> "A:20:condition" [label="states"];
 "A:23:door" -> "A:22:condition" [label="states"];
-
+"A:23:door" -> "cur state/27" [arrowhead=dot];
+"cur state/27" -> "A:21:closed" [arrowhead=dot];
 "AO:24:door 01" -> "A:23:door" [arrowhead=onormal];
 }
