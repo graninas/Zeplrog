@@ -27,16 +27,12 @@ newtype PropertyType = PropertyType String    -- TODO: Flyweight pattern
 type PropertyMap       = Map.Map PropertyType (TVar [ActiveProperty])
 type StaticPropertyMap = Map.Map PropertyType [StaticProperty]
 
-data ActiveProperty
-  = ActiveProperty
-    { propertyId :: ActivePropertyId
-    , essence :: Essence
-    , propertiesVar :: TVar PropertyMap
-    }
-  | AbstractGoalProperty
-    { propertyId :: ActivePropertyId
-    , goalPoint  :: StaticProperty
-    }
+data ActiveProperty = ActiveProperty
+  { propertyId    :: ActivePropertyId
+  , essence       :: Essence
+  , staticPoint   :: Maybe StaticProperty
+  , propertiesVar :: TVar PropertyMap
+  }
 
 data StaticProperty = StaticProperty StaticPropertyId Essence StaticPropertyMap
 
@@ -70,7 +66,7 @@ actionPropType = PropertyType "action"
 abstractGoalPropType :: PropertyType
 abstractGoalPropType = PropertyType "abstract goal"
 
-
+abstractGoalEssence = Essence "abstract goal"
 observingEssence    = Essence "observing"
 settingGoalsEssence = Essence "setting goals"
 planningEssence     = Essence "planning"
@@ -79,7 +75,8 @@ posEssence      = Essence "pos"
 hpEssence       = Essence "hp"
 fireWandEssence = Essence "fire wand"
 iceWandEssence  = Essence "ice wand"
-
+dogEssence      = Essence "dog"
+guardEssence    = Essence "guard"
 
 -- -----------------------------------------------------------------------------
 
@@ -102,7 +99,7 @@ mkProperty :: Essence -> TVar ObjectId -> STM ActiveProperty
 mkProperty essence idCounterVar = do
   propId <- getActivePropertyId idCounterVar
   propsVar <- newTVar Map.empty
-  pure $ ActiveProperty propId essence propsVar
+  pure $ ActiveProperty propId essence Nothing propsVar
 
 mkStaticProperty :: Essence -> TVar ObjectId -> STM StaticProperty
 mkStaticProperty essence idCounterVar = do
@@ -113,7 +110,8 @@ mkStaticProperty essence idCounterVar = do
 mkAbstractKillDogGoal :: TVar ObjectId -> StaticProperty -> STM ActiveProperty
 mkAbstractKillDogGoal idCounterVar dogStatProp = do
   propId <- getActivePropertyId idCounterVar
-  pure $ AbstractGoalProperty propId dogStatProp
+  propsVar <- newTVar Map.empty
+  pure $ ActiveProperty propId abstractGoalEssence (Just dogStatProp) propsVar
 
 
 dogStaticProperty :: TVar ObjectId -> STM StaticProperty
@@ -126,7 +124,7 @@ dogStaticProperty idCounterVar = do
         ]
 
   propId <- getStaticPropertyId idCounterVar
-  pure $ StaticProperty propId (Essence "dog") propsVar
+  pure $ StaticProperty propId dogEssence propsVar
 
 
 guardActingObject :: TVar ObjectId -> StaticProperty -> STM (ActingObjectId, ActingObject)
@@ -168,7 +166,7 @@ guardActingObject idCounterVar dogSProp = do
 
   rootPropId <- getActivePropertyId idCounterVar
   actObjId   <- getActingObjectId idCounterVar
-  let rootProp = ActiveProperty rootPropId (Essence "guard") rootPropsVar
+  let rootProp = ActiveProperty rootPropId guardEssence Nothing rootPropsVar
   pure (actObjId, ActingObject (ActingObjectName "guard 01") actObjId rootProp curActVar)
 
 
@@ -187,7 +185,7 @@ dogActingObject idCounterVar = do
 
   rootPropId <- getActivePropertyId idCounterVar
   actObjId   <- getActingObjectId idCounterVar
-  let rootProp = ActiveProperty rootPropId (Essence "dog") rootPropsVar
+  let rootProp = ActiveProperty rootPropId dogEssence Nothing rootPropsVar
   pure (actObjId, ActingObject (ActingObjectName "dog 01") actObjId rootProp curActVar)
 
 
@@ -208,10 +206,9 @@ initialAINet idCounterVar rndSource = do
 -- -----------------------------------------------------------------------------
 
 getPropertiesOfTypeVar :: ActiveProperty -> PropertyType -> STM (Maybe (TVar [ActiveProperty]))
-getPropertiesOfTypeVar (ActiveProperty _ _ propMapVar) propType = do
-  propsMap <- readTVar propMapVar
-  pure $ Map.lookup propType propsMap
-getPropertiesOfTypeVar _ _ = pure Nothing
+getPropertiesOfTypeVar (ActiveProperty {..}) propType = do
+  props <- readTVar propertiesVar
+  pure $ Map.lookup propType props
 
 getPropertiesOfType :: ActiveProperty -> PropertyType -> STM [ActiveProperty]
 getPropertiesOfType prop propType = do
@@ -221,9 +218,6 @@ getPropertiesOfType prop propType = do
     Just var -> readTVar var
 
 setCurrentAction :: ActingObject -> ActiveProperty -> STM String
-setCurrentAction (ActingObject {..}) (AbstractGoalProperty {..}) = do
-  writeTVar currentActionVar Nothing
-  pure "Invalid property (goalProp, not activeProp)"
 setCurrentAction actObj@(ActingObject {..}) actProp@(ActiveProperty {..}) = do
   writeTVar currentActionVar $ Just actProp
   pure $ "Action set: " <> show essence
@@ -250,8 +244,33 @@ selectAction aiNet@(AINet _ actingObjs _) objId = do
     Nothing  -> pure $ "Acting object not found: " <> show objId
     Just obj -> selectAction' aiNet obj
 
+--------
 
+evaluateObservingAction :: AINet -> ActingObject -> STM String
+evaluateObservingAction _ _ = pure "Observing action"
 
+evaluateGoalSettingAction :: AINet -> ActingObject -> STM String
+evaluateGoalSettingAction _ _ = pure "Goal setting action"
+
+evaluatePlanningAction :: AINet -> ActingObject -> STM String
+evaluatePlanningAction _ _ = pure "Planning action"
+
+evaluateCurrentAction' :: AINet -> ActingObject -> STM String
+evaluateCurrentAction' aiNet@(AINet {..}) actObj@(ActingObject {..}) = do
+  mbActiveProperty <- readTVar currentActionVar
+  case mbActiveProperty of
+    Nothing -> pure "No action."
+    Just (ActiveProperty {..}) -> case () of
+      () | essence == observingEssence    -> evaluateObservingAction aiNet actObj
+      () | essence == settingGoalsEssence -> evaluateGoalSettingAction aiNet actObj
+      () | essence == planningEssence     -> evaluatePlanningAction aiNet actObj
+      _ -> pure $ "Action is not yet supported: " <> show essence
+
+evaluateCurrentAction :: AINet -> ActingObjectId -> STM String
+evaluateCurrentAction aiNet@(AINet _ actingObjs _) objId = do
+  case Map.lookup objId actingObjs of
+    Nothing  -> pure $ "Acting object not found: " <> show objId
+    Just obj -> evaluateCurrentAction' aiNet obj
 
 
 -- -----------------------------------------------------------------------------
@@ -267,14 +286,35 @@ mkRndSource1 stepVar input = do
   pure $ case step of
     _ -> 0
 
+mkRndSource2 :: TVar Int -> Int -> STM Int
+mkRndSource2 stepVar input | input <= 0 = pure 0
+mkRndSource2 stepVar input = do
+  step <- readTVar stepVar
+  modifyTVar' stepVar (+1)
+  pure $ case step of
+    0 -> 0
+    1 -> 0
+    _ -> 0
+
 
 spec :: Spec
 spec =
   describe "AI test" $ do
-    it "Triggering the observing action" $ do
+    it "Selecting the observing action" $ do
       idCounterVar <- newTVarIO $ ObjectId 0
       stepVar <- newTVarIO 0
       let rndSource = mkRndSource1 stepVar
       (aiNet, guardActObjId) <- atomically $ initialAINet idCounterVar rndSource
       result <- atomically $ selectAction aiNet guardActObjId
       result `shouldBe` "Action set: Essence \"observing\""
+
+    it "Evaluating the observing action" $ do
+      idCounterVar <- newTVarIO $ ObjectId 0
+      stepVar <- newTVarIO 0
+      let rndSource = mkRndSource2 stepVar
+      (aiNet, guardActObjId) <- atomically $ initialAINet idCounterVar rndSource
+      result1 <- atomically $ selectAction aiNet guardActObjId
+      result2 <- atomically $ evaluateCurrentAction aiNet guardActObjId
+
+      result1 `shouldBe` "Action set: Essence \"observing\""
+      result2 `shouldBe` "Observing action"
