@@ -7,17 +7,14 @@ import ZP.Types
 import ZP.Game.Types
 import ZP.Game.Logic
 import ZP.AI.Types
+import ZP.AI.Debug
 
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
-type Padding = Text
-
 type MaterializedProperties = TVar (Map.Map StaticPropertyId ActiveProperty)
 
 type DelayedVariables = TVar (Map.Map StaticPropertyId [(Description, TVar PropertyValue)])
-
-outputDbg msg = if True then traceM msg else pure ()
 
 getActingObjectId :: IdCounter -> STM ActingObjectId
 getActingObjectId idCounterVar = do

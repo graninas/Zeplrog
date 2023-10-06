@@ -1,0 +1,105 @@
+digraph finite_state_machine {
+graph [ dpi = 600 ];
+size="8,5";
+{
+node [shape=Mcircle, label="S:11:condition", xlabel="open"];
+"S:11:condition"
+}
+{
+node [shape=Mcircle, label="S:12:condition", xlabel="close"];
+"S:12:condition"
+}
+{
+node [shape=Mcircle];
+"S:14:closed"
+"S:13:open"
+"S:1:hp"
+"S:0:pos"
+"S:15:door"
+}
+{
+node [shape=box];
+"AO:24:door 01"
+}
+{
+node [shape=circle, label="A:19:condition", xlabel="close"];
+"A:19:condition"
+}
+{
+node [shape=circle, label="A:21:condition", xlabel="open"];
+"A:21:condition"
+}
+{
+node [shape=circle];
+"A:22:closed"
+"A:20:open"
+"A:18:hp"
+"A:17:pos"
+"A:23:door"
+}
+{
+node [shape=plaintext];
+"cur state/27"
+"to open state/25"
+"to closed state/23"
+"○/20"
+"mat value/19"
+"○/16"
+"mat value/15"
+"○/14"
+"○/13"
+"○/10"
+"mat value/9"
+"○/8"
+"○/7"
+"●/4"
+"●/1"
+"●/0"
+}
+"●/0" -> "S:15:door" [arrowhead=onormal];
+"●/1" -> "S:0:pos" [arrowhead=onormal];
+"●/4" -> "S:1:hp" [arrowhead=onormal];
+"○/7" -> "S:13:open" [arrowhead=onormal];
+"○/8" -> "S:12:condition" [arrowhead=onormal];
+"S:12:condition" -> "mat value/9" [arrowhead=dot];
+"mat value/9" -> "○/10" [arrowhead=dot];
+"○/10" -> "S:14:closed" [arrowhead=dot];
+"S:13:open" -> "○/8" [label="activations"];
+"○/13" -> "S:14:closed" [arrowhead=onormal];
+"○/14" -> "S:11:condition" [arrowhead=onormal];
+"S:11:condition" -> "mat value/15" [arrowhead=dot];
+"mat value/15" -> "○/16" [arrowhead=dot];
+"○/16" -> "S:13:open" [arrowhead=dot];
+"S:14:closed" -> "○/14" [label="activations"];
+"S:15:door" -> "●/1" [label="inventory"];
+"S:15:door" -> "●/4" [label="inventory"];
+"S:15:door" -> "○/7" [label="states"];
+"S:15:door" -> "○/13" [label="states"];
+"S:15:door" -> "mat value/19" [arrowhead=dot];
+"mat value/19" -> "○/20" [arrowhead=dot];
+"○/20" -> "S:14:closed" [arrowhead=dot];
+"A:17:pos" -> "S:0:pos" [arrowhead=onormal];
+
+"A:18:hp" -> "S:1:hp" [arrowhead=onormal];
+
+"A:19:condition" -> "S:12:condition" [arrowhead=onormal];
+"A:19:condition" -> "to closed state/23" [arrowhead=dot];
+"to closed state/23" -> "A:22:closed" [arrowhead=dot];
+"A:20:open" -> "S:13:open" [arrowhead=onormal];
+"A:20:open" -> "A:19:condition" [label="activations"];
+
+"A:21:condition" -> "S:11:condition" [arrowhead=onormal];
+"A:21:condition" -> "to open state/25" [arrowhead=dot];
+"to open state/25" -> "A:20:open" [arrowhead=dot];
+"A:22:closed" -> "S:14:closed" [arrowhead=onormal];
+"A:22:closed" -> "A:21:condition" [label="activations"];
+
+"A:23:door" -> "S:15:door" [arrowhead=onormal];
+"A:23:door" -> "A:17:pos" [label="inventory"];
+"A:23:door" -> "A:18:hp" [label="inventory"];
+"A:23:door" -> "A:20:open" [label="states"];
+"A:23:door" -> "A:22:closed" [label="states"];
+"A:23:door" -> "cur state/27" [arrowhead=dot];
+"cur state/27" -> "A:22:closed" [arrowhead=dot];
+"AO:24:door 01" -> "A:23:door" [arrowhead=onormal];
+}
