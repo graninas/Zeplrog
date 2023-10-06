@@ -11,7 +11,8 @@ import ZP.AI.Types
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
--- -----------------------------------------------------------------------------
+
+type MaterializedProperties = TVar (Map.Map StaticPropertyId ActiveProperty)
 
 getActingObjectId :: IdCounter -> STM ActingObjectId
 getActingObjectId idCounterVar = do
@@ -24,59 +25,56 @@ getActivePropertyId idCounterVar = do
   pure $ ActivePropertyId propId
 
 
-materializeStaticPropertyByType
+materializeLinksByType
   :: IdCounter
   -> KnowledgeBase
   -> MaterializedProperties
   -> PropertiesSetter
   -> (PropertyType, [MaterializationLink])
   -> STM (PropertyType, TVar [ActiveProperty])
-materializeStaticPropertyByType idCounterVar kb matPropsVar
-  propsSetter
-  (pType, matLinks)  = do
-    undefined
-    -- actProps <- mapM (materializeStaticProperty idCounterVar kb matPropsVar propsSetter) matLinks
-    -- actPropsVar <- newTVar actProps
-    -- pure (pType, actPropsVar)
+materializeLinksByType idCounterVar kb matPropsVar propsSetter (pType, matLinks)  = do
+  actProps <- mapM (materializeLink idCounterVar kb matPropsVar propsSetter) matLinks
+  actPropsVar <- newTVar actProps
+  pure (pType, actPropsVar)
 
-type MaterializedProperties = TVar (Map.Map StaticPropertyId ActiveProperty)
-
-materializeStaticProperty
+materializeLink
   :: IdCounter
   -> KnowledgeBase
   -> MaterializedProperties
   -> PropertiesSetter
   -> MaterializationLink
   -> STM ActiveProperty
-materializeStaticProperty idCounterVar kb matPropsVar propsSetter matLink = do
-  undefined
-  -- matProp <- case matLink of
-  --   DirectMaterialization sProp -> materializeStaticProperty' idCounterVar kb matPropsVar propsSetter sProp
-  --   SharedMaterialization sProp -> do
-  --     mProps <- readTVar matPropsVar
-  --     case Map.lookup staticPropertyId mProps of
-  --       Just matProp -> pure matProp
-  --       Nothing -> materializeStaticProperty' idCounterVar kb matPropsVar propsSetter sProp
-  -- modifyTVar' matPropsVar $ Map.insert staticPropertyId matProp
-  -- pure matProp
+materializeLink idCounterVar kb matPropsVar propsSetter matLink =
+  case matLink of
+    DirectMaterialization sProp -> do
+      matProp <- materializeStaticProperty idCounterVar kb matPropsVar propsSetter sProp
+      modifyTVar' matPropsVar $ Map.insert (staticPropertyId sProp) matProp
+      pure matProp
+    SharedMaterialization sProp -> do
+      mProps <- readTVar matPropsVar
+      case Map.lookup (staticPropertyId sProp) mProps of
+        Just matProp -> pure matProp
+        Nothing -> do
+          matProp <- materializeStaticProperty idCounterVar kb matPropsVar propsSetter sProp
+          modifyTVar' matPropsVar $ Map.insert (staticPropertyId sProp) matProp
+          pure matProp
 
-materializeStaticProperty'
+materializeStaticProperty
   :: IdCounter
   -> KnowledgeBase
   -> MaterializedProperties
   -> PropertiesSetter
   -> StaticProperty
   -> STM ActiveProperty
-materializeStaticProperty'
+materializeStaticProperty
   idCounterVar kb matPropsVar
   propsSetter
-  sProp = do
-    undefined
-    -- propValVar <- newTVar $ case Map.lookup essence propsSetter of
-    --   Nothing  -> NoValue
-    --   Just val -> val
-    -- props <- mapM (materializeStaticPropertyByType idCounterVar kb matPropsVar propsSetter)
-    --             $ Map.toList staticProperties
-    -- propsVar <- newTVar $ Map.fromList props
-    -- propId <- getActivePropertyId idCounterVar
-    -- pure $ ActiveProperty propId sProp propValVar propsVar
+  sProp@(StaticProperty {essence, staticProperties}) = do
+    propValVar <- newTVar $ case Map.lookup essence propsSetter of
+      Nothing  -> NoValue
+      Just val -> val
+    props <- mapM (materializeLinksByType idCounterVar kb matPropsVar propsSetter)
+                $ Map.toList staticProperties
+    propsVar <- newTVar $ Map.fromList props
+    propId <- getActivePropertyId idCounterVar
+    pure $ ActiveProperty propId sProp propValVar propsVar

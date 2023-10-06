@@ -45,11 +45,11 @@ mkStaticProperty
   -> StaticPropertyDiscoverability
   -> ActiveValueDiscoverability
   -> KBBuilder StaticProperty
-mkStaticProperty essence props valVar statDisc actDisc = do
+mkStaticProperty ess props valVar statDisc actDisc = do
   KBBuilderEnv idCounterVar essencesVar <- ask
   propId <- lift $ getStaticPropertyId idCounterVar
-  let prop = StaticProperty propId essence props valVar statDisc actDisc
-  lift $ modifyTVar' essencesVar $ Map.insert essence prop
+  let prop = StaticProperty propId ess props valVar statDisc actDisc
+  lift $ modifyTVar' essencesVar $ Map.insert ess prop
   pure prop
 
 mkCommonStaticProperty

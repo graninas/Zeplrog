@@ -40,7 +40,7 @@ materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) noActProp nam
     Just matLink -> do
       matPropsVar <- newTVar Map.empty
 
-      rootProp  <- materializeStaticProperty idCounterVar kb matPropsVar propsSetter matLink
+      rootProp  <- materializeLink idCounterVar kb matPropsVar propsSetter matLink
       actProps  <- getPropertiesOfType rootProp actionsPropType
 
       let f' actProp = (essence $ staticProperty actProp, actProp)
@@ -111,7 +111,8 @@ initActiveObjects1 idCounterVar (kb, commonSProps) = do
         ]
 
   matPropsVar <- newTVar Map.empty
-  noActProp <- materializeStaticProperty idCounterVar kb matPropsVar Map.empty $ DirectMaterialization $ noActionSProp commonSProps
+  noActProp <- materializeLink idCounterVar kb matPropsVar Map.empty
+    $ DirectMaterialization $ noActionSProp commonSProps
 
   mbObjs <- sequence
     [ materializeActiveObject idCounterVar kb noActProp guard01Name guardEssence guardProps
@@ -119,6 +120,7 @@ initActiveObjects1 idCounterVar (kb, commonSProps) = do
     , materializeActiveObject idCounterVar kb noActProp rat02Name   ratEssence   rat02Props
     ]
   pure $ Map.fromList $ map (\obj -> (actingObjectId obj, obj)) $ catMaybes mbObjs
+
 
 initActiveObjects2
   :: IdCounter
@@ -131,10 +133,11 @@ initActiveObjects2 idCounterVar (kb, commonSProps) = do
         ]
 
   matPropsVar <- newTVar Map.empty
-  noActProp <- materializeStaticProperty idCounterVar kb matPropsVar Map.empty $ DirectMaterialization $ noActionSProp commonSProps
+  noActProp <- materializeLink idCounterVar kb matPropsVar Map.empty
+    $ DirectMaterialization $ noActionSProp commonSProps
 
   mbObjs <- sequence
-    [ materializeActiveObject idCounterVar kb noActProp door01 doorEssence  Map.empty
+    [ materializeActiveObject idCounterVar kb noActProp door01 doorEssence Map.empty
     ]
   pure $ Map.fromList $ map (\obj -> (actingObjectId obj, obj)) $ catMaybes mbObjs
 

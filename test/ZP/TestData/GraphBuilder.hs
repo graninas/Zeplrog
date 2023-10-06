@@ -313,12 +313,12 @@ buildGraph ZPNet{knowledgeBase, actingObjects} = do
        , "size=\"8,5\";"
        ]
   let end = [ "}" ]
-  let KnowledgeBase {staticProperties} = knowledgeBase
+  let KnowledgeBase {materializationLinks} = knowledgeBase
 
   nodeUIDVar <- newTVar 0
   stylesVar <- newTVar Map.empty
 
-  staticPropsStrings' <- mapM (buildMaterializationLinkNode nodeUIDVar stylesVar) staticProperties
+  staticPropsStrings' <- mapM (buildMaterializationLinkNode nodeUIDVar stylesVar) materializationLinks
   let staticPropsStrings = join $ map snd staticPropsStrings'
 
   actingObjectsStrings' <- mapM (buildActingObjectNode nodeUIDVar stylesVar) $ Map.toList actingObjects
