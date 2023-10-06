@@ -109,6 +109,14 @@ buildValueNodeAlg2 uidVar val = do
            [ mkQUName "target" <> " -> " <> quoted chName <> toValueNodeArrStyle
            ] <> tStrs
           )
+    ConditionValue -> do
+      pure (mkUName "condition", [])
+    StateValue v -> do
+      (chName, tStrs) <- buildValueNodeAlg2 uidVar v
+      pure (mkUName "state",
+           [ mkQUName "state" <> " -> " <> quoted chName <> toValueNodeArrStyle
+           ] <> tStrs
+          )
     _ -> error " values not implemented"
 
 buildStaticPropertiesByType
