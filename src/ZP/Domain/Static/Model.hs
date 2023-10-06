@@ -13,11 +13,11 @@ data Essence where
 
 -- | Value definition
 
-data ValDefType where
-  IntValDef      :: Nat -> ValDefType
-  IntRangeValDef :: (Nat, Nat) -> ValDefType
-  BoolValDef     :: Bool -> ValDefType
-  PairValDef     :: ValDefType -> ValDefType -> ValDefType
+data ValDef where
+  IntValDef      :: Nat -> ValDef
+  IntRangeValDef :: (Nat, Nat) -> ValDef
+  BoolValDef     :: Bool -> ValDef
+  PairValDef     :: ValDef -> ValDef -> ValDef
 
 -- | Variable definition
 
@@ -55,7 +55,7 @@ data Condition where
   ConditionDef
     :: VarName
     -> CompareOp
-    -> ValDefType
+    -> ValDef
     -> Condition
 
 data Procedure where
@@ -128,12 +128,12 @@ data Property where
   -- | Lear prop. Value will be materialized as const.
   PropConst
     :: PropertyRoot
-    -> ValDefType
+    -> ValDef
     -> Property
   -- | Lear prop. Value will be materialized as mutable var (TVar).
   PropVal
     :: PropertyRoot
-    -> ValDefType
+    -> ValDef
     -> Property
   -- | Compound property.
   -- Each prop in the bag is a mutable reference.

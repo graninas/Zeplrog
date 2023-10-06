@@ -7,7 +7,6 @@ import ZP.Prelude
 import qualified ZP.Domain.Static.Model as SMod
 import ZP.Domain.Dynamic.Model
 import ZP.Domain.Dynamic.Materialization
-import qualified ZP.Domain.Dynamic.Materialization as M
 import qualified ZP.Assets.KnowledgeBase as KB
 
 import Test.Hspec
@@ -16,9 +15,6 @@ import Debug.Trace (trace)
 
 import Data.Proxy
 import qualified Data.Map as Map
-import qualified Data.Set as Set
-import qualified Data.Text as T
-import qualified Data.List as L
 
 
 -- type Door = PropDict (EssRoot EDoor)
@@ -40,25 +36,63 @@ import qualified Data.List as L
 --        ]
 --    ]
 
-type HPValOwnProp = SMod.OwnProp (KB.HPVal 100)
+type HPValOwnProp     = SMod.OwnProp (KB.HPVal 100)
+type PosValSharedProp = SMod.SharedProp (KB.PosConst 3 5)
 
-door :: IO DynamicProperty
-door = do
-  ehp     <- M.mat $ Proxy @KB.EHP
-  ehpProp <- M.mat $ Proxy @HPValOwnProp
 
-  pure $ DynamicProperty
-    (Map.fromList
-      [ (ehp, ehpProp)
+matDoor :: Materializer DynamicProperty
+matDoor = do
+  ess        <- mat False $ Proxy @(SMod.EssRoot KB.EDoor)
 
+  ehp        <- mat False $ Proxy @KB.EHP
+  ehpPropOwn <- mat False $ Proxy @HPValOwnProp
+
+  ePos           <- mat False $ Proxy @KB.EPos
+  ePosPropShared <- mat False $ Proxy @PosValSharedProp
+
+  propsMapVar <- liftIO $ newTVarIO $
+    Map.fromList
+      [ (ehp,  ehpPropOwn)
+      , (ePos, ePosPropShared)
       ]
-    )
+
+  dynValVar <- liftIO $ newTVarIO Nothing
+  pure $ DynamicProperty ess propsMapVar dynValVar
 
 
 
 
 spec :: Spec
-spec = pure ()
+spec = describe "Materialization test" $ do
+  it "Materialization: value prop" $ do
+    (_, DynamicProperty _ propsVar valVar) <- runMaterializer matDoor
+
+    mbVal <- readTVarIO valVar
+    case mbVal of
+      Nothing -> pure ()
+      Just _  -> error "Unexpected value"
+
+    ehp <- mat' $ Proxy @KB.EHP
+
+    props <- readTVarIO propsVar
+    case Map.lookup ehp props of
+      Nothing -> error "Unexpected nothing"
+      Just (OwnDynamicProperty (DynamicProperty _ _ valVar2)) -> do
+        mbVal <- readTVarIO valVar2
+        case mbVal of
+          Nothing -> error "Unexpected no value"
+          Just (VarValue valVar3) -> do
+            val3 <- readTVarIO valVar3
+            val3 `shouldBe` IntValue 100
+          Just _ -> error "Invalid val"
+      Just _ -> error "Invalid dyn prop"
+
+  it "Materialization: 1 shared prop" $ do
+    (Env spsVar, _) <- runMaterializer matDoor
+    sps <- readTVarIO spsVar
+    Map.size sps `shouldBe` 1
+
+
   -- describe "AI test" $ do
   --   it "Selecting the next action. Should be observing (after noAct)" $ do
   --     idCounterVar <- newTVarIO 0
