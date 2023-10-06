@@ -26,6 +26,7 @@ newtype PropertyType = PropertyType String
   deriving (Show, Eq, Ord)
 
 type Description = String
+type Name = String
 
 data PropertyValue
   = NoValue
@@ -34,7 +35,7 @@ data PropertyValue
   | PairValue PropertyValue PropertyValue
   | EssenceValue Description Essence
 
-  -- Currently used for arguments for actions
+  -- Currently used for arguments for actions (observe, discovery etc)
   | ListValue [PropertyValue]
   | ActingObjectValue ActingObject
 
@@ -85,6 +86,7 @@ data ActiveValueDiscoverability
 data StaticProperty = StaticProperty
   { staticPropertyId       :: StaticPropertyId
   , essence                :: Essence
+  , staticPropertyDescription :: Description
   , staticProperties       :: StaticPropertyMap
   , staticPropertyValueVar :: TVar StaticPropertyValue        -- Should be impure for making loops properly
   , staticPropertyDiscover :: StaticPropertyDiscoverability
@@ -92,10 +94,11 @@ data StaticProperty = StaticProperty
   }
 
 data ActiveProperty = ActiveProperty
-  { activePropertyId :: ActivePropertyId
-  , staticProperty   :: StaticProperty
-  , propertyValueVar :: TVar PropertyValue
-  , propertiesVar    :: TVar ActivePropertyMap
+  { activePropertyId   :: ActivePropertyId
+  , activePropertyDescription :: Description
+  , staticProperty     :: StaticProperty
+  , propertyValueVar   :: TVar PropertyValue
+  , propertiesVar      :: TVar ActivePropertyMap
   }
 
 newtype ActingObjectName = ActingObjectName String

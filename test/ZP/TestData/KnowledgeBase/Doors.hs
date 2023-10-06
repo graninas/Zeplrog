@@ -15,61 +15,61 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 
 
-openStateStaticProperty :: CommonStaticProperties -> KBBuilder StaticProperty
-openStateStaticProperty CommonStaticProperties{..} = do
+openStateStaticProperty :: CommonStaticProperties -> StaticProperty -> KBBuilder StaticProperty
+openStateStaticProperty CommonStaticProperties{..} closingCondSProp = do
   valVar <- lift $ newTVar NoStaticValue
+  let props = Map.singleton activationsPropType [(SharedMaterialization closingCondSProp)]
   -- TODO: passable property & discoverability
-  mkStaticProperty openEssence Map.empty valVar StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty openEssence "" props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
 
-closedStateStaticProperty :: CommonStaticProperties -> KBBuilder StaticProperty
-closedStateStaticProperty CommonStaticProperties{..} = do
+closedStateStaticProperty :: CommonStaticProperties -> StaticProperty -> KBBuilder StaticProperty
+closedStateStaticProperty CommonStaticProperties{..} openingCondSProp = do
   valVar <- lift $ newTVar NoStaticValue
+  let props = Map.singleton activationsPropType [(SharedMaterialization openingCondSProp)]
   -- TODO: passable property & discoverability
-  mkStaticProperty closedEssence Map.empty valVar StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty closedEssence "" props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
 
-openingConditionStaticProperty :: CommonStaticProperties -> StaticProperty -> KBBuilder StaticProperty
-openingConditionStaticProperty csp openStateSProp = do
+openingConditionStaticProperty :: CommonStaticProperties -> KBBuilder StaticProperty
+openingConditionStaticProperty csp = do
   valVar <- lift $ newTVar NoStaticValue
-  let props = Map.singleton targetPropType [(SharedMaterialization openStateSProp)]
   -- TODO: condition value
   -- NoValue == no condition
-  mkStaticProperty conditionEssence props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty conditionEssence "open" Map.empty valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
-closingConditionStaticProperty :: CommonStaticProperties -> StaticProperty -> KBBuilder StaticProperty
-closingConditionStaticProperty csp closedStateSProp = do
+closingConditionStaticProperty :: CommonStaticProperties -> KBBuilder StaticProperty
+closingConditionStaticProperty csp = do
   valVar <- lift $ newTVar NoStaticValue
-  let props = Map.singleton targetPropType [(SharedMaterialization closedStateSProp)]
   -- TODO: condition value
   -- NoValue == no condition
-  mkStaticProperty conditionEssence props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty conditionEssence "close" Map.empty valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
 
 
 doorStaticProperty :: CommonStaticProperties -> KBBuilder StaticProperty
 doorStaticProperty csp@(CommonStaticProperties{posSProp, hpSProp}) = do
-  openStateSProp   <- openStateStaticProperty csp
-  closedStateSProp <- closedStateStaticProperty csp
+  openingCondSProp <- openingConditionStaticProperty csp
+  closingCondSProp <- closingConditionStaticProperty csp
 
-  openingCondSProp <- openingConditionStaticProperty csp openStateSProp
-  closingCondSProp <- closingConditionStaticProperty csp closedStateSProp
+  openStateSProp   <- openStateStaticProperty   csp closingCondSProp
+  closedStateSProp <- closedStateStaticProperty csp openingCondSProp
 
   -- Making a loop of states
-  lift $ writeTVar (staticPropertyValueVar openStateSProp)
-       $ MaterializableStateValue "close"
-       $ SharedMaterialization closingCondSProp
-  lift $ writeTVar (staticPropertyValueVar closedStateSProp)
-       $ MaterializableStateValue "open"
-       $ SharedMaterialization openingCondSProp
+  lift $ writeTVar (staticPropertyValueVar openingCondSProp)
+       $ MaterializableStateValue "to open state"
+       $ SharedMaterialization openStateSProp
+  lift $ writeTVar (staticPropertyValueVar closingCondSProp)
+       $ MaterializableStateValue "to closed state"
+       $ SharedMaterialization closedStateSProp
 
   currentStateVar <- lift $ newTVar $ MaterializableStateValue "cur state" (SharedMaterialization closedStateSProp)
 
   let props = Map.fromList
-        [ (statesPropType,    [ (SharedMaterialization openingCondSProp)
-                              , (SharedMaterialization closingCondSProp) ])
+        [ (statesPropType,    [ (SharedMaterialization openStateSProp)
+                              , (SharedMaterialization closedStateSProp) ])
         , (inventoryPropType, [ (DirectMaterialization posSProp)
                               , (DirectMaterialization hpSProp) ])
         ]
 
-  mkStaticProperty doorEssence props currentStateVar StaticDiscoverRoot ActiveValueDiscoverable
+  mkStaticProperty doorEssence "" props currentStateVar StaticDiscoverRoot ActiveValueDiscoverable

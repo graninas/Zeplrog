@@ -17,8 +17,11 @@ actionsPropType = PropertyType "actions"
 goalsPropType :: PropertyType
 goalsPropType = PropertyType "goals"
 
-targetPropType :: PropertyType
-targetPropType = PropertyType "target"
+-- targetPropType :: PropertyType
+-- targetPropType = PropertyType "target"
+
+activationsPropType :: PropertyType
+activationsPropType = PropertyType "activations"
 
 statesPropType :: PropertyType
 statesPropType = PropertyType "states"

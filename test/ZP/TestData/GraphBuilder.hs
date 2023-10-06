@@ -22,10 +22,20 @@ type JointPointName = String
 toSPropArrStyle     = " [arrowhead=onormal];"
 toValueNodeArrStyle = " [arrowhead=dot];"
 actingObjectNodeStyle = "node [shape=box];"
-activePropsNodeStyle = "node [shape=circle];"
 actingObjectToActivePropStyle  = " [arrowhead=onormal];"
-staticPropsNodeStyle = "node [shape=Mcircle];"
 valueNodeStyle = "node [shape=plaintext];"
+
+staticPropsNodeStyle = "node [shape=Mcircle];"
+staticPropNodeWithLabelStyle _ "" = staticPropsNodeStyle
+staticPropNodeWithLabelStyle name label = "node [shape=Mcircle, label="
+  <> quoted name <> ", xlabel="
+  <> quoted label <> "];"
+
+activePropsNodeStyle = "node [shape=circle];"
+activePropNodeWithLabelStyle _ "" = activePropsNodeStyle
+activePropNodeWithLabelStyle name label = "node [shape=circle, label="
+  <> quoted name <> ", xlabel="
+  <> quoted label <> "];"
 
 getNodeUID :: NodeUID -> STM Int
 getNodeUID uidVar = do
@@ -186,12 +196,12 @@ buildMaterializationLinkNode uidVar stylesVar matLink = do
 
 buildJointedStaticPropertyNode :: NodeUID -> NodeStyles -> JointPointName -> StaticProperty -> STM (String, [String])
 buildJointedStaticPropertyNode uidVar stylesVar jointPointName
-  StaticProperty{staticPropertyId, staticPropertyValueVar, essence, staticProperties} = do
+  StaticProperty{staticPropertyId, staticPropertyValueVar, staticPropertyDescription, essence, staticProperties} = do
     let Essence ess = essence
     let StaticPropertyId sPId = staticPropertyId
     let thisNodeName = "S:" <> show sPId <> ":" <> ess
 
-    addNodeStyle stylesVar staticPropsNodeStyle thisNodeName
+    addNodeStyle stylesVar (staticPropNodeWithLabelStyle thisNodeName staticPropertyDescription) thisNodeName
 
     propsByTypeStrings :: [(PropertyType, [String], [String])] <-
       mapM (buildStaticPropertiesByType uidVar stylesVar)
@@ -239,7 +249,7 @@ buildActivePropertyNode uidVar stylesVar ActiveProperty{..} = do
   let ActivePropertyId propId = activePropertyId
   let thisNodeName = "A:" <> show propId <> ":" <> ess <>""
 
-  addNodeStyle stylesVar activePropsNodeStyle thisNodeName
+  addNodeStyle stylesVar (activePropNodeWithLabelStyle thisNodeName activePropertyDescription) thisNodeName
 
   let staticPropName = "S:" <> show sPId <> ":" <> ess
   let toSPropRow = quoted thisNodeName <> " -> " <> quoted staticPropName <> toSPropArrStyle
