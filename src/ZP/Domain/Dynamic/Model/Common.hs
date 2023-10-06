@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 
-module ZP.Domain.Dynamic.Model where
+module ZP.Domain.Dynamic.Model.Common where
 
 import ZP.Prelude
 
@@ -8,13 +8,10 @@ import GHC.TypeLits
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
+import qualified ZP.Domain.Static.Model as SMod
+
 
 type Essence = String
-
-
-data DynamicPropertyOwning
-  = OwnDynamicProperty DynamicProperty
-  | SharedDynamicProperty DynamicProperty
 
 data Value
   = PairValue Value Value
@@ -29,10 +26,3 @@ data Value
 data DynamicValue
   = VarValue (TVar Value)
   | ConstValue Value
-
-data DynamicProperty
-  = DynamicProperty
-  { dynPropEssence :: Essence
-  , dynPropsMap    :: TVar (Map.Map Essence DynamicPropertyOwning)
-  , dynPropValue   :: TVar (Maybe DynamicValue)
-  }

@@ -5,7 +5,10 @@ module ZP.Domain.Dynamic.Materialization where
 import ZP.Prelude
 
 import ZP.Domain.Static.Model
-import qualified ZP.Domain.Dynamic.Model as DMod
+import qualified ZP.Domain.Dynamic.Model.Common as DMod
+import qualified ZP.Domain.Dynamic.Model.Property as DMod
+import qualified ZP.Domain.Browser.Language as Browser
+import qualified ZP.Domain.Browser.Methods as Browser
 
 import GHC.TypeLits
 import Data.Proxy
@@ -79,6 +82,7 @@ instance (Mat val1 DMod.Value, Mat val2 DMod.Value) =>
 instance
   ( Mat valDef DMod.Value
   , Mat root DMod.Essence
+  , Browser.Browse Browser.GetEssence ('PropVal root valDef) DMod.Essence
   ) =>
   Mat ('PropVal root valDef) DMod.DynamicProperty where
   mat False _ = do
@@ -87,7 +91,9 @@ instance
     valVar     <- liftIO $ newTVarIO val
     dynValVar  <- liftIO $ newTVarIO $ Just $ DMod.VarValue valVar
     propsVar   <- liftIO $ newTVarIO Map.empty
-    pure (DMod.DynamicProperty ess propsVar dynValVar)
+    let staticProp = Proxy @('PropVal root valDef)
+    let staticPropRef = DMod.StaticPropRef staticProp
+    pure (DMod.DynamicProperty ess staticPropRef propsVar dynValVar)
   mat True proxy = do
     Env spsVar <- ask
     sps <- liftIO $ readTVarIO spsVar
@@ -104,6 +110,7 @@ instance
 instance
   ( Mat valDef DMod.Value
   , Mat root DMod.Essence
+  , Browser.Browse Browser.GetEssence ('PropConst root valDef) DMod.Essence
   ) =>
   Mat ('PropConst root valDef) DMod.DynamicProperty where
   mat False _ = do
@@ -111,7 +118,9 @@ instance
     val        <- mat False $ Proxy @valDef
     dynValVar  <- liftIO $ newTVarIO $ Just $ DMod.ConstValue val
     propsVar   <- liftIO $ newTVarIO Map.empty
-    pure (DMod.DynamicProperty ess propsVar dynValVar)
+    let staticProp = Proxy @('PropConst root valDef)
+    let staticPropRef = DMod.StaticPropRef staticProp
+    pure (DMod.DynamicProperty ess staticPropRef propsVar dynValVar)
   mat True proxy = do
     Env spsVar <- ask
     sps <- liftIO $ readTVarIO spsVar
