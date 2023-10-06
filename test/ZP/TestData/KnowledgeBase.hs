@@ -25,9 +25,13 @@ data CommonStaticProperties = CommonStaticProperties
   , fireWandSProp :: StaticProperty
   , iceWandSProp  :: StaticProperty
 
-  , obsrvingSProp     :: StaticProperty
-  , settingGoalsSProp :: StaticProperty
-  , planningSProp     :: StaticProperty
+  , obsrvingSProp      :: StaticProperty
+  , discoveringSProp   :: StaticProperty
+  , settingGoalsSProp  :: StaticProperty
+  , planningSProp      :: StaticProperty
+  , followingPlanSProp :: StaticProperty
+
+  , noActionSProp      :: StaticProperty
   }
 
 
@@ -41,27 +45,36 @@ mkCommonStaticProperties idCounterVar essencesVar =
     <*> mkStaticProperty idCounterVar essencesVar fireWandEssence Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
     <*> mkStaticProperty idCounterVar essencesVar iceWandEssence  Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
 
-    <*> mkStaticProperty idCounterVar essencesVar observingEssence    Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkStaticProperty idCounterVar essencesVar settingGoalsEssence Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
-    <*> mkStaticProperty idCounterVar essencesVar planningEssence     Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar observingEssence     Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar discoveringEssence   Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar settingGoalsEssence  Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar planningEssence      Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar followingPlanEssence Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+
+    <*> mkStaticProperty idCounterVar essencesVar noActionEssence      Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+
+commonActionsSProps :: CommonStaticProperties -> [ StaticProperty ]
+commonActionsSProps CommonStaticProperties {..} =
+  [ obsrvingSProp, discoveringSProp, settingGoalsSProp, planningSProp, followingPlanSProp ]
 
 dogStaticProperty :: IdCounter -> TVar Essences -> CommonStaticProperties -> STM StaticProperty
 dogStaticProperty idCounterVar essencesVar CommonStaticProperties{..} = do
   let props = Map.fromList
         [ (inventoryPropType, [ posSProp, hpSProp ])
+        , (actionPropType,    [ noActionSProp ])              -- this dog doesn't do anything...
         ]
   mkStaticProperty idCounterVar essencesVar dogEssence props StaticDiscoverRoot ActiveValueNonDiscoverable
 
 guardStaticProperty :: IdCounter -> TVar Essences -> CommonStaticProperties -> STM StaticProperty
-guardStaticProperty idCounterVar essencesVar CommonStaticProperties{..} = do
+guardStaticProperty idCounterVar essencesVar commonSProps@(CommonStaticProperties{..}) = do
   -- TODO: add a new type of a dynamic discoverability: discoverability on usage
   let props = Map.fromList
         [ (inventoryPropType, [ posSProp, hpSProp, fireWandSProp, iceWandSProp ])
-        , (actionPropType, [obsrvingSProp, settingGoalsSProp, planningSProp])
+        , (actionPropType,    commonActionsSProps commonSProps)
         ]
   mkStaticProperty idCounterVar essencesVar guardEssence props StaticDiscoverRoot ActiveValueNonDiscoverable
 
-initKnowledgeBase :: IdCounter -> STM KnowledgeBase
+initKnowledgeBase :: IdCounter -> STM (KnowledgeBase, CommonStaticProperties)
 initKnowledgeBase idCounterVar = do
   essencesVar <- newTVar Map.empty
   commonStatProps <- mkCommonStaticProperties idCounterVar essencesVar
@@ -70,7 +83,7 @@ initKnowledgeBase idCounterVar = do
     , dogStaticProperty   idCounterVar essencesVar commonStatProps
     ]
   essences <- readTVar essencesVar
-  pure $ KnowledgeBase statProps essences
+  pure (KnowledgeBase statProps essences, commonStatProps)
 
 ------------------
 

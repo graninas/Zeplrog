@@ -33,7 +33,7 @@ getPropertiesOfType prop propType = do
 
 setCurrentAction :: ActingObject -> ActiveProperty -> STM String
 setCurrentAction actObj@(ActingObject {currentActionVar}) actProp@(ActiveProperty {staticProperty}) = do
-  writeTVar currentActionVar $ Just actProp
+  writeTVar currentActionVar actProp
   pure $ "Action set: " <> show (essence staticProperty)
 
 selectAction' :: ZPNet -> ActingObject -> STM String
@@ -50,13 +50,19 @@ selectAction'
     -- (decision < 0) || (decision >= (length actProps))
 
     case actProps of
-      [] -> do
-        writeTVar currentActionVar Nothing
-        pure "No action properties found."
+      [] -> pure "No action properties found."
       _  -> setCurrentAction actObj $ actProps !! decision
 
 selectAction :: ZPNet -> ActingObjectName -> STM String
 selectAction aiNet@(ZPNet {actingObjectsByName}) name = do
+  case Map.lookup name actingObjectsByName of
+    Nothing  -> pure $ "Acting object not found: " <> show name
+    Just obj -> selectAction' aiNet obj
+
+
+-- Property values for actions are treated as input parameters of those actions.
+selectNextAction :: ZPNet -> ActingObjectName -> STM String
+selectNextAction aiNet@(ZPNet {actingObjectsByName}) name = do
   case Map.lookup name actingObjectsByName of
     Nothing  -> pure $ "Acting object not found: " <> show name
     Just obj -> selectAction' aiNet obj
@@ -75,7 +81,7 @@ traceStep stepName ActiveProperty {..} = do
 observe :: ZPNet -> ActingObject -> STM [ActingObject]
 observe aiNet@(ZPNet {actingObjects, worldVar}) _ = do
   -- Initial observing logic.
-  -- Should be improved to use local world properties to do observing.
+  -- TODO: use more realistic observing algorithm.
   World {worldObjects} <- readTVar worldVar
   let objIds = map worldObjectId worldObjects
   pure $ Map.elems actingObjects
@@ -138,7 +144,7 @@ discover aiNet self other = do
   when (not known) $ do
     trace "discover: discovering acting object" $ pure ()
     discover' self other
-  when known $ trace "discover: known object" $ pure ()
+  when known $ trace "discover: discovering known object not needed." $ pure ()
 
 
 evaluateObservingAction :: ZPNet -> ActingObject -> STM String
@@ -155,10 +161,9 @@ evaluatePlanningAction _ _ = pure "Planning action"
 
 evaluateCurrentAction' :: ZPNet -> ActingObject -> STM String
 evaluateCurrentAction' aiNet@(ZPNet {..}) actObj@(ActingObject {..}) = do
-  mbActiveProperty <- readTVar currentActionVar
-  case mbActiveProperty of
-    Nothing -> pure "No action."
-    Just (ActiveProperty {staticProperty}) -> case () of
+  actProp <- readTVar currentActionVar
+  case actProp of
+    ActiveProperty {staticProperty} -> case () of
       () | essence staticProperty == observingEssence    -> evaluateObservingAction aiNet actObj
       () | essence staticProperty == settingGoalsEssence -> evaluateGoalSettingAction aiNet actObj
       () | essence staticProperty == planningEssence     -> evaluatePlanningAction aiNet actObj
