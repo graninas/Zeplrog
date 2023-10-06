@@ -11,8 +11,6 @@ import ZP.AI.Materialization
 import ZP.AI.StaticKnowledge
 import ZP.AI.Logic.Common
 
-import Debug.Trace (trace)
-
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
@@ -20,6 +18,7 @@ import qualified Data.Set as Set
 getAllActivations :: ActingObject -> STM [(Description, Essence)]
 getAllActivations actObj = do
   props <- getPropertiesOfType (rootProperty actObj) statesPropType
+  traceM $ "states count:" <> (show $ length props)
   activations' <- mapM getActivation' props
   pure $ join activations'
   where
@@ -30,6 +29,7 @@ getAllActivations actObj = do
     getActivation' prop = do
       targets <- getPropertiesOfType (rootProperty actObj) targetPropType
       xs <- mapM getActivationName targets
+      traceM $ "targets: " <> show xs
       pure $ catMaybes xs
     getActivationName :: ActiveProperty -> STM (Maybe (Description, Essence))
     getActivationName (ActiveProperty {propertyValueVar}) = do

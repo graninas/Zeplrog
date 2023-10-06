@@ -87,11 +87,11 @@ commonActionsLoop =
   , (followingPlanEssence, PairValue (EssenceValue "observing"     observingEssence)     NoValue)  -- no input params yet
   ]
 
-initActiveObjects
+initActiveObjects1
   :: IdCounter
   -> (KnowledgeBase, CommonStaticProperties)
   -> STM (Map ActingObjectId ActingObject)
-initActiveObjects idCounterVar (kb, commonSProps) = do
+initActiveObjects1 idCounterVar (kb, commonSProps) = do
   let guardProps = Map.fromList $
         [ (posEssence, PositionValue (3, 3))
         , (hpEssence, IntValue 100)
@@ -104,6 +104,21 @@ initActiveObjects idCounterVar (kb, commonSProps) = do
         [ (posEssence, PositionValue (3, 4))
         , (hpEssence, IntValue 100)
         ]
+
+  noActProp <- materializeStaticProperty idCounterVar kb Map.empty $ noActionSProp commonSProps
+
+  mbObjs <- sequence
+    [ materializeActiveObject idCounterVar kb noActProp guard01Name guardEssence guardProps
+    , materializeActiveObject idCounterVar kb noActProp rat01Name   ratEssence   rat01Props
+    , materializeActiveObject idCounterVar kb noActProp rat02Name   ratEssence   rat02Props
+    ]
+  pure $ Map.fromList $ map (\obj -> (actingObjectId obj, obj)) $ catMaybes mbObjs
+
+initActiveObjects2
+  :: IdCounter
+  -> (KnowledgeBase, CommonStaticProperties)
+  -> STM (Map ActingObjectId ActingObject)
+initActiveObjects2 idCounterVar (kb, commonSProps) = do
   let door01Props = Map.fromList
         [ (posEssence, PositionValue (2, 3))
         , (hpEssence, IntValue 100)
@@ -112,22 +127,31 @@ initActiveObjects idCounterVar (kb, commonSProps) = do
   noActProp <- materializeStaticProperty idCounterVar kb Map.empty $ noActionSProp commonSProps
 
   mbObjs <- sequence
-    [ materializeActiveObject idCounterVar kb noActProp guard01Name guardEssence guardProps
-    , materializeActiveObject idCounterVar kb noActProp rat01Name   ratEssence   rat01Props
-    , materializeActiveObject idCounterVar kb noActProp rat02Name   ratEssence   rat02Props
-    , materializeActiveObject idCounterVar kb noActProp door01      doorEssence  Map.empty
+    [ materializeActiveObject idCounterVar kb noActProp door01 doorEssence  Map.empty
     ]
   pure $ Map.fromList $ map (\obj -> (actingObjectId obj, obj)) $ catMaybes mbObjs
 
 
-initZPNet
+initZPNet1
   :: IdCounter
   -> RndSource
   -> TVar World
   -> STM ZPNet
-initZPNet idCounterVar rndSource worldVar = do
-  kb'@(kb, _) <- initKnowledgeBase idCounterVar
-  actObjs     <- initActiveObjects idCounterVar kb'
+initZPNet1 idCounterVar rndSource worldVar = do
+  kb'@(kb, _) <- initKnowledgeBase1 idCounterVar
+  actObjs     <- initActiveObjects1 idCounterVar kb'
+  reporter    <- newTVar [] >>= pure . Just
+  let actObjsByName = Map.fromList $ map (\(_, o) -> (actingObjectName o, o)) $ Map.toList actObjs
+  pure $ ZPNet kb actObjs actObjsByName rndSource worldVar reporter
+
+initZPNet2
+  :: IdCounter
+  -> RndSource
+  -> TVar World
+  -> STM ZPNet
+initZPNet2 idCounterVar rndSource worldVar = do
+  kb'@(kb, _) <- initKnowledgeBase2 idCounterVar
+  actObjs     <- initActiveObjects2 idCounterVar kb'
   reporter    <- newTVar [] >>= pure . Just
   let actObjsByName = Map.fromList $ map (\(_, o) -> (actingObjectName o, o)) $ Map.toList actObjs
   pure $ ZPNet kb actObjs actObjsByName rndSource worldVar reporter
@@ -203,7 +227,7 @@ spec =
       stepVar      <- newTVarIO 0
       let rndSource = mkRndSource1 stepVar
 
-      zpNet  <- atomically $ initZPNet idCounterVar rndSource worldVar
+      zpNet  <- atomically $ initZPNet1 idCounterVar rndSource worldVar
       atomically $ selectNextActionForObjName zpNet guard01Name
 
       verifyReport' zpNet guard01Name ["Action set: Essence \"observing\""]
@@ -214,7 +238,7 @@ spec =
       stepVar      <- newTVarIO 0
       let rndSource = mkRndSource2 stepVar
 
-      zpNet   <- atomically $ initZPNet idCounterVar rndSource worldVar
+      zpNet   <- atomically $ initZPNet1 idCounterVar rndSource worldVar
       atomically $ selectNextActionForObjName zpNet guard01Name
       atomically $ evaluateCurrentActionForObjName zpNet guard01Name
 
@@ -222,13 +246,13 @@ spec =
         [ "Action set: Essence \"observing\""
         ]
 
-    xit "Evaluating the discovery action" $ do
+    it "Evaluating the discovery action" $ do
       idCounterVar <- newTVarIO 0
       worldVar     <- newTVarIO $ World Map.empty []
       stepVar      <- newTVarIO 0
       let rndSource = mkRndSource2 stepVar
 
-      zpNet <- atomically $ initZPNet idCounterVar rndSource worldVar
+      zpNet <- atomically $ initZPNet1 idCounterVar rndSource worldVar
 
       actObj <- fromJust <$> (atomically $ getActingObject zpNet guard01Name)
 
@@ -265,7 +289,7 @@ spec =
       worldVar     <- newTVarIO $ World Map.empty []
       stepVar      <- newTVarIO 0
       let rndSource = mkRndSource2 stepVar
-      zpNet <- atomically $ initZPNet idCounterVar rndSource worldVar
+      zpNet <- atomically $ initZPNet1 idCounterVar rndSource worldVar
 
       atomically $ selectNextActionForObjName zpNet guard01Name
       atomically $ selectNextActionForObjName zpNet guard01Name
@@ -317,12 +341,14 @@ spec =
       stepVar      <- newTVarIO 0
       let rndSource = mkRndSource2 stepVar
 
-      zpNet <- atomically $ initZPNet idCounterVar rndSource worldVar
+      zpNet <- atomically $ initZPNet2 idCounterVar rndSource worldVar
 
       actObj <- fromJust <$> (atomically $ getActingObject zpNet door01)
 
       activations <- atomically $ getAllActivations actObj
       print activations
+
+      verifyReport actObj []
 
       verifyGlobalReport zpNet
         ["Action set: Essence \"setting goals\"","Goals setting action"]
