@@ -37,10 +37,10 @@ materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) noActProp nam
   case Map.lookup ess essences of
     Nothing ->
       trace ("materializeActiveObject: nothing to materialize, static property essence not found: " <> show ess) $ pure Nothing
-    Just matLink -> do
+    Just sProp -> do
       matPropsVar <- newTVar Map.empty
 
-      rootProp  <- materializeLink idCounterVar kb matPropsVar propsSetter matLink
+      rootProp  <- materializeLink idCounterVar kb matPropsVar propsSetter $ DirectMaterialization sProp
       actProps  <- getPropertiesOfType rootProp actionsPropType
 
       let f' actProp = (essence $ staticProperty actProp, actProp)
