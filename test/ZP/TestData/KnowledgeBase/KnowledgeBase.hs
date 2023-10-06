@@ -26,12 +26,13 @@ initKnowledgeBase1 idCounterVar = do
   flip runReaderT env $ do
     csp <- mkCommonStaticProperties
 
-    ratSProp <- ratStaticProperty csp
-    statProps <- sequence
+    ratSProp  <- ratStaticProperty csp
+    secondTierSProps <- sequence
       [ guardStaticProperty ratSProp csp
       ]
+    let allSProps = [ ratSProp ] <> secondTierSProps
     essences <- lift $ readTVar essencesVar
-    pure (KnowledgeBase statProps essences, csp)
+    pure (KnowledgeBase allSProps essences, csp)
 
 
 -- Doors, etc.

@@ -72,7 +72,7 @@ buildStaticPropertyNode StaticProperty{staticPropertyId, staticPropertyValue, es
   thisNodeValues <- buildValueNode thisNodeName staticPropertyValue
 
   let thisNodeChildrenProps = filter (not . null) $ join $ map (f thisNodeName) propsByTypeStrings
-  let rootProps = filter (not . null) $ join $ map (\(_, _, xs) -> xs) propsByTypeStrings
+  let rootProps             = filter (not . null) $ join $ map (\(_, _, xs) -> xs) propsByTypeStrings
 
   pure (thisNodeName,
     rootProps
@@ -111,8 +111,8 @@ buildActivePropertyNode ActiveProperty{..} = do
   propsByTypeStrings :: [(PropertyType, [String], [String])] <-
     mapM buildActivePropertiesByType $ Map.toList props
 
-  let thisNodePointsToChildren = filter (not . null) $ join $ map (f thisNodeName) propsByTypeStrings
-  let childrenStrings          = filter (not . null) $ join $ map (\(_, _, xs) -> xs) propsByTypeStrings
+  let thisNodePointsToChildren = join $ map (f thisNodeName) propsByTypeStrings
+  let childrenStrings          = join $ map (\(_, _, xs) -> xs) propsByTypeStrings
 
   propValue <- readTVar propertyValueVar
   thisNodeValues <- buildValueNode thisNodeName propValue
