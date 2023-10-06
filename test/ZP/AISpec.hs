@@ -46,9 +46,10 @@ newtype ActingObjectName = ActingObjectName String
 type RndSource = Int -> STM Int
 
 data ActingObject = ActingObject
-  { name :: ActingObjectName
-  , objectId :: ActingObjectId
-  , rootProperty :: ActiveProperty
+  { name             :: ActingObjectName
+  , objectId         :: ActingObjectId
+  , rootProperty     :: ActiveProperty
+  , currentActionVar :: TVar (Maybe ActiveProperty)
   }
 
 data AINet = AINet
@@ -163,10 +164,12 @@ guardActingObject idCounterVar dogSProp = do
     , (abstractGoalPropType, goalsVar)
     ]
 
+  curActVar <- newTVar Nothing
+
   rootPropId <- getActivePropertyId idCounterVar
   actObjId   <- getActingObjectId idCounterVar
   let rootProp = ActiveProperty rootPropId (Essence "guard") rootPropsVar
-  pure (actObjId, ActingObject (ActingObjectName "guard 01") actObjId rootProp)
+  pure (actObjId, ActingObject (ActingObjectName "guard 01") actObjId rootProp curActVar)
 
 
 dogActingObject :: TVar ObjectId -> STM (ActingObjectId, ActingObject)
@@ -180,10 +183,12 @@ dogActingObject idCounterVar = do
     [ (inventoryPropType, invVar)
     ]
 
+  curActVar <- newTVar Nothing
+
   rootPropId <- getActivePropertyId idCounterVar
   actObjId   <- getActingObjectId idCounterVar
   let rootProp = ActiveProperty rootPropId (Essence "dog") rootPropsVar
-  pure (actObjId, ActingObject (ActingObjectName "dog 01") actObjId rootProp)
+  pure (actObjId, ActingObject (ActingObjectName "dog 01") actObjId rootProp curActVar)
 
 
 initialAINet :: TVar ObjectId -> RndSource -> STM (AINet, ActingObjectId)
@@ -215,23 +220,16 @@ getPropertiesOfType prop propType = do
     Nothing  -> pure []
     Just var -> readTVar var
 
-evaluateObserving = pure "evaluateObserving"
-setGoals = pure "setGoals"
-doPlanning = pure "doPlanning"
+setCurrentAction :: ActingObject -> ActiveProperty -> STM String
+setCurrentAction (ActingObject {..}) (AbstractGoalProperty {..}) = do
+  writeTVar currentActionVar Nothing
+  pure "Invalid property (goalProp, not activeProp)"
+setCurrentAction actObj@(ActingObject {..}) actProp@(ActiveProperty {..}) = do
+  writeTVar currentActionVar $ Just actProp
+  pure $ "Action set: " <> show essence
 
-evaluateAction :: AINet -> ActingObject -> ActiveProperty -> STM String
-evaluateAction _ _ (AbstractGoalProperty {..}) = pure "Invalid property (goalProp, not activeProp)"
-evaluateAction aiNet@(AINet {..}) actObj@(ActingObject {..}) (ActiveProperty {..}) = do
-
-  -- hardcode goes here
-  case () of
-    () | essence == observingEssence    -> evaluateObserving
-    () | essence == settingGoalsEssence -> setGoals
-    () | essence == planningEssence     -> doPlanning
-
-
-evaluateActingObject' :: AINet -> ActingObject -> STM String
-evaluateActingObject' aiNet@(AINet {..}) actObj@(ActingObject {..}) = do
+selectAction' :: AINet -> ActingObject -> STM String
+selectAction' aiNet@(AINet {..}) actObj@(ActingObject {..}) = do
   actProps <- getPropertiesOfType rootProperty actionPropType
 
   let propsCnt = length actProps
@@ -241,14 +239,16 @@ evaluateActingObject' aiNet@(AINet {..}) actObj@(ActingObject {..}) = do
   -- (decision < 0) || (decision >= (length actProps))
 
   case actProps of
-    [] -> pure "No action properties found."
-    _  -> evaluateAction aiNet actObj $ actProps !! decision
+    [] -> do
+      writeTVar currentActionVar Nothing
+      pure "No action properties found."
+    _  -> setCurrentAction actObj $ actProps !! decision
 
-evaluateActingObject :: AINet -> ActingObjectId -> STM String
-evaluateActingObject aiNet@(AINet _ actingObjs _) objId = do
+selectAction :: AINet -> ActingObjectId -> STM String
+selectAction aiNet@(AINet _ actingObjs _) objId = do
   case Map.lookup objId actingObjs of
     Nothing  -> pure $ "Acting object not found: " <> show objId
-    Just obj -> evaluateActingObject' aiNet obj
+    Just obj -> selectAction' aiNet obj
 
 
 
@@ -276,5 +276,5 @@ spec =
       stepVar <- newTVarIO 0
       let rndSource = mkRndSource1 stepVar
       (aiNet, guardActObjId) <- atomically $ initialAINet idCounterVar rndSource
-      result <- atomically $ evaluateActingObject aiNet guardActObjId
-      result `shouldBe` "evaluateObserving"
+      result <- atomically $ selectAction aiNet guardActObjId
+      result `shouldBe` "Action set: Essence \"observing\""
