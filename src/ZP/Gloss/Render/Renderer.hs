@@ -14,6 +14,14 @@ import Graphics.Gloss
 
 import qualified Data.Map as Map
 
+data RenderOptions = RenderOptions
+  { debugOptions   :: DebugOptions
+  , gridCellSize   :: GridCellSize
+  , bareCellSize   :: BareCellSize
+  , glossBaseShift :: GlossBaseShift
+  , glossBareCellSize :: GlossBareCellSize
+  }
+
 data ActorStateSlice = ActorStateSlice
   { goalVar               :: ActorGoal
   , currentActivity       :: ActorActivity
@@ -42,32 +50,14 @@ readPlayerActor (ActorState {..}) =
     <*> pure staticShape
 
 
-glossActorRenderer
-  :: DebugOptions
-  -> GlossBaseShift
-  -> GridCellSize
-  -> ActorStateSlice
-  -> Picture
-glossActorRenderer
-  dbgOpts
-  glossBaseShift
-  gridCellSize
-  (ActorStateSlice {..}) =
+renderActor :: RenderOptions -> ActorStateSlice -> Picture
+renderActor (RenderOptions {..}) (ActorStateSlice {..}) =
   Translate glossCellX glossCellY currentShape
   where
     (GlossCoords (glossCellX, glossCellY)) = coordsToGlossCell glossBaseShift gridCellSize currentPos
 
-glossActorPathRenderer
-  :: DebugOptions
-  -> GlossBaseShift
-  -> GridCellSize
-  -> ActorStateSlice
-  -> Picture
-glossActorPathRenderer
-  dbgOpts
-  glossBaseShift
-  gridCellSize
-  (ActorStateSlice {..}) =
+renderActorPath :: RenderOptions -> ActorStateSlice -> Picture
+renderActorPath (RenderOptions {..}) (ActorStateSlice {..}) =
     -- TODO: not hardcoded blink period
     case currentPathDisplay of
       PathIsBlinking n | n >= 2 -> Pictures $ map toActorPathPoint currentPath
@@ -78,74 +68,35 @@ glossActorPathRenderer
       where
         (GlossCoords (glossCellX, glossCellY)) = coordsToGlossCell glossBaseShift gridCellSize pos
 
-glossLevelRenderer
-  :: DebugOptions
-  -> GlossBaseShift
-  -> GridCellSize
-  -> BareCellSize
-  -> Level
-  -> Picture
-glossLevelRenderer
-  (DebugOptions {..})
-  glossBaseShift
-  gridCellSize
-  (BareCellSize bareCellSize)
-  level =
+renderLevel :: RenderOptions -> Level -> Picture
+renderLevel (RenderOptions {..}) level =
   Pictures $ map (toGlossCell'' . withGlossCoords) $ Map.toList level
   where
-    glossBareCellSize :: GlossBareCellSize
-    glossBareCellSize = GlossBareCellSize $ fromIntegral bareCellSize
-
     withGlossCoords :: (CellIdxs, Char) -> (GlossCoords, Char)
     withGlossCoords (cellPos, ch) =
       (coordsToGlossCell glossBaseShift gridCellSize cellPos, ch)
 
     toGlossCell'' :: (GlossCoords, Char) -> Picture
     toGlossCell'' (GlossCoords (shiftX, shiftY), ch) =
-      if showCellBoxes
+      if dbgShowCellBoxes debugOptions
       then Pictures [ Translate shiftX shiftY $ toGlossCell glossBareCellSize ch
-                    , Translate shiftX shiftY $ cellBox glossBareCellSize cellBoxColor
+                    , Translate shiftX shiftY $ cellBox glossBareCellSize $ dbgCellBoxColor debugOptions
                     ]
       else Translate shiftX shiftY $ toGlossCell glossBareCellSize ch
 
-toGlossCell :: GlossBareCellSize -> Char -> Picture
-toGlossCell _ '#' = emptyCell
-toGlossCell _ '.' = clearFloor
-toGlossCell cs 'I' = pillar cs
-toGlossCell cs '+' = door cs
-toGlossCell cs '─' = hWall cs
-toGlossCell cs '│' = vWall cs
-toGlossCell cs '┘' = brCorner cs
-toGlossCell cs '└' = blCorner cs
-toGlossCell cs '┌' = ulCorner cs
-toGlossCell cs '┐' = urCorner cs
-toGlossCell cs '├' = vWallRJoint cs
-toGlossCell cs '┤' = vWallLJoint cs
-toGlossCell cs ch  = unknown cs [ch]
-
-glossDebugTextRenderer :: DebugOptions -> GlossBaseShift -> GridCellSize -> Picture
-glossDebugTextRenderer
-  (DebugOptions {..})
-  glossBaseShift
-  gridCellSize
-  = if showDebugText
+renderDebugText :: RenderOptions -> Picture
+renderDebugText (RenderOptions {..}) =
+  let DebugOptions {..} = debugOptions
+  in if dbgShowDebugText
     then Pictures
       [ Translate x y $ Color white $ circleSolid 5
-
-      -- , Translate x y $ Scale 0.1 0.1 $ Color (dark $ dark $ dark $ debugTextColor) $ text debugText
-      -- , Translate x y $ Scale 0.2 0.2 $ Color (dark $ dark $ debugTextColor) $ text debugText
-      , Translate x y $ Scale 0.3 0.3 $ Color (dark $ debugTextColor) $ text debugText
-      -- , Translate x y $ Scale 0.4 0.4 $ Color (debugTextColor) $ text debugText
-
-      -- , Scale 0.1 0.1 $ Translate x y $ Color (dark $ dark $ dark $ debugTextColor) $ text debugText
-      -- , Scale 0.2 0.2 $ Translate x y $ Color (dark $ dark $ debugTextColor) $ text debugText
-      -- , Scale 0.3 0.3 $ Translate x y $ Color (dark $ debugTextColor) $ text debugText
-      -- , Scale 0.4 0.4 $ Translate x y $ Color (debugTextColor) $ text debugText
+      , Translate x y $ Scale 0.3 0.3 $ Color (dark dbgDebugTextColor) $ text dbgDebugText
       ]
     else blank
   where
     idxs = CellIdxs (17, 10)
     GlossCoords (x, y) = coordsToGlossCell glossBaseShift gridCellSize idxs
+
 
 glossRenderer :: GameState -> IO Picture
 glossRenderer (GameState {..}) = do
@@ -162,10 +113,13 @@ glossRenderer (GameState {..}) = do
   let glossBaseShift    = getGlossBaseShift wndSize
   let bareCellHalf      = getBareCellHalf bareCellSize
   let glossGridCellSize = getGlossGridCellSize gridCellSize
+  let glossBareCellSize = getGlossBareCellSize bareCellSize
+
+  let renderOptions = RenderOptions dbgOpts gridCellSize bareCellSize glossBaseShift glossBareCellSize
 
   pure $ Pictures
-    [ glossLevelRenderer     dbgOpts glossBaseShift gridCellSize bareCellSize level
-    , glossActorPathRenderer dbgOpts glossBaseShift gridCellSize playerActor
-    , glossActorRenderer     dbgOpts glossBaseShift gridCellSize playerActor
-    , glossDebugTextRenderer dbgOpts glossBaseShift gridCellSize
+    [ renderLevel      renderOptions level
+    , renderActorPath  renderOptions playerActor
+    , renderActor      renderOptions playerActor
+    , renderDebugText  renderOptions
     ]

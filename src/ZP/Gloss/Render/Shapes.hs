@@ -72,3 +72,19 @@ playerActorShape (BareCellSize bareCellSize) =
 pathPointShape :: BareCellSize -> Picture
 pathPointShape (BareCellSize bareCellSize) =
   Color (dark green) $ circleSolid $ (fromIntegral bareCellSize / 4)
+
+
+toGlossCell :: GlossBareCellSize -> Char -> Picture
+toGlossCell _ '#' = emptyCell
+toGlossCell _ '.' = clearFloor
+toGlossCell cs 'I' = pillar cs
+toGlossCell cs '+' = door cs
+toGlossCell cs '─' = hWall cs
+toGlossCell cs '│' = vWall cs
+toGlossCell cs '┘' = brCorner cs
+toGlossCell cs '└' = blCorner cs
+toGlossCell cs '┌' = ulCorner cs
+toGlossCell cs '┐' = urCorner cs
+toGlossCell cs '├' = vWallRJoint cs
+toGlossCell cs '┤' = vWallLJoint cs
+toGlossCell cs ch  = unknown cs [ch]

@@ -10,11 +10,12 @@ import Graphics.Gloss
 import qualified Data.Map as Map
 
 data DebugOptions = DebugOptions
-  { showCellBoxes :: Bool
-  , cellBoxColor :: Color
-  , showGrid :: Bool
-  , gridColor :: Color
-  , showDebugText :: Bool
-  , debugText :: String
-  , debugTextColor :: Color
+  { dbgShowCellBoxes   :: Bool
+  , dbgCellBoxColor    :: Color
+  , dbgShowGrid        :: Bool
+  , dbgGridColor       :: Color
+  
+  , dbgShowDebugText   :: Bool
+  , dbgDebugText       :: String
+  , dbgDebugTextColor  :: Color
   }
