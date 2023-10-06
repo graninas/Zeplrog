@@ -20,6 +20,7 @@ import Debug.Trace (trace)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
+type Report = [String]
 
 materializeActiveObject
   :: IdCounter
@@ -45,7 +46,8 @@ materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) noActProp nam
         (p:_) -> p
       knownObjsVar <- newTVar Map.empty
       actObjId     <- getActingObjectId idCounterVar
-      pure $ Just $ ActingObject name actObjId rootProp curActVar actsByEssenseVar knownObjsVar
+      reporter     <- newTVar [] >>= pure . Just
+      pure $ Just $ ActingObject name actObjId rootProp curActVar actsByEssenseVar knownObjsVar reporter
 
 
 guard01Name :: ActingObjectName
@@ -117,8 +119,9 @@ initZPNet
 initZPNet idCounterVar rndSource worldVar = do
   kb'@(kb, _) <- initKnowledgeBase idCounterVar
   actObjs     <- initActiveObjects idCounterVar kb'
+  reporter    <- newTVar [] >>= pure . Just
   let actObjsByName = Map.fromList $ map (\(_, o) -> (actingObjectName o, o)) $ Map.toList actObjs
-  pure $ ZPNet kb actObjs actObjsByName rndSource worldVar
+  pure $ ZPNet kb actObjs actObjsByName rndSource worldVar reporter
 
 
 mkRndSource1 :: TVar Int -> Int -> STM Int
@@ -140,6 +143,30 @@ mkRndSource2 stepVar input = do
     _ -> 0
 
 
+verifyReport :: ActingObject -> Report -> IO ()
+verifyReport ActingObject {actingObjectReporter} expectedReport =
+  case actingObjectReporter of
+    Nothing -> pure ()
+    Just reporterVar -> do
+      report <- readTVarIO reporterVar
+      reverse report `shouldBe` expectedReport
+
+verifyReport' :: ZPNet -> ActingObjectName -> Report -> IO ()
+verifyReport' zpNet name expectedReport = do
+  mbActObj <- atomically $ getActingObject zpNet name
+  case mbActObj of
+    Nothing  -> fail "Acting object not found."
+    Just obj -> verifyReport obj expectedReport
+
+verifyGlobalReport :: ZPNet -> Report -> IO ()
+verifyGlobalReport ZPNet {zpNetReporter} expectedReport =
+  case zpNetReporter of
+    Nothing -> pure ()
+    Just reporterVar -> do
+      report <- readTVarIO reporterVar
+      reverse report `shouldBe` expectedReport
+
+
 spec :: Spec
 spec =
   describe "AI test" $ do
@@ -149,9 +176,10 @@ spec =
       stepVar      <- newTVarIO 0
       let rndSource = mkRndSource1 stepVar
 
-      aiNet  <- atomically $ initZPNet idCounterVar rndSource worldVar
-      result <- atomically $ selectNextAction aiNet guard01Name
-      result `shouldBe` "Action set: Essence \"observing\""
+      zpNet  <- atomically $ initZPNet idCounterVar rndSource worldVar
+      atomically $ selectNextActionForObjName zpNet guard01Name
+
+      verifyReport' zpNet guard01Name ["Action set: Essence \"observing\""]
 
     it "Evaluating the observing action" $ do
       idCounterVar <- newTVarIO 0
@@ -159,29 +187,72 @@ spec =
       stepVar      <- newTVarIO 0
       let rndSource = mkRndSource2 stepVar
 
-      aiNet   <- atomically $ initZPNet idCounterVar rndSource worldVar
-      result1 <- atomically $ selectNextAction aiNet guard01Name
-      result2 <- atomically $ evaluateCurrentAction aiNet guard01Name
+      zpNet   <- atomically $ initZPNet idCounterVar rndSource worldVar
+      atomically $ selectNextActionForObjName zpNet guard01Name
+      atomically $ evaluateCurrentActionForObjName zpNet guard01Name
 
-      result2 `shouldBe` "Observing action"
+      verifyReport' zpNet guard01Name
+        [ "Action set: Essence \"observing\""
+        ]
+
+    it "Evaluating the discovery action" $ do
+      idCounterVar <- newTVarIO 0
+      worldVar     <- newTVarIO $ World Map.empty []
+      stepVar      <- newTVarIO 0
+      let rndSource = mkRndSource2 stepVar
+
+      zpNet <- atomically $ initZPNet idCounterVar rndSource worldVar
+
+      actObj <- fromJust <$> (atomically $ getActingObject zpNet guard01Name)
+
+      -- observing
+      atomically $ selectNextAction actObj
+      atomically $ evaluateCurrentAction zpNet actObj
+
+      -- discovering
+      atomically $ selectNextAction actObj
+      atomically $ evaluateCurrentAction zpNet actObj
+
+      verifyReport actObj
+        [ "Action set: Essence \"observing\""
+        , "Action set: Essence \"discovering\""
+        , "discover: discovering acting object"
+        , "discoverChunk, essence: Essence \"dog\", actObjId: ActivePropertyId 30, statPropId: StaticPropertyId 11"
+        , "discoverPropertiesByTypesPropertyType \"action\""
+        , "discoverPropertiesByTypesPropertyType \"inventory\""
+        , "discoverChunk, essence: Essence \"pos\", actObjId: ActivePropertyId 32, statPropId: StaticPropertyId 0"
+        , "discoverChunk, essence: Essence \"hp\", actObjId: ActivePropertyId 33, statPropId: StaticPropertyId 1"
+        , "discover': discoverPropety returned prop"
+        , "discover: discovering acting object"
+        , "discoverChunk, essence: Essence \"dog\", actObjId: ActivePropertyId 25, statPropId: StaticPropertyId 11"
+        , "discoverPropertiesByTypesPropertyType \"action\""
+        , "discoverPropertiesByTypesPropertyType \"inventory\""
+        , "discoverChunk, essence: Essence \"pos\", actObjId: ActivePropertyId 27, statPropId: StaticPropertyId 0"
+        , "discoverChunk, essence: Essence \"hp\", actObjId: ActivePropertyId 28, statPropId: StaticPropertyId 1"
+        , "discover': discoverPropety returned prop"
+        , "discover: discovering self not needed."
+        ]
+
 
     it "Actions rotation logic test" $ do
       idCounterVar <- newTVarIO 0
       worldVar     <- newTVarIO $ World Map.empty []
       stepVar      <- newTVarIO 0
       let rndSource = mkRndSource2 stepVar
-      aiNet <- atomically $ initZPNet idCounterVar rndSource worldVar
+      zpNet <- atomically $ initZPNet idCounterVar rndSource worldVar
 
-      result1 <- atomically $ selectNextAction aiNet guard01Name
-      result2 <- atomically $ selectNextAction aiNet guard01Name
-      result3 <- atomically $ selectNextAction aiNet guard01Name
-      result4 <- atomically $ selectNextAction aiNet guard01Name
-      result5 <- atomically $ selectNextAction aiNet guard01Name
-      result6 <- atomically $ selectNextAction aiNet guard01Name
+      result1 <- atomically $ selectNextActionForObjName zpNet guard01Name
+      result2 <- atomically $ selectNextActionForObjName zpNet guard01Name
+      result3 <- atomically $ selectNextActionForObjName zpNet guard01Name
+      result4 <- atomically $ selectNextActionForObjName zpNet guard01Name
+      result5 <- atomically $ selectNextActionForObjName zpNet guard01Name
+      result6 <- atomically $ selectNextActionForObjName zpNet guard01Name
 
-      result1  `shouldBe` "Action set: Essence \"observing\""
-      result2  `shouldBe` "Action set: Essence \"discovering\""
-      result3  `shouldBe` "Action set: Essence \"setting goals\""
-      result4  `shouldBe` "Action set: Essence \"planning\""
-      result5  `shouldBe` "Action set: Essence \"following a plan\""
-      result6  `shouldBe` "Action set: Essence \"observing\""
+      verifyReport' zpNet guard01Name
+        [ "Action set: Essence \"observing\""
+        , "Action set: Essence \"discovering\""
+        , "Action set: Essence \"setting goals\""
+        , "Action set: Essence \"planning\""
+        , "Action set: Essence \"following a plan\""
+        , "Action set: Essence \"observing\""
+        ]

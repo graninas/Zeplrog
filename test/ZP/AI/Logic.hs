@@ -16,6 +16,24 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 
 
+report :: ActingObject -> String -> STM ()
+report ActingObject{actingObjectReporter} msg = case actingObjectReporter of
+  Nothing -> pure ()
+  Just reporterVar -> modifyTVar' reporterVar (msg:)
+
+reportStep :: ActingObject -> String -> ActiveProperty -> STM ()
+reportStep self stepName ActiveProperty {..} = do
+  let ess = essence staticProperty
+  let statPropId = staticPropertyId staticProperty
+  report self (stepName <> ", essence: " <> show ess
+      <> ", actObjId: " <> show activePropertyId
+      <> ", statPropId: " <> show statPropId)
+
+reportGlobal :: ZPNet -> String -> STM ()
+reportGlobal ZPNet{zpNetReporter} msg = case zpNetReporter of
+  Nothing -> pure ()
+  Just reporterVar -> modifyTVar' reporterVar (msg:)
+
 getRandomValue :: RndSource -> Int -> STM Int
 getRandomValue rndSource input = rndSource input
 
@@ -31,50 +49,45 @@ getPropertiesOfType prop propType = do
     Nothing  -> pure []
     Just var -> readTVar var
 
-setCurrentAction :: ActingObject -> ActiveProperty -> STM String
-setCurrentAction actObj@(ActingObject {currentActionVar}) actProp@(ActiveProperty {staticProperty}) = do
-  writeTVar currentActionVar actProp
-  pure $ "Action set: " <> show (essence staticProperty)
+getActingObject :: ZPNet -> ActingObjectName -> STM (Maybe ActingObject)
+getActingObject zpNet@(ZPNet {actingObjectsByName}) objName =
+  pure $ Map.lookup objName actingObjectsByName
 
-selectNextAction'' :: ActingObject -> Essence -> STM String
-selectNextAction'' actObj@(ActingObject {rootProperty, currentActionVar}) ess = do
+setCurrentAction :: ActingObject -> ActiveProperty -> STM ()
+setCurrentAction self@(ActingObject {currentActionVar}) actProp@(ActiveProperty {staticProperty}) = do
+  writeTVar currentActionVar actProp
+  report self $ "Action set: " <> show (essence staticProperty)
+
+selectNextAction'' :: ActingObject -> Essence -> STM ()
+selectNextAction'' self@(ActingObject {rootProperty, currentActionVar}) ess = do
   -- FIXME: Inefficient active property search. Can be optimized.
   actProps <- getPropertiesOfType rootProperty actionPropType
   case find (essenceIs ess) actProps of
-    Nothing -> pure $ "Action property not found for essence: " <> show ess
-    Just actProp -> setCurrentAction actObj actProp
+    Nothing -> report self $ "Action property not found for essence: " <> show ess
+    Just actProp -> setCurrentAction self actProp
   where
     essenceIs :: Essence -> ActiveProperty -> Bool
     essenceIs ess ActiveProperty {staticProperty} = essence staticProperty == ess
 
-selectNextAction' :: ActingObject -> STM String
-selectNextAction' actObj@(ActingObject {currentActionVar}) = do
+selectNextAction :: ActingObject -> STM ()
+selectNextAction self@(ActingObject {currentActionVar}) = do
   ActiveProperty{propertyValueVar} <- readTVar currentActionVar
   propVal <- readTVar propertyValueVar
   case propVal of
-    PairValue (EssenceValue nextActEssence) _ -> selectNextAction'' actObj nextActEssence
-    _ -> pure "selectNextAction': no next action"
+    PairValue (EssenceValue nextActEssence) _ -> selectNextAction'' self nextActEssence
+    _ -> report self "selectNextAction': no next action"
 
 -- Property values for actions are treated as input parameters of those actions.
-selectNextAction :: ZPNet -> ActingObjectName -> STM String
-selectNextAction aiNet@(ZPNet {actingObjectsByName}) name = do
-  case Map.lookup name actingObjectsByName of
-    Nothing  -> pure $ "Acting object not found: " <> show name
-    Just obj -> selectNextAction' obj
-
---------
-traceStep :: String -> ActiveProperty -> STM ()
-traceStep stepName ActiveProperty {..} = do
-  let ess = essence staticProperty
-  let statPropId = staticPropertyId staticProperty
-  trace (stepName <> ", essence: " <> show ess
-      <> ", actObjId: " <> show activePropertyId
-      <> ", statPropId: " <> show statPropId)
-    $ pure ()
+selectNextActionForObjName :: ZPNet -> ActingObjectName -> STM ()
+selectNextActionForObjName zpNet objName = do
+  mbActObj <- getActingObject zpNet objName
+  case mbActObj of
+    Nothing  -> reportGlobal zpNet $ "Acting object not found: " <> show objName
+    Just obj -> selectNextAction obj
 
 
 observe :: ZPNet -> ActingObject -> STM [ActingObject]
-observe aiNet@(ZPNet {actingObjects, worldVar}) _ = do
+observe zpNet@(ZPNet {actingObjects, worldVar}) _ = do
   -- Initial observing logic.
   -- TODO: use more realistic observing algorithm.
   World {worldObjects} <- readTVar worldVar
@@ -88,19 +101,20 @@ isAlreadyKnownActingObject self ActingObject{actingObjectId} = do
 
 
 discoverPropertiesByTypes
-  :: (PropertyType, TVar [ActiveProperty])
+  :: ActingObject
+  -> (PropertyType, TVar [ActiveProperty])
   -> STM (PropertyType, [KnownActiveProperty])
-discoverPropertiesByTypes (propType, activePropsVar) = do
-  trace ("discoverPropertiesByTypes" <> show propType) $ pure ()
+discoverPropertiesByTypes self (propType, activePropsVar) = do
+  report self $ "discoverPropertiesByTypes" <> show propType
   activeProps <- readTVar activePropsVar
-  mbProps     <- mapM discoverProperty activeProps
+  mbProps     <- mapM (discoverProperty self) activeProps
   pure (propType, catMaybes mbProps)
 
-discoverChunk :: ActiveProperty -> STM KnownActiveProperty
-discoverChunk activeProp@(ActiveProperty {propertiesVar, propertyValueVar, staticProperty}) = do
-  traceStep "discoverChunk" activeProp
+discoverChunk :: ActingObject -> ActiveProperty -> STM KnownActiveProperty
+discoverChunk self activeProp@(ActiveProperty {propertiesVar, propertyValueVar, staticProperty}) = do
+  reportStep self "discoverChunk" activeProp
   activeProps   <- readTVar propertiesVar
-  knownProps    <- mapM discoverPropertiesByTypes $ Map.toList activeProps
+  knownProps    <- mapM (discoverPropertiesByTypes self) $ Map.toList activeProps
   knownPropsVar <- newTVar $ Map.fromList knownProps
   mbKnownValVar <- case activeValueDiscover staticProperty of
     ActiveValueNonDiscoverable -> newTVar Nothing
@@ -110,38 +124,39 @@ discoverChunk activeProp@(ActiveProperty {propertiesVar, propertyValueVar, stati
   pure $ KnownActiveProperty activeProp knownPropsVar mbKnownValVar
 
 
-discoverProperty :: ActiveProperty -> STM (Maybe KnownActiveProperty)
-discoverProperty activeProp@(ActiveProperty{staticProperty}) =
+discoverProperty :: ActingObject -> ActiveProperty -> STM (Maybe KnownActiveProperty)
+discoverProperty self activeProp@(ActiveProperty{staticProperty}) =
   case () of
     () | staticPropertyDiscover staticProperty == StaticDiscoverRoot
-        -> Just <$> discoverChunk activeProp
+        -> Just <$> discoverChunk self activeProp
 
     () | staticPropertyDiscover staticProperty == StaticDiscoverLeaf
-        -> Just <$> discoverChunk activeProp
+        -> Just <$> discoverChunk self activeProp
 
     () | staticPropertyDiscover staticProperty == StaticNonDiscoverable
         -> pure Nothing
 
 discover' :: ActingObject -> ActingObject -> STM ()
-discover' ActingObject{knownActingObjectsVar} other@(ActingObject{actingObjectId}) = do
-  mbKnownProp <- discoverProperty $ rootProperty other
+discover' self@ActingObject{knownActingObjectsVar} other@(ActingObject{actingObjectId}) = do
+  mbKnownProp <- discoverProperty self $ rootProperty other
   case mbKnownProp of
     Nothing -> pure ()
     Just knownProp -> do
       knownObjs <- readTVar knownActingObjectsVar
       let knownObj = KnownActingObject actingObjectId knownProp
       writeTVar knownActingObjectsVar $ Map.insert actingObjectId knownObj knownObjs
-      trace "discover': discoverPropety returned prop" $ pure ()
+      report self "discover': discoverPropety returned prop"
 
 discover :: ZPNet -> ActingObject -> ActingObject -> STM ()
 discover _ self other | actingObjectId self == actingObjectId other = do
-  trace "discover: discovering self not needed." $ pure ()
-discover aiNet self other = do
+  report self "discover: discovering self not needed."
+discover zpNet self other = do
   known <- isAlreadyKnownActingObject self other
   when (not known) $ do
-    trace "discover: discovering acting object" $ pure ()
+    report self "discover: discovering acting object"
     discover' self other
-  when known $ trace "discover: discovering known object not needed." $ pure ()
+  when known
+    $ report self "discover: discovering known object not needed."
 
 
 addForDiscover :: ActingObject -> ActingObject -> STM ()
@@ -160,30 +175,41 @@ addForDiscover self@(ActingObject {actionsByEssenceVar}) other = do
         _ -> pure ()      -- should not happen (a bug in data or logic)
 
 
-evaluateObservingAction :: ZPNet -> ActingObject -> STM String
-evaluateObservingAction aiNet actObj = do
-  objs <- observe aiNet actObj
+evaluateObservingAction :: ZPNet -> ActingObject -> STM ()
+evaluateObservingAction zpNet actObj = do
+  objs <- observe zpNet actObj
   mapM_ (addForDiscover actObj) objs
-  pure "Observing action"
 
-evaluateGoalSettingAction :: ZPNet -> ActingObject -> STM String
-evaluateGoalSettingAction _ _ = pure "Goal setting action"
+evaluateDiscoveringAction :: ZPNet -> ActingObject -> ActiveProperty -> STM ()
+evaluateDiscoveringAction zpNet self (ActiveProperty {propertyValueVar}) = do
+  propVal <- readTVar propertyValueVar
+  case propVal of
+    PairValue nextEss (ListValue objsForDiscover) -> do
+      mapM_ (\(ActingObjectValue o) -> discover zpNet self o) objsForDiscover
+      writeTVar propertyValueVar $ PairValue nextEss $ ListValue []
+    _ -> pure ()
 
-evaluatePlanningAction :: ZPNet -> ActingObject -> STM String
-evaluatePlanningAction _ _ = pure "Planning action"
 
-evaluateCurrentAction' :: ZPNet -> ActingObject -> STM String
-evaluateCurrentAction' aiNet@(ZPNet {..}) actObj@(ActingObject {..}) = do
+evaluateGoalSettingAction :: ZPNet -> ActingObject -> STM ()
+evaluateGoalSettingAction _ self = report self "Goal setting action"
+
+evaluatePlanningAction :: ZPNet -> ActingObject -> STM ()
+evaluatePlanningAction _ self = report self "Planning action"
+
+evaluateCurrentAction :: ZPNet -> ActingObject -> STM ()
+evaluateCurrentAction zpNet@(ZPNet {..}) self@(ActingObject {..}) = do
   actProp <- readTVar currentActionVar
   case actProp of
     ActiveProperty {staticProperty} -> case () of
-      () | essence staticProperty == observingEssence    -> evaluateObservingAction aiNet actObj
-      () | essence staticProperty == settingGoalsEssence -> evaluateGoalSettingAction aiNet actObj
-      () | essence staticProperty == planningEssence     -> evaluatePlanningAction aiNet actObj
-      _ -> pure $ "Action is not yet supported: " <> show (essence staticProperty)
+      () | essence staticProperty == observingEssence    -> evaluateObservingAction zpNet self
+      () | essence staticProperty == discoveringEssence  -> evaluateDiscoveringAction zpNet self actProp
+      () | essence staticProperty == settingGoalsEssence -> evaluateGoalSettingAction zpNet self
+      () | essence staticProperty == planningEssence     -> evaluatePlanningAction zpNet self
+      _ -> report self $ "Action is not yet supported: " <> show (essence staticProperty)
 
-evaluateCurrentAction :: ZPNet -> ActingObjectName -> STM String
-evaluateCurrentAction aiNet@(ZPNet {actingObjectsByName}) objName = do
-  case Map.lookup objName actingObjectsByName of
-    Nothing  -> pure $ "Acting object not found: " <> show objName
-    Just obj -> evaluateCurrentAction' aiNet obj
+evaluateCurrentActionForObjName :: ZPNet -> ActingObjectName -> STM ()
+evaluateCurrentActionForObjName zpNet objName = do
+  mbActObj <- getActingObject zpNet objName
+  case mbActObj of
+    Nothing  -> reportGlobal zpNet $ "Acting object not found: " <> show objName
+    Just obj -> evaluateCurrentAction zpNet obj

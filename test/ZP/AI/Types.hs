@@ -73,6 +73,8 @@ newtype ActingObjectName = ActingObjectName String
 
 type KnownActingObjects = Map.Map ActingObjectId KnownActingObject
 
+type Reporter = [String]
+
 data ActingObject = ActingObject
   { actingObjectName      :: ActingObjectName
   , actingObjectId        :: ActingObjectId
@@ -80,6 +82,7 @@ data ActingObject = ActingObject
   , currentActionVar      :: TVar ActiveProperty
   , actionsByEssenceVar   :: TVar (Map Essence ActiveProperty)     -- cache for quick search
   , knownActingObjectsVar :: TVar KnownActingObjects
+  , actingObjectReporter  :: Maybe (TVar Reporter)
   }
 
 data KnownActingObject = KnownActingObject
@@ -106,11 +109,12 @@ type PropertiesSetter = Map.Map Essence PropertyValue
 
 data ZPNet = ZPNet
   { knowledgeBase       :: KnowledgeBase
-  , actingObjects       :: Map ActingObjectId ActingObject
-  , actingObjectsByName :: Map ActingObjectName ActingObject
+  , actingObjects       :: Map ActingObjectId ActingObject        -- act objs
+  , actingObjectsByName :: Map ActingObjectName ActingObject      -- cache.
 
   , rndSource :: RndSource
   , worldVar  :: TVar World
+  , zpNetReporter :: Maybe (TVar Reporter)
   }
 
 data WorldObject = WorldObject
