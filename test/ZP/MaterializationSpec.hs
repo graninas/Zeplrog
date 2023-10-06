@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DataKinds #-}
 
 module ZP.MaterializationSpec where
 
@@ -8,10 +8,7 @@ import qualified ZP.Domain.Static.Model as SMod
 import ZP.Domain.Dynamic.Model
 import ZP.Domain.Dynamic.Materialization
 import qualified ZP.Domain.Dynamic.Materialization as M
-import ZP.Assets.KnowledgeBase.Essences
-import ZP.Assets.KnowledgeBase.Common
-import ZP.Assets.KnowledgeBase.Agents
-import ZP.Assets.KnowledgeBase.Doors
+import qualified ZP.Assets.KnowledgeBase as KB
 
 import Test.Hspec
 
@@ -22,7 +19,6 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.List as L
-
 
 
 -- type Door = PropDict (EssRoot EDoor)
@@ -44,18 +40,19 @@ import qualified Data.List as L
 --        ]
 --    ]
 
-data DynamicProperty = DynamicProperty
-  { props :: Map.Map String ()
-  }
+type HPValOwnProp = SMod.OwnProp (KB.HPVal 100)
 
+door :: IO DynamicProperty
+door = do
+  ehp     <- M.mat $ Proxy @KB.EHP
+  ehpProp <- M.mat $ Proxy @HPValOwnProp
 
-door :: DynamicProperty
-door = DynamicProperty
-  (Map.fromList
-    [ (M.mat (Proxy @EHP), ())
+  pure $ DynamicProperty
+    (Map.fromList
+      [ (ehp, ehpProp)
 
-    ]
-  )
+      ]
+    )
 
 
 

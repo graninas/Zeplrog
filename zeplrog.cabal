@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d24593c08854030c95bc208d508b43d0ef4fc5add70ef9dafcdf404663642835
+-- hash: 61f2d71c98e1a7427558df917c142196a0a7be43fa8f3bfc83bb69665d90e9d9
 
 name:           zeplrog
 version:        0.0.0.1
@@ -24,6 +24,7 @@ source-repository head
 library
   exposed-modules:
       Main
+      ZP.Assets.KnowledgeBase
       ZP.Assets.KnowledgeBase.Agents
       ZP.Assets.KnowledgeBase.Common
       ZP.Assets.KnowledgeBase.Doors
@@ -100,6 +101,7 @@ library
 executable zeplrog
   main-is: Main.hs
   other-modules:
+      ZP.Assets.KnowledgeBase
       ZP.Assets.KnowledgeBase.Agents
       ZP.Assets.KnowledgeBase.Common
       ZP.Assets.KnowledgeBase.Doors
