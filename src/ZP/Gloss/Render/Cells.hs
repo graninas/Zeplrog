@@ -27,8 +27,15 @@ door (GlossBareCellSize s) = Color (dark yellow) $ Pictures
   , rectangleSolid s (s / 3)
   ]
 
-unknown :: String -> Picture
-unknown w = Color red $ text' $ "?" <> w
+unknown :: GlossBareCellSize -> String -> Picture
+unknown (GlossBareCellSize s) w = Color red $ Pictures
+  [ rectangleWire s s
+  , line [(nsDiv2, nsDiv2), (sDiv2, sDiv2)]
+  , line [(nsDiv2, sDiv2), (sDiv2, nsDiv2)]
+  ]
+  where
+    sDiv2 = s / 2
+    nsDiv2 = negate sDiv2
 
 
 cellBox :: GlossBareCellSize -> Color -> Picture
