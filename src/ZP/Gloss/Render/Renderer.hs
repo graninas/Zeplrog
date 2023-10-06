@@ -5,6 +5,7 @@ import ZP.Prelude
 import ZP.Types
 import ZP.Gloss.Types
 import ZP.Gloss.Conv
+import ZP.Gloss.Render.Cells
 import ZP.Game.State
 
 import Graphics.Gloss
@@ -32,16 +33,27 @@ glossLevelRenderer
   -> Level
   -> Picture
 glossLevelRenderer glossBaseShift gridCellSize (BareCellHalf bareCellHalf) level =
-  Pictures $ map toGlossCell $ Map.toList level
+  Pictures $ map toGlossCell' $ Map.toList level
   where
-    glossCellShape :: Picture
-    glossCellShape = Color white $ Circle $ fromIntegral bareCellHalf
-
-    toGlossCell :: (Coords, Char) -> Picture
-    toGlossCell (cellPos, ' ') = Translate shiftX shiftY glossCellShape
+    toGlossCell' :: (Coords, Char) -> Picture
+    toGlossCell' (cellPos, ch) = Translate shiftX shiftY $ toGlossCell ch
       where
         (GlossCoords (shiftX, shiftY)) = coordsToGlossCell glossBaseShift gridCellSize cellPos
 
+toGlossCell :: Char -> Picture
+toGlossCell ' ' = emptyCell
+toGlossCell '.' = clearFloor
+toGlossCell 'I' = pillar
+toGlossCell '+' = door
+toGlossCell '─' = wall "─"
+toGlossCell '│' = wall "│"
+toGlossCell '┘' = wall "┘"
+toGlossCell '└' = wall "└"
+toGlossCell '┌' = wall "┌"
+toGlossCell '┐' = wall "┐"
+toGlossCell '├' = wall "├"
+toGlossCell '├' = wall "┤"
+toGlossCell ch  = unknown [ch]
 
 
 glossRenderer :: GameState -> IO Picture

@@ -10,6 +10,7 @@ import ZP.Game.Logic
 import ZP.Game.State
 
 import qualified Data.Map as Map
+import qualified Data.Text as T
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
@@ -75,9 +76,21 @@ glossEvenHandler (EventResize newSize)  st = pure st
 glossEvenHandler (EventMotion mousePos) st = pure st
 
 
+loadLevel :: String -> IO Level
+loadLevel lvlFileName = do
+  l1 :: [String] <- (map T.unpack . lines) <$> (readFile $ "./data/" <> lvlFileName)
+  let l2 :: [(Int, String)] = zip [1..] l1
+  let l3 :: [ (Coords, Char) ] = join $ map zipRow l2
+  pure $ Map.fromList l3
+  where
+    zipRow :: (Int, String) -> [ (Coords, Char) ]
+    zipRow (y, str) = [ ((x, y), ch) | (x, ch) <- zip [1..] str ]
+
 
 main :: IO ()
 main = do
+
+  lvl <- loadLevel "lvl.txt"
 
   (st, glossWindow) <- initGame
     defaultGlossWindowSize
@@ -86,6 +99,6 @@ main = do
     defaultCellSize
     defaultCellSpaceSize
     defaultPlayerPosition
-    (initialLevel defaultGridDimensions)
+    lvl
 
   playIO glossWindow black 2 st glossRenderer glossEvenHandler simpleGameSimulator
