@@ -36,7 +36,7 @@ materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) noActProp nam
       trace ("materializeActiveObject: Essence not found: " <> show ess) $ pure Nothing
     Just sProp -> do
       rootProp  <- materializeStaticProperty idCounterVar kb propsSetter sProp
-      actProps  <- getPropertiesOfType rootProp actionPropType
+      actProps  <- getPropertiesOfType rootProp actionsPropType
 
       let f' actProp = (essence $ staticProperty actProp, actProp)
       actsByEssenseVar <- newTVar $ Map.fromList $ map f' actProps
@@ -217,18 +217,18 @@ spec =
         [ "Action set: Essence \"observing\""
         , "Action set: Essence \"discovering\""
         , "discover: discovering acting object"
-        , "discoverChunk, essence: Essence \"dog\", actObjId: ActivePropertyId 30, statPropId: StaticPropertyId 11"
-        , "discoverPropertiesByTypesPropertyType \"action\""
+        , "discoverChunk, essence: Essence \"dog\", actObjId: ActivePropertyId 37, statPropId: StaticPropertyId 11"
+        , "discoverPropertiesByTypesPropertyType \"actions\""
         , "discoverPropertiesByTypesPropertyType \"inventory\""
-        , "discoverChunk, essence: Essence \"pos\", actObjId: ActivePropertyId 32, statPropId: StaticPropertyId 0"
-        , "discoverChunk, essence: Essence \"hp\", actObjId: ActivePropertyId 33, statPropId: StaticPropertyId 1"
+        , "discoverChunk, essence: Essence \"pos\", actObjId: ActivePropertyId 39, statPropId: StaticPropertyId 0"
+        , "discoverChunk, essence: Essence \"hp\", actObjId: ActivePropertyId 40, statPropId: StaticPropertyId 1"
         , "discover': discoverPropety returned prop"
         , "discover: discovering acting object"
-        , "discoverChunk, essence: Essence \"dog\", actObjId: ActivePropertyId 25, statPropId: StaticPropertyId 11"
-        , "discoverPropertiesByTypesPropertyType \"action\""
+        , "discoverChunk, essence: Essence \"dog\", actObjId: ActivePropertyId 32, statPropId: StaticPropertyId 11"
+        , "discoverPropertiesByTypesPropertyType \"actions\""
         , "discoverPropertiesByTypesPropertyType \"inventory\""
-        , "discoverChunk, essence: Essence \"pos\", actObjId: ActivePropertyId 27, statPropId: StaticPropertyId 0"
-        , "discoverChunk, essence: Essence \"hp\", actObjId: ActivePropertyId 28, statPropId: StaticPropertyId 1"
+        , "discoverChunk, essence: Essence \"pos\", actObjId: ActivePropertyId 34, statPropId: StaticPropertyId 0"
+        , "discoverChunk, essence: Essence \"hp\", actObjId: ActivePropertyId 35, statPropId: StaticPropertyId 1"
         , "discover': discoverPropety returned prop"
         , "discover: discovering self not needed."
         ]

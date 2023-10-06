@@ -30,8 +30,9 @@ data CommonStaticProperties = CommonStaticProperties
   , settingGoalsSProp  :: StaticProperty
   , planningSProp      :: StaticProperty
   , followingPlanSProp :: StaticProperty
-
   , noActionSProp      :: StaticProperty
+
+  , goalSProp :: StaticProperty
   }
 
 
@@ -50,8 +51,16 @@ mkCommonStaticProperties idCounterVar essencesVar =
     <*> mkStaticProperty idCounterVar essencesVar settingGoalsEssence  Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
     <*> mkStaticProperty idCounterVar essencesVar planningEssence      Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
     <*> mkStaticProperty idCounterVar essencesVar followingPlanEssence Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
-
     <*> mkStaticProperty idCounterVar essencesVar noActionEssence      Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+
+    <*> mkStaticProperty idCounterVar essencesVar goalEssence Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+
+killGoalStaticProperty :: IdCounter -> TVar Essences -> StaticProperty -> STM StaticProperty
+killGoalStaticProperty idCounterVar essencesVar targetSProp =
+  mkStaticProperty idCounterVar essencesVar goalEssence
+    (Map.singleton killTargetPropType [targetSProp])            -- TODO: type of goal should be explicit
+    StaticNonDiscoverable
+    ActiveValueNonDiscoverable
 
 commonActionsSProps :: CommonStaticProperties -> [ StaticProperty ]
 commonActionsSProps CommonStaticProperties {..} =
@@ -67,16 +76,23 @@ dogStaticProperty :: IdCounter -> TVar Essences -> CommonStaticProperties -> STM
 dogStaticProperty idCounterVar essencesVar CommonStaticProperties{..} = do
   let props = Map.fromList
         [ (inventoryPropType, [ posSProp, hpSProp ])
-        , (actionPropType,    [ noActionSProp ])              -- this dog doesn't do anything...
+        , (actionsPropType,   [ noActionSProp ])              -- this dog doesn't do anything...
         ]
   mkStaticProperty idCounterVar essencesVar dogEssence props StaticDiscoverRoot ActiveValueNonDiscoverable
 
-guardStaticProperty :: IdCounter -> TVar Essences -> CommonStaticProperties -> STM StaticProperty
-guardStaticProperty idCounterVar essencesVar commonSProps@(CommonStaticProperties{..}) = do
+guardStaticProperty
+  :: IdCounter
+  -> TVar Essences
+  -> StaticProperty
+  -> CommonStaticProperties
+  -> STM StaticProperty
+guardStaticProperty idCounterVar essencesVar dogSProp commonSProps@(CommonStaticProperties{..}) = do
   -- TODO: add a new type of a dynamic discoverability: discoverability on usage
+  killDogGoalSProp <- killGoalStaticProperty idCounterVar essencesVar dogSProp
   let props = Map.fromList
         [ (inventoryPropType, [ posSProp, hpSProp, fireWandSProp, iceWandSProp ])
-        , (actionPropType,    commonActionsSProps commonSProps)
+        , (actionsPropType,    commonActionsSProps commonSProps)
+        , (goalsPropType,     [ killDogGoalSProp ])
         ]
   mkStaticProperty idCounterVar essencesVar guardEssence props StaticDiscoverRoot ActiveValueNonDiscoverable
 
@@ -84,9 +100,9 @@ initKnowledgeBase :: IdCounter -> STM (KnowledgeBase, CommonStaticProperties)
 initKnowledgeBase idCounterVar = do
   essencesVar <- newTVar Map.empty
   commonStatProps <- mkCommonStaticProperties idCounterVar essencesVar
+  dogSProp <- dogStaticProperty   idCounterVar essencesVar commonStatProps
   statProps <- sequence
-    [ guardStaticProperty idCounterVar essencesVar commonStatProps
-    , dogStaticProperty   idCounterVar essencesVar commonStatProps
+    [ guardStaticProperty idCounterVar essencesVar dogSProp commonStatProps
     ]
   essences <- readTVar essencesVar
   pure (KnowledgeBase statProps essences, commonStatProps)

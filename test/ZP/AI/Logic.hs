@@ -61,7 +61,7 @@ setCurrentAction self@(ActingObject {currentActionVar}) actProp@(ActiveProperty 
 selectNextAction'' :: ActingObject -> Essence -> STM ()
 selectNextAction'' self@(ActingObject {rootProperty, currentActionVar}) ess = do
   -- FIXME: Inefficient active property search. Can be optimized.
-  actProps <- getPropertiesOfType rootProperty actionPropType
+  actProps <- getPropertiesOfType rootProperty actionsPropType
   case find (essenceIs ess) actProps of
     Nothing -> report self $ "Action property not found for essence: " <> show ess
     Just actProp -> setCurrentAction self actProp
