@@ -10,7 +10,11 @@ import ZP.Types
 -- (0, 0) is in the center of the window
 
 newtype GlossCoords     = GlossCoords (Float, Float)
+
+-- Moves (0, 0) to the left down corner
 newtype GlossBaseShift  = GlossBaseShift (Float, Float)
+
 newtype GlossWindowSize = GlossWindowSize Coords
 newtype GlossWindowPosition = GlossWindowPosition Coords
 newtype GlossBareCellSize = GlossBareCellSize Float
+newtype GlossGridCellSize = GlossGridCellSize Float

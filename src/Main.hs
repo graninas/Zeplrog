@@ -23,11 +23,11 @@ defaultGlossWindowPosition :: GlossWindowPosition
 defaultGlossWindowPosition = GlossWindowPosition (500, 100)
 
 defaultPlayerPosition :: PlayerPosition
-defaultPlayerPosition = PlayerPosition (1, 1)
+defaultPlayerPosition = PlayerPosition $ CellIdxs (3, 3)
 
 -- | Number of cells in the grid
 defaultGridDimensions :: GridDimensions
-defaultGridDimensions = GridDimensions (26, 26)
+defaultGridDimensions = GridDimensions $ CellIdxs (26, 26)
 
 defaultCellSize :: BareCellSize
 defaultCellSize = BareCellSize 40
@@ -41,9 +41,9 @@ defaultDbgOptions :: DebugOptions
 defaultDbgOptions = DebugOptions True white True (dark green) True "Hi, this is debug!" (dark green)
 
 initialLevel :: GridDimensions -> Level
-initialLevel (GridDimensions (dimsX, dimsY)) = Map.fromList cells
+initialLevel (GridDimensions (CellIdxs (dimsX, dimsY))) = Map.fromList cells
   where
-    cells = [ ((x, y), ' ') | x <- [1..dimsX], y <- [1..dimsY] ]
+    cells = [ (CellIdxs (x, y), ' ') | x <- [1..dimsX], y <- [1..dimsY] ]
 
 
 initGame
@@ -87,11 +87,11 @@ loadLevel :: String -> IO Level
 loadLevel lvlFileName = do
   l1 :: [String] <- (reverse . map T.unpack . lines) <$> (readFile $ "./data/" <> lvlFileName)
   let l2 :: [(Int, String)] = zip [1..] l1
-  let l3 :: [ (Coords, Char) ] = join $ map zipRow l2
+  let l3 :: [ (CellIdxs, Char) ] = join $ map zipRow l2
   pure $ Map.fromList l3
   where
-    zipRow :: (Int, String) -> [ (Coords, Char) ]
-    zipRow (y, str) = [ ((x, y), ch) | (x, ch) <- zip [1..] str ]
+    zipRow :: (Int, String) -> [ (CellIdxs, Char) ]
+    zipRow (y, str) = [ (CellIdxs (x, y), ch) | (x, ch) <- zip [1..] str ]
 
 
 main :: IO ()
