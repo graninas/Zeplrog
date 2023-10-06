@@ -6,6 +6,8 @@ import ZP.Types
 import ZP.Gloss.Types
 import ZP.Gloss.Conv
 import ZP.Gloss.Render.Renderer
+import ZP.Gloss.Render.Shapes
+import ZP.Game.Types
 import ZP.Game.Logic
 import ZP.Game.State
 import ZP.Game.Debug
@@ -22,23 +24,40 @@ defaultGlossWindowSize = GlossWindowSize (1200, 1200)
 defaultGlossWindowPosition :: GlossWindowPosition
 defaultGlossWindowPosition = GlossWindowPosition (500, 100)
 
-defaultPlayerPosition :: PlayerPosition
-defaultPlayerPosition = PlayerPosition $ CellIdxs (3, 3)
-
 -- | Number of cells in the grid
 defaultGridDimensions :: GridDimensions
 defaultGridDimensions = GridDimensions $ CellIdxs (26, 26)
 
-defaultCellSize :: BareCellSize
-defaultCellSize = BareCellSize 40
+defaultBareCellSize :: BareCellSize
+defaultBareCellSize = BareCellSize 40
 
 defaultCellSpaceSize :: CellSpaceSize
 defaultCellSpaceSize = CellSpaceSize $ dcs `div` 10
   where
-    (BareCellSize dcs) = defaultCellSize
+    (BareCellSize dcs) = defaultBareCellSize
 
 defaultDbgOptions :: DebugOptions
 defaultDbgOptions = DebugOptions True white True (dark green) True "Hi, this is debug!" (dark green)
+
+
+initialPlayerActorState :: BareCellSize -> IO ActorState
+initialPlayerActorState bareCellSize = ActorState
+    <$> newTVarIO FindExit
+    <*> newTVarIO (CellIdxs (3, 3))
+    <*> newTVarIO
+      [ CellIdxs (4,3)
+      , CellIdxs (4,4)
+      , CellIdxs (5,4)
+      , CellIdxs (6,4)
+      , CellIdxs (7,4)
+      , CellIdxs (8,4)
+      , CellIdxs (8,5)
+      ]
+    <*> newTVarIO (playerActorShape bareCellSize)
+
+    <*> newTVarIO (pathPointShape bareCellSize)
+    <*> newTVarIO (PathIsBlinking 2)          -- TODO: not hardcoded blink period
+    <*> pure (pathPointShape bareCellSize)
 
 initialLevel :: GridDimensions -> Level
 initialLevel (GridDimensions (CellIdxs (dimsX, dimsY))) = Map.fromList cells
@@ -52,7 +71,7 @@ initGame
   -> GridDimensions
   -> BareCellSize
   -> CellSpaceSize
-  -> PlayerPosition
+  -> ActorState
   -> Level
   -> DebugOptions
   -> IO (GameState, Display)
@@ -62,7 +81,7 @@ initGame
   gridDims
   bareCellSize
   cellSpaceSize
-  playerPos
+  playerActor
   level
   dbgOpts = do
     let glossWindow = InWindow "The Journey of Zeplrog" wndSize wndPos
@@ -71,7 +90,7 @@ initGame
       <*> newTVarIO gridDims
       <*> newTVarIO bareCellSize
       <*> newTVarIO cellSpaceSize
-      <*> newTVarIO playerPos
+      <*> (pure playerActor)
       <*> newTVarIO level
       <*> newTVarIO dbgOpts
     pure (st, glossWindow)
@@ -99,13 +118,15 @@ main = do
 
   lvl <- loadLevel "lvl.txt"
 
+  playerActor <- initialPlayerActorState defaultBareCellSize
+
   (st, glossWindow) <- initGame
     defaultGlossWindowSize
     defaultGlossWindowPosition
     defaultGridDimensions
-    defaultCellSize
+    defaultBareCellSize
     defaultCellSpaceSize
-    defaultPlayerPosition
+    playerActor
     lvl
     defaultDbgOptions
 
