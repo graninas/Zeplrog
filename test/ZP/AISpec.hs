@@ -1,3 +1,5 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+
 module ZP.AISpec where
 
 import ZP.Prelude
@@ -8,7 +10,10 @@ import ZP.Game.Logic
 
 import           Test.Hspec
 
+import Debug.Trace (trace)
+
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 newtype ActivePropertyId = ActivePropertyId ObjectId
   deriving (Show, Eq, Ord)
@@ -28,6 +33,23 @@ newtype PropertyType = PropertyType String    -- TODO: Flyweight pattern
 type PropertyMap       = Map.Map PropertyType (TVar [ActiveProperty])
 type StaticPropertyMap = Map.Map PropertyType [StaticProperty]
 
+data StaticPropertyDiscoverability
+  = StaticDiscoverRoot
+  | StaticDiscoverLeaf
+  | StaticNonDiscoverable
+
+data ActivePropertyDiscoverability
+  = ActiveDiscoverable
+  | ActiveNonDiscoverable
+
+data StaticProperty = StaticProperty
+  { propertyId :: StaticPropertyId
+  , essence    :: Essence
+  , properties :: StaticPropertyMap
+  , staticPropertyDiscover :: StaticPropertyDiscoverability
+  , activePropertyDiscover :: ActivePropertyDiscoverability
+  }
+
 data ActiveProperty = ActiveProperty
   { propertyId    :: ActivePropertyId
   , essence       :: Essence
@@ -35,19 +57,27 @@ data ActiveProperty = ActiveProperty
   , propertiesVar :: TVar PropertyMap
   }
 
-data StaticProperty = StaticProperty StaticPropertyId Essence StaticPropertyMap
-
 newtype ActingObjectName = ActingObjectName String
   deriving (Show, Eq, Ord)
-
-type RndSource = Int -> STM Int
 
 data ActingObject = ActingObject
   { name             :: ActingObjectName
   , objectId         :: ActingObjectId
   , rootProperty     :: ActiveProperty
   , currentActionVar :: TVar (Maybe ActiveProperty)
+  , knownActingObjects :: TVar (Set.Set ActingObjectId)
   }
+
+type KnownActiveProperties = [KnownActiveProperty]
+type KnownPropertiesMap = Map.Map PropertyType KnownActiveProperties
+data KnownActiveProperty = KnownActiveProperty
+  { staticPoint        :: StaticProperty
+  , activeProperty     :: ActiveProperty
+  , knownPropertiesVar :: TVar KnownActiveProperties
+  , knownPropertyValue :: TVar Int  --- Dummy
+  }
+
+type RndSource = Int -> STM Int
 
 data AINet = AINet
   { knowledgeBase :: [StaticProperty]
@@ -57,7 +87,12 @@ data AINet = AINet
   , worldVar  :: TVar World
   }
 
-type WorldObjects = [Int]
+data WorldObject = WorldObject
+  { worldObjectPos :: (Int, Int)
+  , actingObject :: ActingObject
+  }
+
+type WorldObjects = [WorldObject]
 
 data World = World
   { level :: Level
@@ -65,14 +100,14 @@ data World = World
   }
 
 
-data WorldEntry = WE
-  { pos :: (Int, Int)
-  , objIdx :: Int
-  , staticPropIdx :: Int
-  }
-  deriving (Show, Read, Eq, Ord)
-
-type WorldEntries = [WorldEntry]
+-- data WorldEntry = WE
+--   { pos :: (Int, Int)
+--   , objIdx :: Int
+--   , staticPropIdx :: Int
+--   }
+--   deriving (Show, Read, Eq, Ord)
+--
+-- type WorldEntries = [WorldEntry]
 
 -- -----------------------------------------------------------------------------
 --
@@ -102,6 +137,9 @@ actionPropType = PropertyType "action"
 
 abstractGoalPropType :: PropertyType
 abstractGoalPropType = PropertyType "abstract goal"
+
+knownActingObjectsPropType :: PropertyType
+knownActingObjectsPropType = PropertyType "known acting objects"
 
 abstractGoalEssence = Essence "abstract goal"
 observingEssence    = Essence "observing"
@@ -138,10 +176,15 @@ mkProperty essence idCounterVar = do
   propsVar <- newTVar Map.empty
   pure $ ActiveProperty propId essence Nothing propsVar
 
-mkStaticProperty :: Essence -> TVar ObjectId -> STM StaticProperty
-mkStaticProperty essence idCounterVar = do
+mkStaticProperty
+  :: Essence
+  -> TVar ObjectId
+  -> StaticPropertyDiscoverability
+  -> ActivePropertyDiscoverability
+  -> STM StaticProperty
+mkStaticProperty essence idCounterVar statDisc actDisc = do
   propId <- getStaticPropertyId idCounterVar
-  pure $ StaticProperty propId essence Map.empty
+  pure $ StaticProperty propId essence Map.empty statDisc actDisc
 
 
 mkAbstractKillDogGoal :: TVar ObjectId -> StaticProperty -> STM ActiveProperty
@@ -153,15 +196,15 @@ mkAbstractKillDogGoal idCounterVar dogStatProp = do
 
 dogStaticProperty :: TVar ObjectId -> STM StaticProperty
 dogStaticProperty idCounterVar = do
-  posProp <- mkStaticProperty posEssence idCounterVar
-  hpProp  <- mkStaticProperty hpEssence  idCounterVar
+  posProp <- mkStaticProperty posEssence idCounterVar StaticDiscoverLeaf ActiveDiscoverable
+  hpProp  <- mkStaticProperty hpEssence  idCounterVar StaticDiscoverLeaf ActiveNonDiscoverable
 
   let propsVar = Map.fromList
         [ (inventoryPropType, [ posProp, hpProp ])
         ]
 
   propId <- getStaticPropertyId idCounterVar
-  pure $ StaticProperty propId dogEssence propsVar
+  pure $ StaticProperty propId dogEssence propsVar StaticDiscoverRoot ActiveNonDiscoverable
 
 
 guardActingObject :: TVar ObjectId -> StaticProperty -> STM (ActingObjectId, ActingObject)
@@ -204,7 +247,11 @@ guardActingObject idCounterVar dogSProp = do
   rootPropId <- getActivePropertyId idCounterVar
   actObjId   <- getActingObjectId idCounterVar
   let rootProp = ActiveProperty rootPropId guardEssence Nothing rootPropsVar
-  pure (actObjId, ActingObject (ActingObjectName "guard 01") actObjId rootProp curActVar)
+  knownObjsVar <- newTVar Set.empty
+  let actObj = ActingObject (ActingObjectName "guard 01") actObjId rootProp curActVar knownObjsVar
+  pure
+    -- $ traceShow actObjId
+    $ (actObjId, actObj)
 
 
 dogActingObject :: TVar ObjectId -> STM (ActingObjectId, ActingObject)
@@ -223,7 +270,12 @@ dogActingObject idCounterVar = do
   rootPropId <- getActivePropertyId idCounterVar
   actObjId   <- getActingObjectId idCounterVar
   let rootProp = ActiveProperty rootPropId dogEssence Nothing rootPropsVar
-  pure (actObjId, ActingObject (ActingObjectName "dog 01") actObjId rootProp curActVar)
+
+  knownObjsVar <- newTVar Set.empty
+  let actObj = ActingObject (ActingObjectName "dog 01") actObjId rootProp curActVar knownObjsVar
+  pure
+    -- $ traceShow actObjId
+    $ (actObjId, actObj)
 
 
 initialAINet :: TVar ObjectId -> RndSource -> TVar World -> STM (AINet, ActingObjectId)
@@ -283,9 +335,63 @@ selectAction aiNet@(AINet {..}) objId = do
 
 --------
 
-evaluateObservingAction :: AINet -> ActingObject -> STM String
-evaluateObservingAction _ _ = do
+observe :: AINet -> ActingObject -> STM [ActingObject]
+observe aiNet@(AINet {..}) _ = do
 
+  -- hardcode goes here
+  World {worldObjects} <- readTVar worldVar
+  pure $ map actingObject worldObjects
+
+isAlreadyKnownActingObject :: ActingObject -> ActingObject -> STM Bool
+isAlreadyKnownActingObject self other = do
+  objs <- readTVar knownActingObjects
+  pure $ Set.member (objectId other) objs
+
+
+discoverPropertiesByTypes
+  :: (PropertyType, [ActiveProperty])
+  -> STM (PropertyType, [KnownActiveProperty])
+discoverPropertiesByTypes (propType, activeProps) = do
+  mbProps <- mapM (\propVar -> readTVar propVar >>= discoverProperty) activeProps
+  pure (propType, filter isJust mbProps)
+
+
+discoverChunk :: StaticProperty -> ActiveProperty -> STM KnownActiveProperty
+discoverChunk statProp activeProp@(ActiveProperty {propertiesVar}) = do
+  activeProps <- readTVar propertiesVar
+  knownProps  <- mapM discoverPropertiesByTypes activeProps
+  knownPropsMap <- newTVar $ Map.fromList knownProps
+  knownVal    <- newTVar 0    -- known prop val dummy
+  pure $ KnownActiveProperty statProp activeProp knownPropsMap knownVal
+
+
+discoverProperty :: ActiveProperty -> STM (Maybe KnownActiveProperty)
+discoverProperty activeProp@(ActiveProperty{staticPoint}) =
+  case staticPoint of
+    Nothing -> trace "Prop doesn't have static prop to discover." $ pure Nothing
+    Just statProp@(StaticProperty {..})
+      | staticPropertyDiscover == StaticDiscoverRoot -> discoverChunk statProp activeProp
+      | staticPropertyDiscover == StaticDiscoverLeaf -> discoverChunk statProp activeProp
+      | staticPropertyDiscover == StaticNonDiscoverable ->
+          trace "Static prop is not discoverable." $ pure Nothing
+
+discover' :: AINet -> ActingObject -> ActingObject -> STM ()
+discover' _ self other = do
+  mbKnownActiveProp <- discoverProperty $ rootProperty other
+  case mbKnownActiveProp of
+    Nothing -> trace "Discovery failed" $ pure ()
+    Just knownActiveProp -> trace "Discoverty succeeded" $ pure ()
+
+discover :: AINet -> ActingObject -> ActingObject -> STM ()
+discover _ self other | objectId self == objectId other = pure ()
+discover aiNet self other = do
+  known <- isAlreadyKnownActingObject self other
+  when (not known) $ discover' aiNet self other
+
+evaluateObservingAction :: AINet -> ActingObject -> STM String
+evaluateObservingAction aiNet@(AINet {..}) actObj@(ActingObject {..}) = do
+  objs <- observe aiNet actObj
+  mapM_ (discover aiNet actObj) objs
   pure "Observing action"
 
 evaluateGoalSettingAction :: AINet -> ActingObject -> STM String
@@ -356,7 +462,10 @@ spec =
       let rndSource = mkRndSource2 stepVar
       (aiNet, guardActObjId) <- atomically $ initialAINet idCounterVar rndSource worldVar
 
-      let testObjects = []
+      let testObjects =
+            [ WorldObject (ActingObjectId $ ObjectId 12) (2,2)
+            , WorldObject (ActingObjectId $ ObjectId 16) (6,2)
+            ]
       world <- loadTestWorld "./test/test_data/lvl1.zpg" testObjects
       atomically $ writeTVar worldVar world
 
