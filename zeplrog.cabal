@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 72135a9e7938742117969ea9ae81cdb7e820ebaebf7607f16b410e1ce8aac8c7
+-- hash: 67385b0990475ebd8918c40efe3cdde1eca7f847080912c1c449bcd204373cc3
 
 name:           zeplrog
 version:        0.0.0.1
@@ -14,6 +14,7 @@ author:         Alexander Granin
 maintainer:     graninas@gmail.com
 copyright:      Granin A.S. 2021
 license:        BSD3
+license-file:   LICENSE
 build-type:     Simple
 
 source-repository head
