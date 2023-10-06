@@ -51,6 +51,22 @@ dog01Name   = ActingObjectName "dog 01"
 dog02Name   :: ActingObjectName
 dog02Name   = ActingObjectName "dog 02"
 
+
+{- Actions loop
+Actions point to each other via the essence. Next action's essence should be placed
+into a property value, specifically into PairValue as the first argument:
+
+PairValue (EssenceValue discoveringEssence) NoValue     -- next is discovering action
+
+The second member of a pair is used for input data for that action.
+This input data can be set not only by evaluating an action by also by external actors and events.
+
+Actions may rotate in a loop.
+
+The noActionsEssence is used as entry point into the loop.
+
+-}
+
 commonActionsLoop :: [(Essence, PropertyValue)]
 commonActionsLoop =
   [ (noActionEssence,      PairValue (EssenceValue observingEssence)     NoValue)  -- starting point
