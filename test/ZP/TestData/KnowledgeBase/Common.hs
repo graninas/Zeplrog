@@ -1,4 +1,6 @@
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTs #-}
 
 module ZP.TestData.KnowledgeBase.Common where
 
@@ -12,6 +14,7 @@ import ZP.TestData.KnowledgeBase.Essences
 
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import GHC.TypeLits
 
 data KBBuilderEnv = KBBuilderEnv
   { idCounterVar :: IdCounter
