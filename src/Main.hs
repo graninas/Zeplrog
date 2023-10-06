@@ -4,6 +4,7 @@ import ZP.Prelude
 
 import ZP.Types
 import ZP.Hardcode
+import ZP.App
 import ZP.Gloss.Types
 import ZP.Gloss.Conv
 import ZP.Gloss.Render.Renderer
@@ -98,21 +99,10 @@ glossEvenHandler (EventResize newSize)  st = pure st
 glossEvenHandler (EventMotion mousePos) st = pure st
 
 
-loadLevel :: String -> IO Level
-loadLevel lvlFileName = do
-  l1 :: [String] <- (reverse . map T.unpack . lines) <$> (readFile $ "./data/" <> lvlFileName)
-  let l2 :: [(Int, String)] = zip [1..] l1
-  let l3 :: [ (CellIdxs, Char) ] = join $ map zipRow l2
-  pure $ Map.fromList l3
-  where
-    zipRow :: (Int, String) -> [ (CellIdxs, Char) ]
-    zipRow (y, str) = [ (CellIdxs (x, y), ch) | (x, ch) <- zip [1..] str ]
-
-
 main :: IO ()
 main = do
 
-  lvl <- loadLevel "lvl.txt"
+  lvl <- loadLevel "./data/lvl.txt"
 
   playerActor <- initialPlayerActorState defaultBareCellSize
 
