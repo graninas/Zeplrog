@@ -14,6 +14,14 @@ import qualified Data.Set as Set
 
 type NodeUID = TVar Int
 
+toSPropArrStyle     = " [arrowhead=onormal];"
+toValueNodeArrStyle = " [arrowhead=dot];"
+actingObjectNodeStyle = "node [shape=box];"
+activePropsNodeStyle = "node [shape=circle];"
+actingObjectToActivePropStyle  = " [arrowhead=onormal];"
+staticPropsNodeStyle = "node [shape=Mcircle];"
+valueNodeStyle = "node [shape=plaintext]"
+
 getNodeUID :: NodeUID -> STM Int
 getNodeUID uidVar = do
   v <- readTVar uidVar
@@ -25,7 +33,6 @@ quoted str = "\"" <> str <> "\""
 
 buildValueNode :: String -> PropertyValue -> STM [String]
 buildValueNode parentName val = do
-  let toValueNodeArrStyle = " [arrowhead=dot];"
   case val of
     NoValue -> pure []
     PairValue v1 v2 -> do
@@ -61,7 +68,6 @@ buildValueNode parentName val = do
 
 buildValueNodeAlg2 :: NodeUID -> PropertyValue -> STM (String, [String])
 buildValueNodeAlg2 uidVar val = do
-  let toValueNodeArrStyle = " [arrowhead=dot];"
   uid <- getNodeUID uidVar
   let mkUName n = n <> "/" <> show uid
   let mkQUName n = quoted $ mkUName n
@@ -117,7 +123,6 @@ buildStaticPropertiesByType uidVar (pType, props) = do
 
 buildStaticPropertyNode :: NodeUID -> StaticProperty -> STM (String, [String])
 buildStaticPropertyNode uidVar StaticProperty{staticPropertyId, staticPropertyValue, essence, staticProperties} = do
-  let toValueNodeArrStyle = " [arrowhead=dot];"
   let Essence ess = essence
   let StaticPropertyId sPId = staticPropertyId
   let thisNodeName = "S:" <> show sPId <> ":" <> ess
@@ -135,8 +140,10 @@ buildStaticPropertyNode uidVar StaticProperty{staticPropertyId, staticPropertyVa
     rootProps
     <> [""]
     <> thisNodeChildrenProps
-    <> ["", thisNodeToValuesRow, ""]
+
+    <> ["", valueNodeStyle, thisNodeToValuesRow, ""]
     <> thisNodeValues
+    <> ["", staticPropsNodeStyle]
     )
   where
     f thisNodeName (PropertyType pType, targetNames, _) = map (f' thisNodeName pType) targetNames
@@ -156,8 +163,6 @@ buildActivePropertiesByType uidVar (pType, psVar) = do
 
 buildActivePropertyNode :: NodeUID -> ActiveProperty -> STM (String, [String])
 buildActivePropertyNode uidVar ActiveProperty{..} = do
-  let toSPropArrStyle  = " [arrowhead=onormal];"
-  let toValueNodeArrStyle = " [arrowhead=dot];"
   let StaticProperty {staticPropertyId, essence} = staticProperty
   let StaticPropertyId sPId = staticPropertyId
   let Essence ess = essence
@@ -182,8 +187,9 @@ buildActivePropertyNode uidVar ActiveProperty{..} = do
     <> [""]
     <> [toSPropRow]
     <> thisNodePointsToChildren
-    <> ["", thisNodeToValuesRow, ""]
+    <> ["", valueNodeStyle, thisNodeToValuesRow, ""]
     <> thisNodeValues
+    <> ["", activePropsNodeStyle]
     )
 
   where
@@ -194,14 +200,10 @@ buildActivePropertyNode uidVar ActiveProperty{..} = do
 buildActingObjectNode :: NodeUID -> (ActingObjectId, ActingObject) -> STM [String]
 buildActingObjectNode uidVar (_, ActingObject {..}) = do
   (rootPropNodeName, activePropStrings) <- buildActivePropertyNode uidVar rootProperty
-
-  let actingObjectNodeStyle = "node [shape=box];"
-  let activePropsNodeStyle = "node [shape=circle];"
-  let arrStyle  = " [arrowhead=onormal];"
   let ActingObjectId oId = actingObjectId
   let ActingObjectName aName = actingObjectName
   let name = "AO:" <> show oId <> ":" <> aName
-  let row = quoted name <> " -> " <> quoted rootPropNodeName <> arrStyle
+  let row = quoted name <> " -> " <> quoted rootPropNodeName <> actingObjectToActivePropStyle
 
   pure $
     [ activePropsNodeStyle ]
@@ -216,7 +218,6 @@ buildGraph ZPNet{knowledgeBase, actingObjects} = do
        , "size=\"8,5\";"
        ]
   let end = [ "}" ]
-  let staticPropsNodeStyle = "node [shape=Mcircle];"
   let KnowledgeBase {staticProperties} = knowledgeBase
 
   nodeUIDVar <- newTVar 0
