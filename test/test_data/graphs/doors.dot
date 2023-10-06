@@ -1,0 +1,87 @@
+digraph finite_state_machine {
+graph [ dpi = 600 ];
+size="8,5";
+{
+node [shape=Mcircle];
+"S:12:closed"
+"S:14:condition"
+"S:11:open"
+"S:13:condition"
+"S:1:hp"
+"S:0:pos"
+"S:15:door"
+}
+{
+node [shape=box];
+"AO:24:door 01"
+}
+{
+node [shape=circle];
+"A:21:closed"
+"A:22:condition"
+"A:19:open"
+"A:20:condition"
+"A:18:hp"
+"A:17:pos"
+"A:23:door"
+}
+{
+node [shape=plaintext];
+"○/20"
+"mat value/19"
+"○/16"
+"mat value/15"
+"●/14"
+"○/13"
+"○/10"
+"mat value/9"
+"●/8"
+"○/7"
+"●/4"
+"●/1"
+"●/0"
+}
+"●/0" -> "S:15:door" [arrowhead=onormal];
+"●/1" -> "S:0:pos" [arrowhead=onormal];
+"●/4" -> "S:1:hp" [arrowhead=onormal];
+"○/7" -> "S:13:condition" [arrowhead=onormal];
+"●/8" -> "S:11:open" [arrowhead=onormal];
+"S:11:open" -> "mat value/9" [arrowhead=dot];
+"mat value/9" -> "○/10" [arrowhead=dot];
+"○/10" -> "S:14:condition" [arrowhead=dot];
+"S:13:condition" -> "●/8" [label="target"];
+"○/13" -> "S:14:condition" [arrowhead=onormal];
+"●/14" -> "S:12:closed" [arrowhead=onormal];
+"S:12:closed" -> "mat value/15" [arrowhead=dot];
+"mat value/15" -> "○/16" [arrowhead=dot];
+"○/16" -> "S:13:condition" [arrowhead=dot];
+"S:14:condition" -> "●/14" [label="target"];
+"S:15:door" -> "●/1" [label="inventory"];
+"S:15:door" -> "●/4" [label="inventory"];
+"S:15:door" -> "○/7" [label="states"];
+"S:15:door" -> "○/13" [label="states"];
+"S:15:door" -> "mat value/19" [arrowhead=dot];
+"mat value/19" -> "○/20" [arrowhead=dot];
+"○/20" -> "S:12:closed" [arrowhead=dot];
+"A:17:pos" -> "S:0:pos" [arrowhead=onormal];
+
+"A:18:hp" -> "S:1:hp" [arrowhead=onormal];
+
+"A:19:open" -> "S:11:open" [arrowhead=onormal];
+
+"A:20:condition" -> "S:13:condition" [arrowhead=onormal];
+"A:20:condition" -> "A:19:open" [label="target"];
+
+"A:21:closed" -> "S:12:closed" [arrowhead=onormal];
+
+"A:22:condition" -> "S:14:condition" [arrowhead=onormal];
+"A:22:condition" -> "A:21:closed" [label="target"];
+
+"A:23:door" -> "S:15:door" [arrowhead=onormal];
+"A:23:door" -> "A:17:pos" [label="inventory"];
+"A:23:door" -> "A:18:hp" [label="inventory"];
+"A:23:door" -> "A:20:condition" [label="states"];
+"A:23:door" -> "A:22:condition" [label="states"];
+
+"AO:24:door 01" -> "A:23:door" [arrowhead=onormal];
+}

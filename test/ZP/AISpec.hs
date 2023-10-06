@@ -269,7 +269,7 @@ spec =
 
       zpNet <- atomically $ initZPNet1 idCounterVar rndSource worldVar
 
-      -- outputGraph zpNet "zpnet.dot"
+      outputGraph zpNet "zpnet.dot"
 
       actObj <- fromJust <$> (atomically $ getActingObject zpNet guard01Name)
 
