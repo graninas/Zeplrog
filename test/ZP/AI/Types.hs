@@ -39,6 +39,7 @@ data PropertyValue
   | StaticPropertyValue StaticProperty
   | ConditionValue  -- Condition
   | StateValue PropertyValue
+  | TargetValue PropertyValue
 
 type ActivePropertyMap = Map.Map PropertyType (TVar [ActiveProperty])
 type StaticPropertyMap = Map.Map PropertyType [StaticProperty]

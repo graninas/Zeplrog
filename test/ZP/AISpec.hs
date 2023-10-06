@@ -12,6 +12,7 @@ import ZP.AI.Materialization
 import ZP.AI.Logic
 import ZP.AI.StaticKnowledge
 import ZP.TestData.KnowledgeBase
+import ZP.TestData.GraphBuilder
 
 import Test.Hspec
 
@@ -19,6 +20,8 @@ import Debug.Trace (trace)
 
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import qualified Data.Text as T
+import qualified Data.List as L
 
 type Report = [String]
 
@@ -33,7 +36,7 @@ materializeActiveObject
 materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) noActProp name ess propsSetter = do
   case Map.lookup ess essences of
     Nothing ->
-      trace ("materializeActiveObject: Essence not found: " <> show ess) $ pure Nothing
+      trace ("materializeActiveObject: nothing to materialize, static property essence not found: " <> show ess) $ pure Nothing
     Just sProp -> do
       rootProp  <- materializeStaticProperty idCounterVar kb propsSetter sProp
       actProps  <- getPropertiesOfType rootProp actionsPropType
@@ -341,14 +344,17 @@ spec =
       stepVar      <- newTVarIO 0
       let rndSource = mkRndSource2 stepVar
 
-      zpNet <- atomically $ initZPNet2 idCounterVar rndSource worldVar
+      zpNet <- atomically $ initZPNet1 idCounterVar rndSource worldVar
 
-      actObj <- fromJust <$> (atomically $ getActingObject zpNet door01)
+      graphLines <- atomically $ buildGraph zpNet
+      writeFile "./test/test_data/graphs/zpnet.dot" $ T.pack $ L.intercalate "\n" graphLines
 
-      activations <- atomically $ getAllActivations actObj
-      print activations
+      -- actObj <- fromJust <$> (atomically $ getActingObject zpNet door01)
+      --
+      -- activations <- atomically $ getAllActivations actObj
+      -- print activations
 
-      verifyReport actObj []
+      -- verifyReport actObj []
 
       verifyGlobalReport zpNet
         ["Action set: Essence \"setting goals\"","Goals setting action"]

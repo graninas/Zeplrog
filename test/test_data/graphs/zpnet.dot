@@ -1,0 +1,68 @@
+digraph finite_state_machine {
+graph [ dpi = 600 ];
+size="8,5";
+node [shape=Mcircle];
+
+"S:13:guard" -> "S:9:no action" [label="actions"];
+"S:13:guard" -> "S:4:observing" [label="actions"];
+"S:13:guard" -> "S:5:discovering" [label="actions"];
+"S:13:guard" -> "S:6:setting goals" [label="actions"];
+"S:13:guard" -> "S:7:planning" [label="actions"];
+"S:13:guard" -> "S:8:following a plan" [label="actions"];
+"S:13:guard" -> "S:12:goal" [label="goals"];
+"S:13:guard" -> "S:0:pos" [label="inventory"];
+"S:13:guard" -> "S:1:hp" [label="inventory"];
+"S:13:guard" -> "S:2:fire wand" [label="inventory"];
+"S:13:guard" -> "S:3:ice wand" [label="inventory"];
+
+
+node [shape=circle];
+"A:15:guard" -> "S:13:guard" [arrowhead=onormal];
+
+"A:15:guard" -> "A:16:no action" [label="actions"];
+"A:15:guard" -> "A:17:observing" [label="actions"];
+"A:15:guard" -> "A:18:discovering" [label="actions"];
+"A:15:guard" -> "A:19:setting goals" [label="actions"];
+"A:15:guard" -> "A:20:planning" [label="actions"];
+"A:15:guard" -> "A:21:following a plan" [label="actions"];
+"A:15:guard" -> "A:22:goal" [label="goals"];
+"A:15:guard" -> "A:23:pos" [label="inventory"];
+"A:15:guard" -> "A:24:hp" [label="inventory"];
+"A:15:guard" -> "A:25:fire wand" [label="inventory"];
+"A:15:guard" -> "A:26:ice wand" [label="inventory"];
+
+node [shape=box];
+"AO:27:guard 01" -> "A:15:guard" [arrowhead=onormal];
+node [shape=Mcircle];
+
+"S:11:rat" -> "S:9:no action" [label="actions"];
+"S:11:rat" -> "S:0:pos" [label="inventory"];
+"S:11:rat" -> "S:1:hp" [label="inventory"];
+
+
+node [shape=circle];
+"A:28:rat" -> "S:11:rat" [arrowhead=onormal];
+
+"A:28:rat" -> "A:29:no action" [label="actions"];
+"A:28:rat" -> "A:30:pos" [label="inventory"];
+"A:28:rat" -> "A:31:hp" [label="inventory"];
+
+node [shape=box];
+"AO:32:rat 01" -> "A:28:rat" [arrowhead=onormal];
+node [shape=Mcircle];
+
+"S:11:rat" -> "S:9:no action" [label="actions"];
+"S:11:rat" -> "S:0:pos" [label="inventory"];
+"S:11:rat" -> "S:1:hp" [label="inventory"];
+
+
+node [shape=circle];
+"A:33:rat" -> "S:11:rat" [arrowhead=onormal];
+
+"A:33:rat" -> "A:34:no action" [label="actions"];
+"A:33:rat" -> "A:35:pos" [label="inventory"];
+"A:33:rat" -> "A:36:hp" [label="inventory"];
+
+node [shape=box];
+"AO:37:rat 02" -> "A:33:rat" [arrowhead=onormal];
+}

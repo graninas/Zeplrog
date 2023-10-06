@@ -1,0 +1,38 @@
+
+digraph finite_state_machine {
+	size="8,5";
+	node [shape = Mcircle];
+
+	guardS -> posS [label="inv"];
+	guardS -> hpS [label="inv"];
+	guardS -> fireWandS [label="inv"];
+	guardS -> iceWandS [label="inv"];
+
+	guardS -> killRatS [label="goals"];
+	guardS -> noActionS [label="actions"];
+
+	node [shape = circle];
+
+	guard -> guardS [arrowhead=onormal];
+
+	guard -> pos [label="inv"];
+	guard -> hp [label="inv"];
+	guard -> fireWand [label="inv"];
+	guard -> iceWand [label="inv"];
+
+	guard -> killRat [label="goals"]
+
+	pos -> posS [arrowhead=onormal];
+	hp -> hpS [arrowhead=onormal];
+	fireWand -> fireWandS [arrowhead=onormal];
+	iceWand -> iceWandS [arrowhead=onormal];
+
+	killRat -> killRatS [arrowhead=onormal];
+
+	node [shape=plaintext];
+	pos -> posVal [arrowhead=dot];
+	hp -> hpVal [arrowhead=dot];
+
+	node [shape=box];
+	"16:guard 01" -> guard [arrowhead=onormal];
+}
