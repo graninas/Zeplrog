@@ -2,10 +2,10 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 
-module ZP.Typed.KnowledgeBase.Common where
+module ZP.Assets.KnowledgeBase.Common where
 
-import ZP.Typed.Model.Property
-import ZP.Typed.KnowledgeBase.Essences
+import ZP.Domain.Static.Property
+import ZP.Assets.KnowledgeBase.Essences
 
 import GHC.TypeLits
 

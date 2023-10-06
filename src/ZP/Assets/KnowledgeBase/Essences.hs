@@ -2,13 +2,13 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 
-module ZP.Typed.KnowledgeBase.Essences where
+module ZP.Assets.KnowledgeBase.Essences where
 
-import ZP.Typed.Model.Property
+import ZP.Domain.Static.Property
 
 import GHC.TypeLits
 
-type EObserving     = Ess "action:observing"      -- a: activity
+type EObserving     = Ess "action:observing"
 type EDiscovering   = Ess "action:discovering"
 type ESettingGoals  = Ess "action:setting goals"
 type EPlanning      = Ess "action:planning"
