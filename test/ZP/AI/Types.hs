@@ -63,7 +63,7 @@ data StaticProperty = StaticProperty
 data ActiveProperty = ActiveProperty
   { activePropertyId :: ActivePropertyId
   , staticProperty   :: StaticProperty
-  , propertyValue    :: Maybe (TVar PropertyValue)
+  , propertyValueVar :: TVar PropertyValue
   , propertiesVar    :: TVar ActivePropertyMap
   }
 
@@ -89,7 +89,7 @@ type KnownPropertiesMap = Map.Map PropertyType [KnownActiveProperty]
 data KnownActiveProperty = KnownActiveProperty
   { knownActiveProperty :: ActiveProperty
   , knownPropertiesVar  :: TVar KnownPropertiesMap
-  , knownPropertyValue  :: Maybe (TVar PropertyValue)
+  , knownPropertyValue  :: TVar (Maybe PropertyValue)     -- Nothing means the value not known
   }
 
 type RndSource = Int -> STM Int

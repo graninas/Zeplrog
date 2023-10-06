@@ -55,7 +55,13 @@ mkCommonStaticProperties idCounterVar essencesVar =
 
 commonActionsSProps :: CommonStaticProperties -> [ StaticProperty ]
 commonActionsSProps CommonStaticProperties {..} =
-  [ obsrvingSProp, discoveringSProp, settingGoalsSProp, planningSProp, followingPlanSProp ]
+  [ noActionSProp
+  , obsrvingSProp
+  , discoveringSProp
+  , settingGoalsSProp
+  , planningSProp
+  , followingPlanSProp
+  ]
 
 dogStaticProperty :: IdCounter -> TVar Essences -> CommonStaticProperties -> STM StaticProperty
 dogStaticProperty idCounterVar essencesVar CommonStaticProperties{..} = do

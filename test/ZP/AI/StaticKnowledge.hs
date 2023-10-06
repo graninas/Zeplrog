@@ -23,13 +23,13 @@ knownActingObjectsPropType = PropertyType "known acting objects"
 abstractGoalEssence = Essence "abstract goal"
 
 
+noActionEssence      = Essence "no action"
 observingEssence     = Essence "observing"
 discoveringEssence   = Essence "discovering"
 settingGoalsEssence  = Essence "setting goals"
 planningEssence      = Essence "planning"
 followingPlanEssence = Essence "following a plan"
 
-noActionEssence = Essence "no action"
 
 posEssence      = Essence "pos"
 hpEssence       = Essence "hp"

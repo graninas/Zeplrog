@@ -43,10 +43,10 @@ materializeStaticProperty
   -> STM ActiveProperty
 materializeStaticProperty idCounterVar kb propsSetter sProp@(StaticProperty {..})  = do
   propId <- getActivePropertyId idCounterVar
-  mbPropValVar <- case Map.lookup essence propsSetter of
-    Nothing -> pure Nothing
-    Just val -> newTVar val >>= pure . Just
+  propValVar <- newTVar $ case Map.lookup essence propsSetter of
+    Nothing  -> NoValue
+    Just val -> val
   props <- mapM (materializeStaticPropertyByType idCounterVar kb propsSetter)
               $ Map.toList staticProperties
   propsVar <- newTVar $ Map.fromList props
-  pure $ ActiveProperty propId sProp mbPropValVar propsVar
+  pure $ ActiveProperty propId sProp propValVar propsVar
