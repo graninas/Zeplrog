@@ -104,11 +104,20 @@ spec = do
       -- TODO: verify the prop itself
 
   describe "Static properties test" $ do
-    it "Static prop is accessible from a dynamic prop" $ do
+    it "Static prop is accessible from a dynamic prop 1" $ do
       (_, DynamicProperty _ statPropRef _ _) <- runMaterializer matDoor
       let ess = Browser.browseDyn Browser.GetEssence statPropRef
-
       ess `shouldBe` "object:door"
+
+    it "Static prop is accessible from a dynamic prop 2" $ do
+      (_, DynamicProperty _ _ propsVar _) <- runMaterializer matDoor
+      props <- readTVarIO propsVar
+      ehp <- mat' $ Proxy @KB.EHP
+      case Map.lookup ehp props of
+        Nothing -> error "Unexpected nothing"
+        Just (OwnDynamicProperty (DynamicProperty _ statPropRef _ _)) -> do
+          let ess = Browser.browseDyn Browser.GetEssence statPropRef
+          ess `shouldBe` "intrinsics:hp"
 
   -- describe "AI test" $ do
   --   it "Selecting the next action. Should be observing (after noAct)" $ do

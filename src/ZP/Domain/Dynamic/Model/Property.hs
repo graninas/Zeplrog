@@ -22,6 +22,8 @@ data StaticPropertyRef where
   StaticPropRef
     -- N.B. This is a very strange way to browse static properties.
     -- It will require A LOT boilerplate.
+    -- It's a proof that static types can be accessed from
+    -- the runtime.
     :: Browser.Browse Browser.GetEssence p Essence
     => Proxy (p :: SMod.Property)
     -> StaticPropertyRef
