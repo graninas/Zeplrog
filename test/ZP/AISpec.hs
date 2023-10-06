@@ -52,10 +52,14 @@ materializeActiveObject idCounterVar kb@(KnowledgeBase {essences}) noActProp nam
 
 guard01Name :: ActingObjectName
 guard01Name = ActingObjectName "guard 01"
+
 rat01Name   :: ActingObjectName
 rat01Name   = ActingObjectName "rat 01"
+
 rat02Name   :: ActingObjectName
 rat02Name   = ActingObjectName "rat 02"
+
+door01   = ActingObjectName "door 01"
 
 
 {- Actions loop
@@ -75,12 +79,12 @@ The noActionsEssence is used as entry point into the loop.
 
 commonActionsLoop :: [(Essence, PropertyValue)]
 commonActionsLoop =
-  [ (noActionEssence,      PairValue (EssenceValue observingEssence)     NoValue)  -- starting point
-  , (observingEssence,     PairValue (EssenceValue discoveringEssence)   NoValue)  -- no input params yet
-  , (discoveringEssence,   PairValue (EssenceValue settingGoalsEssence)  NoValue)  -- no input params yet
-  , (settingGoalsEssence,  PairValue (EssenceValue planningEssence)      NoValue)  -- no input params yet
-  , (planningEssence,      PairValue (EssenceValue followingPlanEssence) NoValue)  -- no input params yet
-  , (followingPlanEssence, PairValue (EssenceValue observingEssence)     NoValue)  -- no input params yet
+  [ (noActionEssence,      PairValue (EssenceValue "observing"     observingEssence)     NoValue)  -- starting point
+  , (observingEssence,     PairValue (EssenceValue "discovering"   discoveringEssence)   NoValue)  -- no input params yet
+  , (discoveringEssence,   PairValue (EssenceValue "settingGoals"  settingGoalsEssence)  NoValue)  -- no input params yet
+  , (settingGoalsEssence,  PairValue (EssenceValue "planning"      planningEssence)      NoValue)  -- no input params yet
+  , (planningEssence,      PairValue (EssenceValue "followingPlan" followingPlanEssence) NoValue)  -- no input params yet
+  , (followingPlanEssence, PairValue (EssenceValue "observing"     observingEssence)     NoValue)  -- no input params yet
   ]
 
 initActiveObjects
@@ -100,6 +104,10 @@ initActiveObjects idCounterVar (kb, commonSProps) = do
         [ (posEssence, PositionValue (3, 4))
         , (hpEssence, IntValue 100)
         ]
+  let door01Props = Map.fromList
+        [ (posEssence, PositionValue (2, 3))
+        , (hpEssence, IntValue 100)
+        ]
 
   noActProp <- materializeStaticProperty idCounterVar kb Map.empty $ noActionSProp commonSProps
 
@@ -107,6 +115,7 @@ initActiveObjects idCounterVar (kb, commonSProps) = do
     [ materializeActiveObject idCounterVar kb noActProp guard01Name guardEssence guardProps
     , materializeActiveObject idCounterVar kb noActProp rat01Name   ratEssence   rat01Props
     , materializeActiveObject idCounterVar kb noActProp rat02Name   ratEssence   rat02Props
+    , materializeActiveObject idCounterVar kb noActProp door01      doorEssence  Map.empty
     ]
   pure $ Map.fromList $ map (\obj -> (actingObjectId obj, obj)) $ catMaybes mbObjs
 
@@ -310,7 +319,7 @@ spec =
 
       zpNet <- atomically $ initZPNet idCounterVar rndSource worldVar
 
-      actObj <- fromJust <$> (atomically $ getActingObject zpNet guard01Name)
+      actObj <- fromJust <$> (atomically $ getActingObject zpNet door01)
 
       -- observing
       atomically $ selectNextAction actObj

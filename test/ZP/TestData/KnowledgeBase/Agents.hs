@@ -22,7 +22,7 @@ ratStaticProperty CommonStaticProperties{..} = do
         [ (inventoryPropType, [ posSProp, hpSProp ])
         , (actionsPropType,   [ noActionSProp ])              -- this rat doesn't do anything...
         ]
-  mkStaticProperty ratEssence props StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty ratEssence props NoValue StaticDiscoverRoot ActiveValueNonDiscoverable
 
 
 
@@ -38,7 +38,7 @@ guardStaticProperty ratSProp commonSProps@(CommonStaticProperties{..}) = do
         , (actionsPropType,    commonActionsSProps commonSProps)
         , (goalsPropType,     [ killRatGoalSProp ])
         ]
-  mkStaticProperty guardEssence props StaticDiscoverRoot ActiveValueNonDiscoverable
+  mkStaticProperty guardEssence props NoValue StaticDiscoverRoot ActiveValueNonDiscoverable
 
 
 
