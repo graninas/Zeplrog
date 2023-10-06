@@ -18,3 +18,5 @@ newtype GlossWindowSize = GlossWindowSize Coords
 newtype GlossWindowPosition = GlossWindowPosition Coords
 newtype GlossBareCellSize = GlossBareCellSize Float
 newtype GlossGridCellSize = GlossGridCellSize Float
+
+newtype GlossTextScale = GlossTextScale Float
