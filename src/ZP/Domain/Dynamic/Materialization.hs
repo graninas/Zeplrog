@@ -23,7 +23,7 @@ import qualified Data.Map as Map
 ---------- Interface ------------------
 
 data Env = Env
-  { sharedProps :: TVar (Map.Map DMod.Essence DMod.DynamicProperty)
+  { sharedProps :: TVar (Map.Map DMod.DynEssence DMod.DynamicProperty)
   }
 
 type Materializer a = ReaderT Env IO a
@@ -52,12 +52,12 @@ mat' proxy = do
 
 instance
   KnownSymbol symb =>
-  Mat ('Ess symb) DMod.Essence where
+  Mat ('Ess symb) DMod.DynEssence where
   mat _ _ = pure $ symbolVal (Proxy @symb)
 
 instance
-  Mat ess DMod.Essence =>
-  Mat ('EssRoot ess) DMod.Essence where
+  Mat ess DMod.DynEssence =>
+  Mat ('EssRoot ess) DMod.DynEssence where
   mat _ _ = mat False (Proxy @ess)
 
 -- Materialize values
@@ -81,8 +81,8 @@ instance (Mat val1 DMod.Value, Mat val2 DMod.Value) =>
 
 instance
   ( Mat valDef DMod.Value
-  , Mat root DMod.Essence
-  , Browser.Browse Browser.GetEssence ('PropVal root valDef) DMod.Essence
+  , Mat root DMod.DynEssence
+  , Browser.Browse Browser.GetEssence ('PropVal root valDef) DMod.DynEssence
   ) =>
   Mat ('PropVal root valDef) DMod.DynamicProperty where
   mat False _ = do
@@ -109,8 +109,8 @@ instance
 
 instance
   ( Mat valDef DMod.Value
-  , Mat root DMod.Essence
-  , Browser.Browse Browser.GetEssence ('PropConst root valDef) DMod.Essence
+  , Mat root DMod.DynEssence
+  , Browser.Browse Browser.GetEssence ('PropConst root valDef) DMod.DynEssence
   ) =>
   Mat ('PropConst root valDef) DMod.DynamicProperty where
   mat False _ = do
@@ -134,16 +134,129 @@ instance
         pure prop
 
 
+data PropKVs propKVs
+
+type DynProps = [(DMod.DynEssence, DMod.DynamicProperty)]
+
+instance
+  Mat (PropKVs '[]) DynProps where
+  mat _ _ = pure []
+
+instance
+  ( Mat propKV (DMod.DynEssence, [DMod.DynamicPropertyOwning])
+  , Mat (PropKVs propKVs) DynProps
+  ) =>
+  Mat (PropKVs (propKV ': propKVs)) DynProps where
+  mat _ _ = do
+    (ess, propOwns) <- mat False $ Proxy @propKV
+    propKVs         <- mat False $ Proxy @(PropKVs propKVs)
+    error "Mat PropKVs not implemented"
+
+instance
+  ( Mat root DMod.DynEssence
+  , Mat (PropKVs propKVs) DynProps
+  ) =>
+  Mat ('PropDict root propKVs) DMod.DynamicProperty where
+  mat False _ = do
+    dynProps <- mat False $ Proxy @(PropKVs propKVs)
+    error "1"
+    -- ess        <- mat False $ Proxy @root
+    -- val        <- mat False $ Proxy @valDef
+    -- dynValVar  <- liftIO $ newTVarIO $ Just $ DMod.ConstValue val
+    -- propsVar   <- liftIO $ newTVarIO Map.empty
+    -- let staticProp = Proxy @('PropConst root valDef)
+    -- let staticPropRef = DMod.StaticPropRef staticProp
+    -- pure (DMod.DynamicProperty ess staticPropRef propsVar dynValVar)
+  mat True proxy = do
+    error "mat True for PropDict not implemented"
+    -- Env spsVar <- ask
+    -- sps <- liftIO $ readTVarIO spsVar
+    -- ess <- mat False $ Proxy @root
+    -- case Map.lookup ess sps of
+    --   Just prop -> pure prop
+    --   Nothing   -> do
+    --     prop <- mat False proxy
+    --     let sps' = Map.insert ess prop sps
+    --     liftIO $ atomically $ writeTVar spsVar sps'
+    --     pure prop
+
+
+
+instance
+  Mat ('PropRef essPath) DMod.DynamicProperty where
+  mat False _ = do
+    error "PropRef False not implemented"
+  mat True proxy = do
+    error "PropRef True not implemented"
+
+instance
+  Mat ('StaticPropRef staticProp) DMod.DynamicProperty where
+  mat False _ = do
+    error "StaticPropRef False not implemented"
+  mat True proxy = do
+    error "StaticPropRef True not implemented"
+
+instance
+  Mat ('PropScript script) DMod.DynamicProperty where
+  mat False _ = do
+    error "PropScript False not implemented"
+  mat True proxy = do
+    error "PropScript True not implemented"
+
+
+-- Materialize Prop Key Val
+
+instance
+  ( Mat category DMod.DynEssence
+  , Mat propOwn DMod.DynamicPropertyOwning
+  ) =>
+  Mat ('PropKeyVal category propOwn)
+      (DMod.DynEssence, [DMod.DynamicPropertyOwning]) where
+  mat _ _ = do
+    ess     <- mat False $ Proxy @category
+    propOwn <- mat False $ Proxy @propOwn
+    pure (ess, [propOwn])
+
+
+data PropOwns propOwns
+
+instance
+  Mat (PropOwns '[]) [DMod.DynamicPropertyOwning] where
+  mat _ _ = pure []
+
+instance
+  ( Mat propOwn DMod.DynamicPropertyOwning
+  , Mat (PropOwns propOwns) [DMod.DynamicPropertyOwning]
+  ) =>
+  Mat (PropOwns (propOwn ': propOwns))
+      [DMod.DynamicPropertyOwning] where
+  mat _ _ = do
+    propOwn  <- mat False $ Proxy @propOwn
+    propOwns <- mat False $ Proxy @(PropOwns propOwns)
+    pure $ propOwn : propOwns
+
+instance
+  ( Mat category DMod.DynEssence
+  , Mat (PropOwns propOwns) [DMod.DynamicPropertyOwning]
+  ) =>
+  Mat ('PropKeyBag category propOwns)
+      (DMod.DynEssence, [DMod.DynamicPropertyOwning]) where
+  mat _ _ = do
+    ess      <- mat False $ Proxy @category
+    propOwns <- mat False $ Proxy @(PropOwns propOwns)
+    pure (ess, propOwns)
 
 -- Materialize owning/sharing
 
-instance Mat prop DMod.DynamicProperty =>
+instance
+  Mat prop DMod.DynamicProperty =>
   Mat ('OwnProp prop) DMod.DynamicPropertyOwning where
   mat _ _ = do
     prop <- mat False $ Proxy @prop
     pure $ DMod.OwnDynamicProperty prop
 
-instance Mat prop DMod.DynamicProperty =>
+instance
+  Mat prop DMod.DynamicProperty =>
   Mat ('SharedProp prop) DMod.DynamicPropertyOwning where
   mat _ _ = do
     prop <- mat True $ Proxy @prop

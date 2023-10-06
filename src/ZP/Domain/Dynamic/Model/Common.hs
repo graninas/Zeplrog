@@ -11,7 +11,7 @@ import qualified Data.Set as Set
 import qualified ZP.Domain.Static.Model as SMod
 
 
-type Essence = String
+type DynEssence = String
 
 data Value
   = PairValue Value Value

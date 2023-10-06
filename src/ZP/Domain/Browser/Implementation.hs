@@ -18,30 +18,30 @@ import GHC.TypeLits
 
 instance
   KnownSymbol ess =>
-  Browse GetEssence ('Ess ess) DMod.Essence where
+  Browse GetEssence ('Ess ess) DMod.DynEssence where
   browse _ _ = symbolVal $ Proxy @ess
 
 instance
-  Browse GetEssence ess DMod.Essence =>
-  Browse GetEssence ('EssRoot ess) DMod.Essence where
+  Browse GetEssence ess DMod.DynEssence =>
+  Browse GetEssence ('EssRoot ess) DMod.DynEssence where
   browse _ _ = browse GetEssence $ Proxy @ess
 
 instance
-  Browse GetEssence root DMod.Essence =>
-  Browse GetEssence ('PropConst root v) DMod.Essence where
+  Browse GetEssence root DMod.DynEssence =>
+  Browse GetEssence ('PropConst root v) DMod.DynEssence where
   browse _ _ = browse GetEssence $ Proxy @root
 
 
 instance
-  Browse GetEssence root DMod.Essence =>
-  Browse GetEssence ('PropVal root val) DMod.Essence where
+  Browse GetEssence root DMod.DynEssence =>
+  Browse GetEssence ('PropVal root val) DMod.DynEssence where
   browse _ _ = browse GetEssence $ Proxy @root
 
 instance
-  Browse GetEssence root DMod.Essence =>
-  Browse GetEssence ('PropDict root d) DMod.Essence where
+  Browse GetEssence root DMod.DynEssence =>
+  Browse GetEssence ('PropDict root d) DMod.DynEssence where
   browse _ _ = browse GetEssence $ Proxy @root
 
 instance
-  BrowseDyn GetEssence DMod.StaticPropertyRef DMod.Essence where
+  BrowseDyn GetEssence DMod.StaticPropertyRef DMod.DynEssence where
   browseDyn _ (DMod.StaticPropRef proxy) = browse GetEssence proxy

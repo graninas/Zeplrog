@@ -24,14 +24,14 @@ data StaticPropertyRef where
     -- It will require A LOT boilerplate.
     -- It's a proof that static types can be accessed from
     -- the runtime.
-    :: Browser.Browse Browser.GetEssence p Essence
+    :: Browser.Browse Browser.GetEssence p DynEssence
     => Proxy (p :: SMod.Property)
     -> StaticPropertyRef
 
 data DynamicProperty
   = DynamicProperty
-  { dpEssence       :: Essence              -- TODO: take Essence from static prop
+  { dpEssence       :: DynEssence              -- TODO: take DynEssence from static prop
   , dpStaticPropRef :: StaticPropertyRef
-  , dpsMap          :: TVar (Map.Map Essence DynamicPropertyOwning)
+  , dpsMap          :: TVar (Map.Map DynEssence DynamicPropertyOwning)
   , dpValue         :: TVar (Maybe DynamicValue)
   }

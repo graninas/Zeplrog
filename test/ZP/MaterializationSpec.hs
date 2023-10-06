@@ -44,24 +44,33 @@ import qualified Data.Map as Map
 
 type HPValOwnProp     = SMod.OwnProp (KB.HPVal 100)
 type PosValSharedProp = SMod.SharedProp (KB.PosConst 3 5)
+type DoorStateProp    = SMod.OwnProp KB.OpenStateRef
+
+
+matDoor :: Materializer DynamicProperty
+matDoor = mat False $ Proxy @KB.Door
 
 
 -- Manually materialized door
 
-matDoor :: Materializer DynamicProperty
-matDoor = do
-  ess        <- mat False $ Proxy @(SMod.EssRoot KB.EDoor)
+matDoorCustom :: Materializer DynamicProperty
+matDoorCustom = do
+  ess <- mat False $ Proxy @(SMod.EssRoot KB.EDoor)
 
-  ehp        <- mat False $ Proxy @KB.EHP
-  ehpPropOwn <- mat False $ Proxy @HPValOwnProp
+  ehp       <- mat False $ Proxy @KB.EHP
+  hpPropOwn <- mat False $ Proxy @HPValOwnProp
 
-  ePos           <- mat False $ Proxy @KB.EPos
-  ePosPropShared <- mat False $ Proxy @PosValSharedProp
+  ePos          <- mat False $ Proxy @KB.EPos
+  posPropShared <- mat False $ Proxy @PosValSharedProp
+
+  -- eState   <- mat False $ Proxy @KB.EState
+  -- stateOwn <- mat False $ Proxy @DoorStateProp
 
   propsMapVar <- liftIO $ newTVarIO $
     Map.fromList
-      [ (ehp,  ehpPropOwn)
-      , (ePos, ePosPropShared)
+      [ (ehp,    hpPropOwn)
+      , (ePos,   posPropShared)
+      -- , (eState, stateOwn)
       ]
 
   dynValVar <- liftIO $ newTVarIO Nothing
@@ -75,7 +84,7 @@ spec :: Spec
 spec = do
   describe "Materialization test" $ do
     it "Materialization: value prop" $ do
-      (_, DynamicProperty _ _ propsVar valVar) <- runMaterializer matDoor
+      (_, DynamicProperty _ _ propsVar valVar) <- runMaterializer matDoorCustom
 
       mbVal <- readTVarIO valVar
       case mbVal of
@@ -98,19 +107,25 @@ spec = do
         Just _ -> error "Invalid dyn prop"
 
     it "Materialization: 1 shared prop" $ do
+      (Env spsVar, _) <- runMaterializer matDoorCustom
+      sps <- readTVarIO spsVar
+      -- TODO: verify the prop itself
+      Map.size sps `shouldBe` 1
+
+    it "Full materialization" $ do
       (Env spsVar, _) <- runMaterializer matDoor
       sps <- readTVarIO spsVar
-      Map.size sps `shouldBe` 1
       -- TODO: verify the prop itself
+      Map.size sps `shouldBe` 1
 
   describe "Static properties test" $ do
     it "Static prop is accessible from a dynamic prop 1" $ do
-      (_, DynamicProperty _ statPropRef _ _) <- runMaterializer matDoor
+      (_, DynamicProperty _ statPropRef _ _) <- runMaterializer matDoorCustom
       let ess = Browser.browseDyn Browser.GetEssence statPropRef
       ess `shouldBe` "object:door"
 
     it "Static prop is accessible from a dynamic prop 2" $ do
-      (_, DynamicProperty _ _ propsVar _) <- runMaterializer matDoor
+      (_, DynamicProperty _ _ propsVar _) <- runMaterializer matDoorCustom
       props <- readTVarIO propsVar
       ehp <- mat' $ Proxy @KB.EHP
       case Map.lookup ehp props of
