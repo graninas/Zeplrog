@@ -27,6 +27,7 @@ newtype PropertyType = PropertyType String
 
 data PropertyValue
   = PositionValue (Int, Int)
+  | IntValue Int
 
 type ActivePropertyMap = Map.Map PropertyType (TVar [ActiveProperty])
 type StaticPropertyMap = Map.Map PropertyType [StaticProperty]
@@ -39,9 +40,9 @@ data StaticPropertyDiscoverability
 
 -- TODO: add a new type of a dynamic discoverability: discoverability on usage
 
-data ActivePropertyDiscoverability
-  = ActiveDiscoverable      -- ^ active property value is discoverable
-  | ActiveNonDiscoverable   -- ^ active property value is not discoverable
+data ActiveValueDiscoverability
+  = ActiveValueDiscoverable      -- ^ active property value is discoverable
+  | ActiveValueNonDiscoverable   -- ^ active property value is not discoverable
   deriving (Show, Eq, Ord)
 
 data StaticProperty = StaticProperty
@@ -49,7 +50,7 @@ data StaticProperty = StaticProperty
   , essence                :: Essence
   , staticProperties       :: StaticPropertyMap
   , staticPropertyDiscover :: StaticPropertyDiscoverability
-  , activePropertyDiscover :: ActivePropertyDiscoverability
+  , activeValueDiscover    :: ActiveValueDiscoverability
   }
 
 data ActiveProperty = ActiveProperty
@@ -79,10 +80,9 @@ data KnownActingObject = KnownActingObject
 
 type KnownPropertiesMap = Map.Map PropertyType [KnownActiveProperty]
 data KnownActiveProperty = KnownActiveProperty
-  { knownStaticProperty :: StaticProperty
-  , knownActiveProperty :: ActiveProperty
+  { knownActiveProperty :: ActiveProperty
   , knownPropertiesVar  :: TVar KnownPropertiesMap
-  , knownPropertyValue  :: TVar Int  --- Dummy
+  , knownPropertyValue  :: Maybe (TVar PropertyValue)
   }
 
 type RndSource = Int -> STM Int
@@ -136,7 +136,7 @@ mkStaticProperty
   -> Essence
   -> StaticPropertyMap
   -> StaticPropertyDiscoverability
-  -> ActivePropertyDiscoverability
+  -> ActiveValueDiscoverability
   -> STM StaticProperty
 mkStaticProperty idCounterVar essencesVar essence props statDisc actDisc = do
   propId <- getStaticPropertyId idCounterVar

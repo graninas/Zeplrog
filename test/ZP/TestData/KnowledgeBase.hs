@@ -36,21 +36,21 @@ data CommonStaticProperties = CommonStaticProperties
 mkCommonStaticProperties :: IdCounter -> TVar Essences -> STM CommonStaticProperties
 mkCommonStaticProperties idCounterVar essencesVar =
   CommonStaticProperties
-    <$> mkStaticProperty idCounterVar essencesVar posEssence      Map.empty StaticDiscoverLeaf ActiveDiscoverable
-    <*> mkStaticProperty idCounterVar essencesVar hpEssence       Map.empty StaticDiscoverLeaf ActiveNonDiscoverable
-    <*> mkStaticProperty idCounterVar essencesVar fireWandEssence Map.empty StaticNonDiscoverable ActiveNonDiscoverable
-    <*> mkStaticProperty idCounterVar essencesVar iceWandEssence  Map.empty StaticNonDiscoverable ActiveNonDiscoverable
+    <$> mkStaticProperty idCounterVar essencesVar posEssence      Map.empty StaticDiscoverLeaf    ActiveValueDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar hpEssence       Map.empty StaticDiscoverLeaf    ActiveValueNonDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar fireWandEssence Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar iceWandEssence  Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
 
-    <*> mkStaticProperty idCounterVar essencesVar observingEssence    Map.empty StaticNonDiscoverable ActiveNonDiscoverable
-    <*> mkStaticProperty idCounterVar essencesVar settingGoalsEssence Map.empty StaticNonDiscoverable ActiveNonDiscoverable
-    <*> mkStaticProperty idCounterVar essencesVar planningEssence     Map.empty StaticNonDiscoverable ActiveNonDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar observingEssence    Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar settingGoalsEssence Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
+    <*> mkStaticProperty idCounterVar essencesVar planningEssence     Map.empty StaticNonDiscoverable ActiveValueNonDiscoverable
 
 dogStaticProperty :: IdCounter -> TVar Essences -> CommonStaticProperties -> STM StaticProperty
 dogStaticProperty idCounterVar essencesVar CommonStaticProperties{..} = do
   let props = Map.fromList
         [ (inventoryPropType, [ posSProp, hpSProp ])
         ]
-  mkStaticProperty idCounterVar essencesVar dogEssence props StaticDiscoverRoot ActiveNonDiscoverable
+  mkStaticProperty idCounterVar essencesVar dogEssence props StaticDiscoverRoot ActiveValueNonDiscoverable
 
 guardStaticProperty :: IdCounter -> TVar Essences -> CommonStaticProperties -> STM StaticProperty
 guardStaticProperty idCounterVar essencesVar CommonStaticProperties{..} = do
@@ -59,7 +59,7 @@ guardStaticProperty idCounterVar essencesVar CommonStaticProperties{..} = do
         [ (inventoryPropType, [ posSProp, hpSProp, fireWandSProp, iceWandSProp ])
         , (actionPropType, [obsrvingSProp, settingGoalsSProp, planningSProp])
         ]
-  mkStaticProperty idCounterVar essencesVar guardEssence props StaticDiscoverRoot ActiveNonDiscoverable
+  mkStaticProperty idCounterVar essencesVar guardEssence props StaticDiscoverRoot ActiveValueNonDiscoverable
 
 initKnowledgeBase :: IdCounter -> STM KnowledgeBase
 initKnowledgeBase idCounterVar = do
