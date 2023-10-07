@@ -104,33 +104,34 @@ instance
     val  <- mat $ Proxy @val
     pure $ PropConst root val
 
-data PropKVs propKVs
+data SrcPropKVs propKVs
 
-type Props = [(Category 'ValueLevel, Property 'ValueLevel)]
+type ResPropKVs = [PropertyKeyValue 'ValueLevel]
 
 instance
-  Mat (PropKVs '[]) Props where
+  Mat (SrcPropKVs '[]) ResPropKVs where
   mat _ = pure []
 
 instance
-  ( Mat propKV (Category 'ValueLevel, [PropertyOwning 'ValueLevel])
-  , Mat (PropKVs propKVs) Props
+  ( Mat propKV (PropertyKeyValue 'ValueLevel)
+  , Mat (SrcPropKVs propKVs) ResPropKVs
   ) =>
-  Mat (PropKVs (propKV ': propKVs)) Props where
+  Mat (SrcPropKVs (propKV ': propKVs)) ResPropKVs where
   mat _ = do
-    (category, propOwns) <- mat $ Proxy @propKV
-    propKVs <- mat $ Proxy @(PropKVs propKVs)
-    error "mat prop kvs not implemented"
+    propKV  <- mat $ Proxy @propKV
+    propKVs <- mat $ Proxy @(SrcPropKVs propKVs)
+    pure $ propKV : propKVs
 
 instance
   ( Mat root (PropertyRoot 'ValueLevel)
-  , Mat (PropKVs propKVs) Props
+  , Mat (SrcPropKVs propKVs) ResPropKVs
   ) =>
   Mat ('PropDict @'TypeLevel root propKVs)
       (Property 'ValueLevel) where
   mat _ = do
-    props <- mat $ Proxy @(PropKVs propKVs)
-    error "mat prop dict not implemented"
+    root    <- mat $ Proxy @root
+    propKVs <- mat $ Proxy @(SrcPropKVs propKVs)
+    pure $ PropDict root propKVs
 
 data Essences essPath
 
@@ -189,11 +190,11 @@ instance
   , Mat propOwn (PropertyOwning 'ValueLevel)
   ) =>
   Mat ('PropKeyVal @'TypeLevel category propOwn)
-      (Category 'ValueLevel, [PropertyOwning 'ValueLevel]) where
+      (PropertyKeyValue 'ValueLevel) where
   mat _ = do
     category <- mat $ Proxy @category
     propOwn  <- mat $ Proxy @propOwn
-    pure (category, [propOwn])
+    pure $ PropKeyVal category propOwn
 
 
 data PropOwns propOwns
@@ -218,11 +219,11 @@ instance
   , Mat (PropOwns propOwns) [PropertyOwning 'ValueLevel]
   ) =>
   Mat ('PropKeyBag @'TypeLevel category propOwns)
-      (Category 'ValueLevel, [PropertyOwning 'ValueLevel]) where
+      (PropertyKeyValue 'ValueLevel) where
   mat _ = do
     category <- mat $ Proxy @category
     propOwns <- mat $ Proxy @(PropOwns propOwns)
-    pure (category, propOwns)
+    pure $ PropKeyBag category propOwns
 
 -- Materialize owning/sharing
 

@@ -19,8 +19,8 @@ type PosValSharedProp = SharedProp (KB.PosConst 3 5)
 type DoorStateProp    = OwnProp KB.OpenStateRef
 
 
--- matDoor :: Materializer (Property 'ValueLevel)
--- matDoor = mat $ Proxy @KB.Door
+matDoor :: Materializer (Property 'ValueLevel)
+matDoor = mat $ Proxy @KB.Door
 
 
 -- Manually materialized door
