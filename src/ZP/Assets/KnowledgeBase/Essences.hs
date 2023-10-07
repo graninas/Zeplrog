@@ -30,6 +30,8 @@ type EStateClose    = Ess @TypeLevel "state:close"
 
 type EPushable      = Ess @TypeLevel "ability:pushable"
 
+type EPushableScript = Ess @TypeLevel "script:pushable"
+
 type EWand          = Ess @TypeLevel "object:wand"
 type ERat           = Ess @TypeLevel "object:rat"
 type EGuard         = Ess @TypeLevel "object:guard"

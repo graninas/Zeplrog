@@ -190,8 +190,13 @@ instance
     pure $ StaticPropRef sp
 
 instance
-  Mat ('PropScript @'TypeLevel script) (Property 'ValueLevel) where
-  mat _ = error "script mat not implemented"
+  ( Mat ess (Essence 'ValueLevel)
+  ) =>
+  Mat ('PropScript @'TypeLevel ess script)
+      (Property 'ValueLevel) where
+  mat _ = do
+    ess <- mat $ Proxy @ess
+    pure $ PropScript ess NoScript    -- TODO: temporary
 
 -- Materialize static prop
 

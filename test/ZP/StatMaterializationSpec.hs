@@ -48,12 +48,13 @@ matDoorCustom = do
 
 spec :: Spec
 spec = do
-  describe "tests" $ do
-    it "tests" $ do
+  describe "Static materialization tests" $ do
+    it "Door materialization test" $ do
       (_, door) <- runMaterializer matDoor
       case door of
-        PropDict root props ->
-          length props `shouldBe` 2
+        PropDict root props -> do
+          -- TODO: more tests of the prop
+          length props `shouldBe` 5
         _ -> error "invalid materialization result"
 
   -- describe "Materialization test" $ do

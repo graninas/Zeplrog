@@ -90,6 +90,7 @@ data Action (lvl :: Level) where
     -> Action lvl
 
 data Script (lvl :: Level) where
+  NoScript :: Script lvl    -- TODO: temporary. Remove
   SimpleScript
     :: Essence lvl
     -> [Query lvl]       -- ^ Query specific values before the script
@@ -165,6 +166,7 @@ data Property (lvl :: Level) where
     -> Property lvl
   -- | Property script
   PropScript
-    :: Script lvl
+    :: Essence lvl
+    -> Script lvl
     -> Property lvl
 

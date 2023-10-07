@@ -186,7 +186,7 @@ instance
       dynValVar
 
 instance
-  Mat ('PropScript script) DMod.DynamicProperty where
+  Mat ('PropScript ess script) DMod.DynamicProperty where
   mat _ _ = error "PropScript not implemented"
 
 -- Materialize static prop
