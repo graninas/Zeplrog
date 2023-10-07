@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7f3748313793c69f6eaee8bae21c709745cd8252fad2cf1d7f6e2fdceca599b4
+-- hash: 94a5a5312c606080864d8f3f3bda1ed80d936977b401bf3fd2980930b53579be
 
 name:           zeplrog
 version:        0.0.0.1
@@ -35,6 +35,7 @@ library
       ZP.Domain.Dynamic.Materialization
       ZP.Domain.Dynamic.Model.Common
       ZP.Domain.Dynamic.Model.Property
+      ZP.Domain.Static.Materialization
       ZP.Domain.Static.Model
       ZP.Prelude
   other-modules:
@@ -116,6 +117,7 @@ executable zeplrog
       ZP.Domain.Dynamic.Materialization
       ZP.Domain.Dynamic.Model.Common
       ZP.Domain.Dynamic.Model.Property
+      ZP.Domain.Static.Materialization
       ZP.Domain.Static.Model
       ZP.Prelude
       Paths_zeplrog
@@ -186,7 +188,8 @@ test-suite tests
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      ZP.MaterializationSpec
+      ZP.DynMaterializationSpec
+      ZP.StatMaterializationSpec
       Paths_zeplrog
   hs-source-dirs:
       test/

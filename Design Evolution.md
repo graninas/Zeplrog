@@ -72,6 +72,10 @@ class Mat a b | a -> b where
   mat :: Shared -> Proxy a -> Materializer b
 ```
 
+Good side of the typed model that when a new typed data comes,
+the compiler will tell if all the Mat instances are available for it.
+Enables a gradual development of the model.
+
 A Proof of Concept (PoC) mechanism for querying static model types to obtain static property values was created.
 
 However, the mechanism proved to be overly complex. Integrating static properties (types) into dynamic types is only possible through existentials with a limited set of actions.

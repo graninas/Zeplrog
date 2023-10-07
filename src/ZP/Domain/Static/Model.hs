@@ -2,32 +2,43 @@
 
 module ZP.Domain.Static.Model where
 
-import Prelude (Bool)
+import ZP.Prelude
 import GHC.TypeLits
 
 ------ Common and General -----------------
 
+data Level = TypeLevel | ValueLevel
+
+type family StringType (lvl :: Level) where
+  StringType 'TypeLevel  = Symbol
+  StringType 'ValueLevel = String
+
+type family IntegerType (lvl :: Level) where
+  IntegerType 'TypeLevel  = Nat
+  IntegerType 'ValueLevel = Int
+
 -- | Sudo ID of a property
-data Essence where
-  Ess :: Symbol -> Essence
+
+data Essence (lvl :: Level) where
+  Ess :: StringType lvl -> Essence lvl
 
 -- | Value definition
 
-data ValDef where
-  IntValDef      :: Nat -> ValDef
-  IntRangeValDef :: (Nat, Nat) -> ValDef
-  BoolValDef     :: Bool -> ValDef
-  PairValDef     :: ValDef -> ValDef -> ValDef
+data ValDef (lvl :: Level) where
+  IntValDef      :: IntegerType lvl -> ValDef lvl
+  IntRangeValDef :: (IntegerType lvl, IntegerType lvl) -> ValDef lvl
+  BoolValDef     :: Bool -> ValDef lvl
+  PairValDef     :: ValDef lvl -> ValDef  lvl-> ValDef lvl
 
 -- | Variable definition
 
-type VarName = Symbol
+type VarName (lvl :: Level) = StringType lvl
 
-data VarDef where
-  IntVar        :: VarName -> VarDef
-  IntRangeVar   :: VarName -> VarDef
-  BoolVar       :: VarName -> VarDef
-  PairVar       :: VarName -> VarDef -> VarDef -> VarDef
+data VarDef (lvl :: Level) where
+  IntVar        :: VarName lvl -> VarDef lvl
+  IntRangeVar   :: VarName lvl -> VarDef lvl
+  BoolVar       :: VarName lvl -> VarDef lvl
+  PairVar       :: VarName lvl -> VarDef lvl -> VarDef lvl -> VarDef lvl
 
 ------ Query and Procedure Script ------------
 
@@ -38,44 +49,44 @@ data QuerySetting where
 data CompareOp where
   Eq :: CompareOp
 
-data QueryTerm where
-  QEssence :: Essence -> QueryTerm
-  QGetEssence :: QueryTerm
+data QueryTerm (lvl :: Level) where
+  QEssence :: Essence lvl -> QueryTerm lvl
+  QGetEssence :: QueryTerm lvl
 
-type QueryPath = [QueryTerm]
+type QueryPath (lvl :: Level) = [QueryTerm lvl]
 
-data Query where
+data Query (lvl :: Level) where
   SimpleQuery
     :: [QuerySetting]
-    -> QueryPath
-    -> VarDef
-    -> Query
+    -> QueryPath lvl
+    -> VarDef lvl
+    -> Query lvl
 
-data Condition where
+data Condition (lvl :: Level) where
   ConditionDef
-    :: VarName
+    :: VarName lvl
     -> CompareOp
-    -> ValDef
-    -> Condition
+    -> ValDef lvl
+    -> Condition lvl
 
-data Procedure where
+data Procedure (lvl :: Level) where
   ReplaceProp
-    :: [Essence]
-    -> Property
-    -> Procedure
+    :: [Essence lvl]
+    -> Property lvl
+    -> Procedure lvl
 
-data Action where
+data Action (lvl :: Level) where
   ConditionalAction
-    :: Condition
-    -> Procedure
-    -> Action
+    :: Condition lvl
+    -> Procedure lvl
+    -> Action lvl
 
-data Script where
+data Script (lvl :: Level) where
   SimpleScript
-    :: Essence
-    -> [Query]       -- ^ Query specific values before the script
-    -> [Action]
-    -> Script
+    :: Essence lvl
+    -> [Query lvl]       -- ^ Query specific values before the script
+    -> [Action lvl]
+    -> Script lvl
 
 
 ------ Property -----
@@ -84,66 +95,66 @@ data Script where
 -- | Used to make property hierarchies.
 -- Essence arg: own essence
 -- Property arg: parent property
-data PropertyRoot where
-  EssRoot   :: Essence -> PropertyRoot
-  PropRoot  :: Essence -> Property -> PropertyRoot
+data PropertyRoot (lvl :: Level) where
+  EssRoot   :: Essence lvl -> PropertyRoot lvl
+  PropRoot  :: Essence lvl -> Property lvl -> PropertyRoot lvl
 
 -- | Used to make static property hierarchies.
 -- Essence arg: own essence
 -- Property arg: parent property
-data StaticPropertyRoot where
-  EssStaticRoot   :: Essence -> StaticPropertyRoot
-  PropStaticRoot  :: Essence -> StaticProperty -> StaticPropertyRoot
+data StaticPropertyRoot (lvl :: Level) where
+  EssStaticRoot   :: Essence lvl -> StaticPropertyRoot lvl
+  PropStaticRoot  :: Essence lvl -> StaticProperty lvl -> StaticPropertyRoot lvl
 
 -- Property owning replaces materialization from the prev version
-data PropertyOwning where
+data PropertyOwning (lvl :: Level) where
   -- | Property will be materialized for each parent prop.
-  OwnProp    :: Property -> PropertyOwning
+  OwnProp    :: Property lvl -> PropertyOwning lvl
   -- | Property will be materialized only once and shared between parents.
-  SharedProp :: Property -> PropertyOwning
+  SharedProp :: Property lvl -> PropertyOwning lvl
 
 
-type Category = Essence
+type Category (lvl :: Level) = Essence lvl
 
-data PropertyKeyValue where
+data PropertyKeyValue (lvl :: Level) where
   -- | Implicit dictionary of properties.
   -- When materialized, becomes a dict with keys taken from properties
-  PropKeyBag :: Category -> [PropertyOwning] -> PropertyKeyValue
+  PropKeyBag :: Category lvl -> [PropertyOwning lvl] -> PropertyKeyValue lvl
   -- | Separate property
-  PropKeyVal :: Category -> PropertyOwning -> PropertyKeyValue
+  PropKeyVal :: Category lvl -> PropertyOwning lvl -> PropertyKeyValue lvl
 
-data StaticProperty where
-  StaticProp :: StaticPropertyRoot -> StaticProperty
+data StaticProperty (lvl :: Level) where
+  StaticProp :: StaticPropertyRoot lvl -> StaticProperty lvl
 
-data Property where
+data Property (lvl :: Level) where
   -- | Static prop reference. Will not be materialized.
   StaticPropRef
-    :: StaticProperty
-    -> Property
+    :: StaticProperty lvl
+    -> Property lvl
   -- | Leaf prop. Points to another prop with an essence path.
   --   Will be materialized as a const.
   PropRef
-    :: [Essence]
-    -> Property
+    :: [Essence lvl]
+    -> Property lvl
   -- | Lear prop. Value will be materialized as const.
   PropConst
-    :: PropertyRoot
-    -> ValDef
-    -> Property
+    :: PropertyRoot lvl
+    -> ValDef lvl
+    -> Property lvl
   -- | Lear prop. Value will be materialized as mutable var (TVar).
   PropVal
-    :: PropertyRoot
-    -> ValDef
-    -> Property
+    :: PropertyRoot lvl
+    -> ValDef lvl
+    -> Property lvl
   -- | Compound property.
   -- Each prop in the bag is a mutable reference.
   -- Each prop can be replaced by some other prop.
   PropDict
-    :: PropertyRoot
-    -> [PropertyKeyValue]
-    -> Property
+    :: PropertyRoot lvl
+    -> [PropertyKeyValue lvl]
+    -> Property lvl
   -- | Property script
   PropScript
-    :: Script
-    -> Property
+    :: Script lvl
+    -> Property lvl
 

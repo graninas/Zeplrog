@@ -14,11 +14,6 @@ import GHC.TypeLits
 import Data.Proxy
 import qualified Data.Map as Map
 
--- N.B. Good side of the typed model that when a new typed data comes,
--- the compiler will tell if all the Mat instances are available for it.
--- Enables a gradual development of the model.
-
-
 
 ---------- Interface ------------------
 
@@ -160,27 +155,8 @@ instance
   mat False _ = do
     dynProps <- mat False $ Proxy @(PropKVs propKVs)
     error "1"
-    -- ess        <- mat False $ Proxy @root
-    -- val        <- mat False $ Proxy @valDef
-    -- dynValVar  <- liftIO $ newTVarIO $ Just $ DMod.ConstValue val
-    -- propsVar   <- liftIO $ newTVarIO Map.empty
-    -- let staticProp = Proxy @('PropConst root valDef)
-    -- let staticPropRef = DMod.StaticPropRef staticProp
-    -- pure (DMod.DynamicProperty ess staticPropRef propsVar dynValVar)
   mat True proxy = do
     error "mat True for PropDict not implemented"
-    -- Env spsVar <- ask
-    -- sps <- liftIO $ readTVarIO spsVar
-    -- ess <- mat False $ Proxy @root
-    -- case Map.lookup ess sps of
-    --   Just prop -> pure prop
-    --   Nothing   -> do
-    --     prop <- mat False proxy
-    --     let sps' = Map.insert ess prop sps
-    --     liftIO $ atomically $ writeTVar spsVar sps'
-    --     pure prop
-
-
 
 instance
   Mat ('PropRef essPath) DMod.DynamicProperty where
