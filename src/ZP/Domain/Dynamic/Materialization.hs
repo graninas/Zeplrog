@@ -58,7 +58,7 @@ instance
 -- Materialize values
 
 instance KnownNat intVal =>
-  Mat ('IntValDef @TypeLevel intVal) DMod.Value where
+  Mat ('IntValue @TypeLevel intVal) DMod.Value where
   mat _ _ = pure
       $ DMod.IntValue
       $ fromIntegral
@@ -66,7 +66,7 @@ instance KnownNat intVal =>
       $ Proxy @intVal
 
 instance (Mat val1 DMod.Value, Mat val2 DMod.Value) =>
-  Mat ('PairValDef val1 val2) DMod.Value where
+  Mat ('PairValue val1 val2) DMod.Value where
   mat _ _ = do
     val1 <- mat False $ Proxy @val1
     val2 <- mat False $ Proxy @val2

@@ -15,7 +15,7 @@ import qualified Data.Map as Map
 
 data Env = Env
   { sharedProps :: TVar
-      (Map.Map (Essence ValueLevel) (Property ValueLevel))
+      (Map.Map (Essence 'ValueLevel) (Property 'ValueLevel))
   }
 
 type Materializer a = ReaderT Env IO a
@@ -38,206 +38,204 @@ mat' proxy = do
 
 ---------- Materialization --------------
 
--- Materialize essence
+-- Materialize property root and essence
 
 instance
   KnownSymbol symb =>
-  Mat ('Ess @TypeLevel symb) (Essence ValueLevel) where
+  Mat ('Ess @'TypeLevel symb) (Essence 'ValueLevel) where
   mat _ = pure $ Ess $ symbolVal (Proxy @symb)
 
 instance
-  Mat ess (Essence ValueLevel) =>
-  Mat ('EssRoot ess) (Essence ValueLevel) where
-  mat _ = mat $ Proxy @ess
+  Mat ess (Essence 'ValueLevel) =>
+  Mat ('EssRoot @'TypeLevel ess) (PropertyRoot 'ValueLevel) where
+  mat _ = EssRoot <$> (mat $ Proxy @ess)
 
--- -- Materialize values
+instance
+  ( Mat ess (Essence 'ValueLevel)
+  , Mat prop (Property 'ValueLevel)
+  ) =>
+  Mat ('PropRoot @'TypeLevel ess prop) (PropertyRoot 'ValueLevel) where
+  mat _ = do
+    ess  <- mat $ Proxy @ess
+    prop <- mat $ Proxy @prop
+    pure $ PropRoot ess prop
 
--- instance KnownNat intVal =>
---   Mat ('IntValDef intVal) DMod.Value where
---   mat _ _ = pure
---       $ DMod.IntValue
---       $ fromIntegral
---       $ natVal
---       $ Proxy @intVal
+-- Materialize values
 
--- instance (Mat val1 DMod.Value, Mat val2 DMod.Value) =>
---   Mat ('PairValDef val1 val2) DMod.Value where
---   mat _ _ = do
---     val1 <- mat False $ Proxy @val1
---     val2 <- mat False $ Proxy @val2
---     pure $ DMod.PairValue val1 val2
+instance KnownNat intVal =>
+  Mat ('IntValue @'TypeLevel intVal)
+      (ValDef 'ValueLevel) where
+  mat _ = pure
+      $ IntValue
+      $ fromIntegral
+      $ natVal
+      $ Proxy @intVal
 
--- -- Materialize property
+instance
+  ( Mat val1 (ValDef 'ValueLevel)
+  , Mat val2 (ValDef 'ValueLevel)
+  ) =>
+  Mat ('PairValue @'TypeLevel val1 val2) (ValDef 'ValueLevel) where
+  mat _ = do
+    val1 <- mat $ Proxy @val1
+    val2 <- mat $ Proxy @val2
+    pure $ PairValue val1 val2
 
--- instance
---   ( Mat valDef DMod.Value
---   , Mat root DMod.DynEssence
---   , Browser.Browse Browser.GetEssence ('PropVal root valDef) DMod.DynEssence
---   ) =>
---   Mat ('PropVal root valDef) DMod.DynamicProperty where
---   mat False _ = do
---     ess        <- mat False $ Proxy @root
---     val        <- mat False $ Proxy @valDef
---     valVar     <- liftIO $ newTVarIO val
---     dynValVar  <- liftIO $ newTVarIO $ Just $ DMod.VarValue valVar
---     propsVar   <- liftIO $ newTVarIO Map.empty
---     let staticProp = Proxy @('PropVal root valDef)
---     let staticPropRef = DMod.StaticPropRef staticProp
---     pure (DMod.DynamicProperty ess staticPropRef propsVar dynValVar)
---   mat True proxy = do
---     Env spsVar <- ask
---     sps <- liftIO $ readTVarIO spsVar
---     ess <- mat False $ Proxy @root
---     case Map.lookup ess sps of
---       Just prop -> pure prop
---       Nothing   -> do
---         prop <- mat False proxy
---         let sps' = Map.insert ess prop sps
---         liftIO $ atomically $ writeTVar spsVar sps'
---         pure prop
+-- Materialize property
 
+instance
+  ( Mat val (ValDef 'ValueLevel)
+  , Mat root (PropertyRoot 'ValueLevel)
+  ) =>
+  Mat ('PropVal @'TypeLevel root val)
+      (Property 'ValueLevel) where
+  mat _ = do
+    root <- mat $ Proxy @root
+    val  <- mat $ Proxy @val
+    pure (PropVal root val)
 
--- instance
---   ( Mat valDef DMod.Value
---   , Mat root DMod.DynEssence
---   , Browser.Browse Browser.GetEssence ('PropConst root valDef) DMod.DynEssence
---   ) =>
---   Mat ('PropConst root valDef) DMod.DynamicProperty where
---   mat False _ = do
---     ess        <- mat False $ Proxy @root
---     val        <- mat False $ Proxy @valDef
---     dynValVar  <- liftIO $ newTVarIO $ Just $ DMod.ConstValue val
---     propsVar   <- liftIO $ newTVarIO Map.empty
---     let staticProp = Proxy @('PropConst root valDef)
---     let staticPropRef = DMod.StaticPropRef staticProp
---     pure (DMod.DynamicProperty ess staticPropRef propsVar dynValVar)
---   mat True proxy = do
---     Env spsVar <- ask
---     sps <- liftIO $ readTVarIO spsVar
---     ess <- mat False $ Proxy @root
---     case Map.lookup ess sps of
---       Just prop -> pure prop
---       Nothing   -> do
---         prop <- mat False proxy
---         let sps' = Map.insert ess prop sps
---         liftIO $ atomically $ writeTVar spsVar sps'
---         pure prop
+instance
+  ( Mat val (ValDef 'ValueLevel)
+  , Mat root (PropertyRoot 'ValueLevel)
+  ) =>
+  Mat ('PropConst root val) (Property 'ValueLevel) where
+  mat _ = do
+    root <- mat $ Proxy @root
+    val  <- mat $ Proxy @val
+    pure $ PropConst root val
 
+data PropKVs propKVs
 
--- data PropKVs propKVs
+type Props = [(Category 'ValueLevel, Property 'ValueLevel)]
 
--- type DynProps = [(DMod.DynEssence, DMod.DynamicProperty)]
+instance
+  Mat (PropKVs '[]) Props where
+  mat _ = pure []
 
--- instance
---   Mat (PropKVs '[]) DynProps where
---   mat _ _ = pure []
+instance
+  ( Mat propKV (Category 'ValueLevel, [PropertyOwning 'ValueLevel])
+  , Mat (PropKVs propKVs) Props
+  ) =>
+  Mat (PropKVs (propKV ': propKVs)) Props where
+  mat _ = do
+    (category, propOwns) <- mat $ Proxy @propKV
+    propKVs <- mat $ Proxy @(PropKVs propKVs)
+    error "mat prop kvs not implemented"
 
--- instance
---   ( Mat propKV (DMod.DynEssence, [DMod.DynamicPropertyOwning])
---   , Mat (PropKVs propKVs) DynProps
---   ) =>
---   Mat (PropKVs (propKV ': propKVs)) DynProps where
---   mat _ _ = do
---     (ess, propOwns) <- mat False $ Proxy @propKV
---     propKVs         <- mat False $ Proxy @(PropKVs propKVs)
---     error "Mat PropKVs not implemented"
+instance
+  ( Mat root (PropertyRoot 'ValueLevel)
+  , Mat (PropKVs propKVs) Props
+  ) =>
+  Mat ('PropDict @'TypeLevel root propKVs)
+      (Property 'ValueLevel) where
+  mat _ = do
+    props <- mat $ Proxy @(PropKVs propKVs)
+    error "mat prop dict not implemented"
 
--- instance
---   ( Mat root DMod.DynEssence
---   , Mat (PropKVs propKVs) DynProps
---   ) =>
---   Mat ('PropDict root propKVs) DMod.DynamicProperty where
---   mat False _ = do
---     dynProps <- mat False $ Proxy @(PropKVs propKVs)
---     error "1"
---   mat True proxy = do
---     error "mat True for PropDict not implemented"
+data Essences essPath
 
--- instance
---   Mat ('PropRef essPath) DMod.DynamicProperty where
---   mat _ _ = error "PropRef not implemented"
+instance
+  Mat (Essences '[]) [Essence 'ValueLevel] where
+  mat _ = pure []
 
--- instance
---   ( Mat staticProp (DMod.DynEssence)
---   , Browser.Browse Browser.GetEssence ('StaticPropRef staticProp) DMod.DynEssence
---   ) =>
---   Mat ('StaticPropRef staticProp) DMod.DynamicProperty where
---   mat _ _ = do
---     ess <- mat False $ Proxy @staticProp
---     propsVar  <- liftIO $ newTVarIO Map.empty
---     dynValVar <- liftIO $ newTVarIO Nothing
---     let staticProp = Proxy @('StaticPropRef staticProp)
---     pure $ DMod.DynamicProperty
---       ess
---       (DMod.StaticPropRef staticProp)
---       propsVar
---       dynValVar
+instance
+  ( Mat ess (Essence 'ValueLevel)
+  , Mat (Essences essPath) [Essence 'ValueLevel]
+  ) =>
+  Mat (Essences (ess ': essPath))
+      [Essence 'ValueLevel] where
+  mat _ = do
+    ess     <- mat $ Proxy @ess
+    essPath <- mat $ Proxy @(Essences essPath)
+    pure $ ess : essPath
 
--- instance
---   Mat ('PropScript script) DMod.DynamicProperty where
---   mat _ _ = error "PropScript not implemented"
-
--- -- Materialize static prop
-
--- instance
---   Mat ('StaticProp sp) DMod.DynEssence where
---   mat _ _ = error "Mat StaticProp not implemented"
+instance
+  Mat (Essences essPath) [Essence 'ValueLevel] =>
+  Mat ('PropRef @'TypeLevel essPath)
+      (Property 'ValueLevel) where
+  mat _ = do
+    essPath <- mat $ Proxy @(Essences essPath)
+    pure $ PropRef essPath
 
 
--- -- Materialize Prop Key Val
+instance
+  ( Mat staticProp (StaticProperty 'ValueLevel)
+  ) =>
+  Mat ('StaticPropRef @'TypeLevel staticProp)
+      (Property 'ValueLevel) where
+  mat _ = do
+    sp <- mat $ Proxy @staticProp
+    pure $ StaticPropRef sp
 
--- instance
---   ( Mat category DMod.DynEssence
---   , Mat propOwn DMod.DynamicPropertyOwning
---   ) =>
---   Mat ('PropKeyVal category propOwn)
---       (DMod.DynEssence, [DMod.DynamicPropertyOwning]) where
---   mat _ _ = do
---     ess     <- mat False $ Proxy @category
---     propOwn <- mat False $ Proxy @propOwn
---     pure (ess, [propOwn])
+instance
+  Mat ('PropScript @'TypeLevel script) (Property 'ValueLevel) where
+  mat _ = error "script mat not implemented"
+
+-- Materialize static prop
+
+instance
+  Mat root (StaticPropertyRoot 'ValueLevel) =>
+  Mat ('StaticProp @'TypeLevel root)
+      (StaticProperty 'ValueLevel) where
+  mat _ = do
+    root <- mat $ Proxy @root
+    pure $ StaticProp root
 
 
--- data PropOwns propOwns
+-- Materialize Prop Key Val
 
--- instance
---   Mat (PropOwns '[]) [DMod.DynamicPropertyOwning] where
---   mat _ _ = pure []
+instance
+  ( Mat category (Category 'ValueLevel)
+  , Mat propOwn (PropertyOwning 'ValueLevel)
+  ) =>
+  Mat ('PropKeyVal @'TypeLevel category propOwn)
+      (Category 'ValueLevel, [PropertyOwning 'ValueLevel]) where
+  mat _ = do
+    category <- mat $ Proxy @category
+    propOwn  <- mat $ Proxy @propOwn
+    pure (category, [propOwn])
 
--- instance
---   ( Mat propOwn DMod.DynamicPropertyOwning
---   , Mat (PropOwns propOwns) [DMod.DynamicPropertyOwning]
---   ) =>
---   Mat (PropOwns (propOwn ': propOwns))
---       [DMod.DynamicPropertyOwning] where
---   mat _ _ = do
---     propOwn  <- mat False $ Proxy @propOwn
---     propOwns <- mat False $ Proxy @(PropOwns propOwns)
---     pure $ propOwn : propOwns
 
--- instance
---   ( Mat category DMod.DynEssence
---   , Mat (PropOwns propOwns) [DMod.DynamicPropertyOwning]
---   ) =>
---   Mat ('PropKeyBag category propOwns)
---       (DMod.DynEssence, [DMod.DynamicPropertyOwning]) where
---   mat _ _ = do
---     ess      <- mat False $ Proxy @category
---     propOwns <- mat False $ Proxy @(PropOwns propOwns)
---     pure (ess, propOwns)
+data PropOwns propOwns
 
--- -- Materialize owning/sharing
+instance
+  Mat (PropOwns '[]) [PropertyOwning 'ValueLevel] where
+  mat _ = pure []
 
--- instance
---   Mat prop DMod.DynamicProperty =>
---   Mat ('OwnProp prop) DMod.DynamicPropertyOwning where
---   mat _ _ = do
---     prop <- mat False $ Proxy @prop
---     pure $ DMod.OwnDynamicProperty prop
+instance
+  ( Mat propOwn (PropertyOwning 'ValueLevel)
+  , Mat (PropOwns propOwns) [PropertyOwning 'ValueLevel]
+  ) =>
+  Mat (PropOwns (propOwn ': propOwns))
+      [PropertyOwning 'ValueLevel] where
+  mat _ = do
+    propOwn  <- mat $ Proxy @propOwn
+    propOwns <- mat $ Proxy @(PropOwns propOwns)
+    pure $ propOwn : propOwns
 
--- instance
---   Mat prop DMod.DynamicProperty =>
---   Mat ('SharedProp prop) DMod.DynamicPropertyOwning where
---   mat _ _ = do
---     prop <- mat True $ Proxy @prop
---     pure $ DMod.SharedDynamicProperty prop
+instance
+  ( Mat category (Category 'ValueLevel)
+  , Mat (PropOwns propOwns) [PropertyOwning 'ValueLevel]
+  ) =>
+  Mat ('PropKeyBag @'TypeLevel category propOwns)
+      (Category 'ValueLevel, [PropertyOwning 'ValueLevel]) where
+  mat _ = do
+    category <- mat $ Proxy @category
+    propOwns <- mat $ Proxy @(PropOwns propOwns)
+    pure (category, propOwns)
+
+-- Materialize owning/sharing
+
+instance
+  Mat prop (Property 'ValueLevel) =>
+  Mat ('OwnProp @'TypeLevel prop) (PropertyOwning 'ValueLevel) where
+  mat _ = do
+    prop <- mat $ Proxy @prop
+    pure $ OwnProp prop
+
+instance
+  Mat prop (Property 'ValueLevel) =>
+  Mat ('SharedProp @'TypeLevel prop) (PropertyOwning 'ValueLevel) where
+  mat _ = do
+    prop <- mat $ Proxy @prop
+    pure $ SharedProp prop

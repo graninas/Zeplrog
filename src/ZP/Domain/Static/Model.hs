@@ -7,6 +7,14 @@ import GHC.TypeLits
 
 ------ Common and General -----------------
 
+-- | Specific mechanism (a kind of the HKD pattern)
+-- to choose between Symbol and String, Nat and Int
+-- when using the model either as type-level or as value-level one.
+-- Very boilerplaity. Has a high accidental complexity.
+-- Alternative: a completely separate yet almost identical
+-- of set of types for the static value-level model
+-- with Strings instead Symbols and Ints instead Nats.
+
 data Level = TypeLevel | ValueLevel
 
 type family StringType (lvl :: Level) where
@@ -25,10 +33,10 @@ data Essence (lvl :: Level) where
 -- | Value definition
 
 data ValDef (lvl :: Level) where
-  IntValDef      :: IntegerType lvl -> ValDef lvl
-  IntRangeValDef :: (IntegerType lvl, IntegerType lvl) -> ValDef lvl
-  BoolValDef     :: Bool -> ValDef lvl
-  PairValDef     :: ValDef lvl -> ValDef  lvl-> ValDef lvl
+  IntValue      :: IntegerType lvl -> ValDef lvl
+  IntRangeValue :: (IntegerType lvl, IntegerType lvl) -> ValDef lvl
+  BoolValue     :: Bool -> ValDef lvl
+  PairValue     :: ValDef lvl -> ValDef  lvl-> ValDef lvl
 
 -- | Variable definition
 
@@ -124,7 +132,9 @@ data PropertyKeyValue (lvl :: Level) where
   PropKeyVal :: Category lvl -> PropertyOwning lvl -> PropertyKeyValue lvl
 
 data StaticProperty (lvl :: Level) where
-  StaticProp :: StaticPropertyRoot lvl -> StaticProperty lvl
+  StaticProp
+    :: StaticPropertyRoot lvl
+    -> StaticProperty lvl
 
 data Property (lvl :: Level) where
   -- | Static prop reference. Will not be materialized.
@@ -157,7 +167,4 @@ data Property (lvl :: Level) where
   PropScript
     :: Script lvl
     -> Property lvl
-
-
-
 

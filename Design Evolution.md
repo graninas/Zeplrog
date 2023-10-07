@@ -170,3 +170,4 @@ This also caused a significant problem with the ugly
 DynamicProperty/StaticPropertyRef existential mechanism
 while materializing. Existential static ref was removed.
 It should be replaced by references to the value-level static model.
+
