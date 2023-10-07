@@ -19,43 +19,49 @@ type PosValSharedProp = SharedProp (KB.PosConst 3 5)
 type DoorStateProp    = OwnProp KB.OpenStateRef
 
 
-matDoor :: Materializer DynamicProperty
-matDoor = mat False $ Proxy @KB.Door
+-- matDoor :: Materializer (Property 'ValueLevel)
+-- matDoor = mat $ Proxy @KB.Door
 
 
 -- Manually materialized door
 
-matDoorCustom :: Materializer DynamicProperty
+matDoorCustom :: Materializer (Property 'ValueLevel)
 matDoorCustom = do
-  ess <- mat False $ Proxy @(EssRoot KB.EDoor)
+  -- ess <- mat $ Proxy @(EssRoot KB.EDoor)
 
-  ehp       <- mat False $ Proxy @KB.EHP
-  hpPropOwn <- mat False $ Proxy @HPValOwnProp
+  -- ehp       <- mat $ Proxy @KB.EHP
+  -- hpPropOwn <- mat $ Proxy @HPValOwnProp
 
-  ePos          <- mat False $ Proxy @KB.EPos
-  posPropShared <- mat False $ Proxy @PosValSharedProp
+  -- ePos          <- mat $ Proxy @KB.EPos
+  -- posPropShared <- mat $ Proxy @PosValSharedProp
 
-  -- eState   <- mat False $ Proxy @KB.EState
-  -- stateOwn <- mat False $ Proxy @DoorStateProp
+  -- -- eState   <- mat $ Proxy @KB.EState
+  -- -- stateOwn <- mat $ Proxy @DoorStateProp
 
-  propsMapVar <- liftIO $ newTVarIO $
-    Map.fromList
-      [ (ehp,    hpPropOwn)
-      , (ePos,   posPropShared)
-      -- , (eState, stateOwn)
-      ]
+  -- propsMapVar <- liftIO $ newTVarIO $
+  --   Map.fromList
+  --     [ (ehp,    hpPropOwn)
+  --     , (ePos,   posPropShared)
+  --     -- , (eState, stateOwn)
+  --     ]
 
-  dynValVar <- liftIO $ newTVarIO Nothing
+  -- dynValVar <- liftIO $ newTVarIO Nothing
 
-  let staticProp = Proxy @KB.Door
-  let staticPropRef = StaticPropRef staticProp
-  pure $ DynamicProperty ess staticPropRef propsMapVar dynValVar
+  -- TODO
+  -- let staticProp = Proxy @KB.Door
+  -- let staticPropRef = StaticPropRef staticProp
+  -- pure $ Property ess staticPropRef propsMapVar dynValVar
+
+  -- TODO
+  pure $ PropRef []
 
 
 spec :: Spec
 spec = do
   describe "tests" $ do
-    it "tests" $ pure ()
+    it "tests" $ do
+
+      1 `shouldBe` 2
   -- describe "Materialization test" $ do
   --   it "Materialization: value prop" $ do
   --     (_, DynamicProperty _ _ propsVar valVar) <- runMaterializer matDoorCustom

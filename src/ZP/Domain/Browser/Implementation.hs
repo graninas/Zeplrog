@@ -18,7 +18,7 @@ import GHC.TypeLits
 
 instance
   KnownSymbol ess =>
-  Browse GetEssence ('Ess ess) DMod.DynEssence where
+  Browse GetEssence ('Ess @TypeLevel ess) DMod.DynEssence where
   browse _ _ = symbolVal $ Proxy @ess
 
 instance
@@ -51,5 +51,5 @@ instance
 
 instance
   BrowseDyn GetEssence DMod.StaticPropertyRef DMod.DynEssence where
-  browseDyn _ (DMod.StaticPropRef proxy) = browse GetEssence proxy
+  browseDyn _ DMod.StaticPropRef = error "not implemented"
 

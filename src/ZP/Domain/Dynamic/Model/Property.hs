@@ -19,19 +19,12 @@ data DynamicPropertyOwning
   | SharedDynamicProperty DynamicProperty
 
 data StaticPropertyRef where
-  StaticPropRef
-    -- N.B. This is a very strange way to browse static properties.
-    -- It will require A LOT boilerplate.
-    -- It's a proof that static types can be accessed from
-    -- the runtime.
-    :: Browser.Browse Browser.GetEssence p DynEssence
-    => Proxy (p :: SMod.Property)
-    -> StaticPropertyRef
+  StaticPropRef :: StaticPropertyRef        -- TODO
 
 data DynamicProperty
   = DynamicProperty
   { dpEssence    :: DynEssence              -- TODO: take DynEssence from static prop
-  , dpStaticProp :: StaticPropertyRef
+  , dpStaticProp :: StaticPropertyRef       -- TODO
   , dpsMap       :: TVar (Map.Map DynEssence DynamicPropertyOwning)
   , dpValue      :: TVar (Maybe DynamicValue)
   }

@@ -14,7 +14,7 @@ A simple graphical application was created in which the main character went thro
 
 Simultaneously, the core model of static and dynamic properties was developed and tested. This was implemented using algebraic data types at a mixed level (values + types). A schema for materializing the static model into the dynamic one was created. Test data was developed, and tests were created.
 
-**Stage 2, Iteration 1: Zeplrog as a Showcase Project for PTLD Book**
+**Stage 2: Zeplrog as a Showcase Project for PTLD Book**
 
 The previous model and application were removed.
 
@@ -30,7 +30,7 @@ Partial work on materializing the static model into the dynamic one was carried 
 
 Some materialization tests were created.
 
-### Features of Stage 2, Iteration 1
+**Stage 2, Iteration 1**
 
 The model for static properties is implemented using types. Properties described using this model will be treated as types.
 
@@ -106,3 +106,67 @@ Thus, three models are required:
 As a result of compilation, the static model at the type level is no longer used, and instead, the mixed-level static model is used.
 
 Creating three models is undoubtedly overengineering. However, the goal pursued - a showcase project for the book on type-based programming - justifies it.
+
+
+**Stage 2, Iteration 2**
+
+To support 3 levels of models and not produce a whole extra
+set of types, it was decided to reuse the current static model
+for the mixed level, too.
+
+However, it turned out that it can't be used for value level
+as long as it has Symbol and Nat that have no value level
+representation and thus don't allow to create values of these types.
+
+The following mechanism was introduced to overcome this problem:
+
+```haskell
+data Level
+  = TypeLevel
+  | ValueLevel    -- called value-level, not mixed level for convenience
+
+type family StringType (lvl :: Level) where
+  StringType 'TypeLevel  = Symbol
+  StringType 'ValueLevel = String
+
+data Essence (lvl :: Level) where
+  Ess :: StringType lvl -> Essence lvl
+```
+
+Now, the types can decide what field types to use: for type-level
+or for value-level depending on lvl.
+
+However, this turned the whole model into a mess:
+
+```haskell
+
+data StaticProperty (lvl :: Level) where
+  StaticProp :: StaticPropertyRoot lvl -> StaticProperty lvl
+
+data Property (lvl :: Level) where
+  StaticPropRef :: StaticProperty lvl -> Property lvl
+  PropRef :: [Essence lvl] -> Property lvl
+```
+
+The samples got a slight update. It was enough to specify `@TypeLevel`
+for only essences, and then, it was inferred for the subsequent
+types:
+
+```haskell
+type EHP = Ess @TypeLevel "intrinsics:hp"
+type HPVal hp = PropVal (EssRoot EHP) (IntValDef hp)
+```
+
+The old static to dynamic materialization was affected slightly:
+
+```haskell
+instance
+  KnownSymbol symb =>
+  Mat ('Ess @TypeLevel symb) DMod.DynEssence where
+  mat _ _ = pure $ symbolVal (Proxy @symb)
+```
+
+This also caused a significant problem with the ugly
+DynamicProperty/StaticPropertyRef existential mechanism
+while materializing. Existential static ref was removed.
+It should be replaced by references to the value-level static model.

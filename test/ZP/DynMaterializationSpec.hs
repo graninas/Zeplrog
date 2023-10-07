@@ -73,8 +73,10 @@ matDoorCustom = do
 
   dynValVar <- liftIO $ newTVarIO Nothing
 
-  let staticProp = Proxy @KB.Door
-  let staticPropRef = StaticPropRef staticProp
+  -- TODO
+  -- let staticProp = Proxy @KB.Door
+  -- let staticPropRef = StaticPropRef staticProp
+  let staticPropRef = StaticPropRef
   pure $ DynamicProperty ess staticPropRef propsMapVar dynValVar
 
 

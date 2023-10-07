@@ -47,7 +47,7 @@ mat' proxy = do
 
 instance
   KnownSymbol symb =>
-  Mat ('Ess symb) DMod.DynEssence where
+  Mat ('Ess @TypeLevel symb) DMod.DynEssence where
   mat _ _ = pure $ symbolVal (Proxy @symb)
 
 instance
@@ -58,7 +58,7 @@ instance
 -- Materialize values
 
 instance KnownNat intVal =>
-  Mat ('IntValDef intVal) DMod.Value where
+  Mat ('IntValDef @TypeLevel intVal) DMod.Value where
   mat _ _ = pure
       $ DMod.IntValue
       $ fromIntegral
@@ -86,8 +86,10 @@ instance
     valVar     <- liftIO $ newTVarIO val
     dynValVar  <- liftIO $ newTVarIO $ Just $ DMod.VarValue valVar
     propsVar   <- liftIO $ newTVarIO Map.empty
-    let staticProp = Proxy @('PropVal root valDef)
-    let staticPropRef = DMod.StaticPropRef staticProp
+    -- TODO
+    -- let staticProp = Proxy @('PropVal root valDef)
+    -- let staticPropRef = DMod.StaticPropRef staticProp
+    let staticPropRef = DMod.StaticPropRef
     pure (DMod.DynamicProperty ess staticPropRef propsVar dynValVar)
   mat True proxy = do
     Env spsVar <- ask
@@ -113,8 +115,10 @@ instance
     val        <- mat False $ Proxy @valDef
     dynValVar  <- liftIO $ newTVarIO $ Just $ DMod.ConstValue val
     propsVar   <- liftIO $ newTVarIO Map.empty
-    let staticProp = Proxy @('PropConst root valDef)
-    let staticPropRef = DMod.StaticPropRef staticProp
+    -- TODO
+    -- let staticProp = Proxy @('PropConst root valDef)
+    -- let staticPropRef = DMod.StaticPropRef staticProp -- TODO
+    let staticPropRef = DMod.StaticPropRef
     pure (DMod.DynamicProperty ess staticPropRef propsVar dynValVar)
   mat True proxy = do
     Env spsVar <- ask
@@ -171,10 +175,13 @@ instance
     ess <- mat False $ Proxy @staticProp
     propsVar  <- liftIO $ newTVarIO Map.empty
     dynValVar <- liftIO $ newTVarIO Nothing
-    let staticProp = Proxy @('StaticPropRef staticProp)
+    -- TODO
+    -- let staticProp = Proxy @('StaticPropRef staticProp)
     pure $ DMod.DynamicProperty
       ess
-      (DMod.StaticPropRef staticProp)
+      -- TODO
+      DMod.StaticPropRef
+      -- (DMod.StaticPropRef staticProp)
       propsVar
       dynValVar
 
