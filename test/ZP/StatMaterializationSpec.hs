@@ -27,41 +27,35 @@ matDoor = mat $ Proxy @KB.Door
 
 matDoorCustom :: Materializer (Property 'ValueLevel)
 matDoorCustom = do
-  -- ess <- mat $ Proxy @(EssRoot KB.EDoor)
+  root <- mat $ Proxy @(EssRoot KB.EDoor)
 
-  -- ehp       <- mat $ Proxy @KB.EHP
-  -- hpPropOwn <- mat $ Proxy @HPValOwnProp
+  ehp       <- mat $ Proxy @KB.EHP
+  hpPropOwn <- mat $ Proxy @HPValOwnProp
 
-  -- ePos          <- mat $ Proxy @KB.EPos
-  -- posPropShared <- mat $ Proxy @PosValSharedProp
+  ePos          <- mat $ Proxy @KB.EPos
+  posPropShared <- mat $ Proxy @PosValSharedProp
 
-  -- -- eState   <- mat $ Proxy @KB.EState
-  -- -- stateOwn <- mat $ Proxy @DoorStateProp
+  -- eState   <- mat $ Proxy @KB.EState
+  -- stateOwn <- mat $ Proxy @DoorStateProp
 
-  -- propsMapVar <- liftIO $ newTVarIO $
-  --   Map.fromList
-  --     [ (ehp,    hpPropOwn)
-  --     , (ePos,   posPropShared)
-  --     -- , (eState, stateOwn)
-  --     ]
+  let props =
+        [ PropKeyVal ehp hpPropOwn
+        , PropKeyVal ePos posPropShared
+        -- , (eState, stateOwn)
+        ]
 
-  -- dynValVar <- liftIO $ newTVarIO Nothing
-
-  -- TODO
-  -- let staticProp = Proxy @KB.Door
-  -- let staticPropRef = StaticPropRef staticProp
-  -- pure $ Property ess staticPropRef propsMapVar dynValVar
-
-  -- TODO
-  pure $ PropRef []
-
+  pure $ PropDict root props
 
 spec :: Spec
 spec = do
   describe "tests" $ do
     it "tests" $ do
+      (_, door) <- runMaterializer matDoor
+      case door of
+        PropDict root props ->
+          length props `shouldBe` 2
+        _ -> error "invalid materialization result"
 
-      1 `shouldBe` 2
   -- describe "Materialization test" $ do
   --   it "Materialization: value prop" $ do
   --     (_, DynamicProperty _ _ propsVar valVar) <- runMaterializer matDoorCustom

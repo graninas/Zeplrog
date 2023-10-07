@@ -60,6 +60,28 @@ instance
     prop <- mat $ Proxy @prop
     pure $ PropRoot ess prop
 
+-- Materialize static root
+
+instance
+  ( Mat ess (Essence 'ValueLevel)
+  , Mat statProp (StaticProperty 'ValueLevel)
+  ) =>
+  Mat ('PropStaticRoot @'TypeLevel ess statProp)
+      (StaticPropertyRoot 'ValueLevel) where
+  mat _ = do
+    ess      <- mat $ Proxy @ess
+    statProp <- mat $ Proxy @statProp
+    pure $ PropStaticRoot ess statProp
+
+instance
+  ( Mat ess (Essence 'ValueLevel)
+  ) =>
+  Mat ('EssStaticRoot @'TypeLevel ess)
+      (StaticPropertyRoot 'ValueLevel) where
+  mat _ = do
+    ess  <- mat $ Proxy @ess
+    pure $ EssStaticRoot ess
+
 -- Materialize values
 
 instance KnownNat intVal =>
@@ -157,7 +179,6 @@ instance
   mat _ = do
     essPath <- mat $ Proxy @(Essences essPath)
     pure $ PropRef essPath
-
 
 instance
   ( Mat staticProp (StaticProperty 'ValueLevel)
