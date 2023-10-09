@@ -31,17 +31,27 @@ withProperty rootProxy matProp = do
   Env propsVar <- ask
   props <- readTVarIO propsVar
 
-  (ess, root) <- mat rootProxy
+  (ess, _) <- mat rootProxy
 
   case Map.lookup ess props of
-    Just prop -> pure (ess, prop)
+    Just prop -> do
+      -- TODO: temporary debug output
+      error $ "duplicated property: " <> show ess
+      pure (ess, prop)
     Nothing -> do
+      -- "object:door"
+      -- "intrinsics:pos"
+      -- "ref:state"
+      -- "script:pushable"
+
+      when (Map.size props == 4) $
+        error $ "property: " <> show ess
       (_, prop) <- matProp
       let props' = Map.insert ess prop props
       atomically $ writeTVar propsVar props'
       pure (ess, prop)
 
--- Materialize property root and essence
+-- Statically materialize property root and essence
 
 instance
   KnownSymbol symb =>
@@ -56,7 +66,7 @@ instance
     ess <- mat $ Proxy @ess
     pure (ess, EssStaticRoot ess)
 
--- Materialize static root
+-- Statically materialize static root
 
 instance
   ( Mat ess (Essence 'ValueLevel)
@@ -69,7 +79,7 @@ instance
     (_, statProp) <- mat $ Proxy @statProp
     pure (ess, PropStaticRoot ess statProp)
 
--- Materialize values
+-- Statically materialize values
 
 instance KnownNat intVal =>
   Mat ('IntValue @'TypeLevel intVal)
@@ -99,7 +109,7 @@ instance
     path <- mat $ Proxy @(Essences essPath)
     pure $ PropRefValue path
 
--- Materialize property
+-- Statically materialize property
 
 instance
   ( Mat val (ValDef 'ValueLevel)
@@ -152,7 +162,7 @@ instance
     (ess, root) <- mat $ Proxy @root
     pure (ess, PropScript root NoScript)    -- TODO: temporary
 
--- Materialize property key values
+-- Statically materialize property key values
 
 instance
   Mat (SrcPropKVs '[]) ResPropKVs where
@@ -168,7 +178,7 @@ instance
     propKVs <- mat $ Proxy @(SrcPropKVs propKVs)
     pure $ propKV : propKVs
 
--- Materialize Essence path
+-- Statically materialize Essence path
 
 instance
   Mat (Essences '[]) [Essence 'ValueLevel] where
@@ -185,7 +195,7 @@ instance
     essPath <- mat $ Proxy @(Essences essPath)
     pure $ ess : essPath
 
--- Materialize static prop
+-- Statically materialize static prop
 
 instance
   ( Mat root (Essence 'ValueLevel, StaticPropertyRoot 'ValueLevel)
@@ -196,7 +206,7 @@ instance
     (ess, root) <- mat $ Proxy @root
     pure (ess, StaticProp root)
 
--- Materialize Prop Key Val
+-- Statically materialize Prop Key Val
 
 instance
   ( Mat ess (Essence 'ValueLevel)
@@ -220,7 +230,7 @@ instance
     propOwns <- mat $ Proxy @(PropOwns propOwns)
     pure $ PropKeyBag ess propOwns
 
--- Materialize property owning
+-- Statically materialize property owning
 
 instance
   Mat (PropOwns '[]) [PropertyOwning 'ValueLevel] where

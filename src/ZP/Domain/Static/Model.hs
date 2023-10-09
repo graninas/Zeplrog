@@ -68,7 +68,7 @@ data QuerySetting where
   FollowReferences :: QuerySetting
 
 data CompareOp where
-  Eq :: CompareOp
+  QEq :: CompareOp
 
 data QueryTerm (lvl :: Level) where
   QEssence :: Essence lvl -> QueryTerm lvl

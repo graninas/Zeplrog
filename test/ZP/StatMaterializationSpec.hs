@@ -52,11 +52,11 @@ spec = do
     it "Door materialization test" $ do
       (Env statPropsVar, (ess, door)) <- runMaterializer matDoor
       statProps <- readTVarIO statPropsVar
-      Map.size statProps `shouldBe` 4555
       case door of
         PropDict root props -> do
           -- TODO: more tests of the prop
           length props `shouldBe` 5
+          Map.size statProps `shouldBe` 5
         _ -> error "invalid materialization result"
 
   -- describe "Materialization test" $ do

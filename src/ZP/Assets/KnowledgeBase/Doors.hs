@@ -26,10 +26,10 @@ type PushableScript = SimpleScript EPushable
          (BoolVar "is open")
    ]
   '[ ConditionalAction
-      (ConditionDef "is open" Eq (BoolValue True))
+      (ConditionDef "is open" QEq (BoolValue True))
       (ReplaceProp '[ EState ] '[ EStates, EStateClose ])
    , ConditionalAction
-      (ConditionDef "is open" Eq (BoolValue False))
+      (ConditionDef "is open" QEq (BoolValue False))
       (ReplaceProp '[ EState ] '[ EStates, EStateOpen ])
    ]
 
