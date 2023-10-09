@@ -16,11 +16,11 @@ type IceWand  = StaticProp (EssStaticRoot EWand)
 type KillGoal = StaticProp (EssStaticRoot EGoal)
 
 
-type RatActor = PropDict (EssRoot ERat)
+type RatActor = PropDict (EssStaticRoot ERat)
   '[ PropKeyBag EIntrinsics '[]
    ]
 
-type GuardActor = PropDict (EssRoot EGuard)
+type GuardActor = PropDict (EssStaticRoot EGuard)
   '[ PropKeyBag EIntrinsics '[]
    ]
 

@@ -51,9 +51,8 @@ instance
   mat _ (SMod.Ess ess) = pure ess
 
 instance
-  Mat (SMod.PropertyRoot 'SMod.ValueLevel) Essence where
-  mat _ (SMod.EssRoot ess) = mat False ess
-  mat _ (SMod.PropRoot ess _) = mat False ess
+  Mat (SMod.StaticPropertyRoot 'SMod.ValueLevel) Essence where
+  mat _ (SMod.EssStaticRoot ess) = mat False ess
 
 -- Materialize value
 
@@ -71,7 +70,7 @@ instance
 
 withShared
   :: Bool
-  -> SMod.PropertyRoot 'SMod.ValueLevel
+  -> SMod.StaticPropertyRoot 'SMod.ValueLevel
   -> SMod.Property 'SMod.ValueLevel
   -> Materializer (Essence, Property)
   -> Materializer (Essence, Property)
@@ -118,20 +117,29 @@ instance
       propsVar  <- newTVarIO $ Map.empty
       pure (ess, Property ess spRef propsVar valVar)
   mat _ (SMod.StaticPropRef statProp) = do
-    ess <- getEssence statProp
+    let statEss = getStaticEssence statProp
+    let statRoot = getStaticPropRoot statProp
+    ess <- mat False statEss
+
     Env statProps _ <- ask
+    unless (Map.member statEss statProps)
+      $ error $ "Static property not found: " <> show ess
 
-    unless (Map.member ess statProps)
-      $ error $ "Static property not found: " <> ess
-
-    let ref = StaticPropertyRef root
+    let ref = StaticPropertyRef statRoot
     propsVar <- newTVarIO Map.empty
     valVar <- newTVarIO Nothing
     pure (ess, Property ess ref propsVar valVar)
 
-getEssence :: SMod.StaticPropertyRoot 'SMod.ValueLevel -> Materializer Essence
-getEssence (SMod.EssStaticRoot ess)    = mat False ess
-getEssence (SMod.PropStaticRoot ess _) = mat False ess
+getStaticEssence
+  :: SMod.StaticProperty 'SMod.ValueLevel
+  -> SMod.Essence 'SMod.ValueLevel
+getStaticEssence (SMod.StaticProp (SMod.EssStaticRoot ess)) = ess
+getStaticEssence (SMod.StaticProp (SMod.PropStaticRoot ess _)) = ess
+
+getStaticPropRoot
+  :: SMod.StaticProperty 'SMod.ValueLevel
+  -> SMod.StaticPropertyRoot 'SMod.ValueLevel
+getStaticPropRoot (SMod.StaticProp root) = root
 
 instance
   Mat (SMod.PropertyOwning 'SMod.ValueLevel)

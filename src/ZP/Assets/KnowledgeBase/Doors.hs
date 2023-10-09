@@ -16,7 +16,7 @@ type Close = StaticProp (EssStaticRoot EClose)
 type StateOpen  = StaticProp (PropStaticRoot EStateOpen Open)
 type StateClose = StaticProp (PropStaticRoot EStateClose Close)
 
-type StatePropRefVal = PropVal (EssRoot EStateRef)
+type StatePropRefVal = PropVal (EssStaticRoot EStateRef)
   (PropRefValue '[ EStates, EStateClose ])
 
 type PushableScript = SimpleScript EPushable
@@ -33,7 +33,7 @@ type PushableScript = SimpleScript EPushable
       (ReplaceProp '[ EState ] '[ EStates, EStateOpen ])
    ]
 
-type Door = PropDict (EssRoot EDoor)
+type Door = PropDict (EssStaticRoot EDoor)
   '[ PropKeyVal EHP (OwnProp (HPVal 100))
    , PropKeyVal EPos (SharedProp (PosConst 3 5))        -- TODO: identified from the map
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module ZP.Domain.Static.Model where
 
@@ -16,6 +17,7 @@ import GHC.TypeLits
 -- with Strings instead Symbols and Ints instead Nats.
 
 data Level = TypeLevel | ValueLevel
+  deriving (Show, Eq, Ord)
 
 type family StringType (lvl :: Level) where
   StringType 'TypeLevel  = Symbol
@@ -29,6 +31,12 @@ type family IntegerType (lvl :: Level) where
 
 data Essence (lvl :: Level) where
   Ess :: StringType lvl -> Essence lvl
+
+instance Eq (Essence 'ValueLevel) where
+  (==) (Ess a) (Ess b) = a == b
+
+instance Ord (Essence 'ValueLevel) where
+  compare (Ess a) (Ess b) = compare a b
 
 -- | Value definition
 
@@ -99,12 +107,17 @@ data Script (lvl :: Level) where
 
 ------ Property -----
 
+  -- This is ambiguiuos:
+  --   should the prop be materialized and then, while dynamic, referenced as a root?
+  --   or a static prop should be referenced without materialization?
 -- | Used to make property hierarchies.
 -- Essence arg: own essence
 -- Property arg: parent property
-data PropertyRoot (lvl :: Level) where
-  EssRoot   :: Essence lvl -> PropertyRoot lvl
-  PropRoot  :: Essence lvl -> Property lvl -> PropertyRoot lvl
+-- data PropertyRoot (lvl :: Level) where
+--   EssRoot   :: Essence lvl -> PropertyRoot lvl
+  -- PropRoot  :: Essence lvl -> Property lvl -> PropertyRoot lvl
+
+
 
 -- | Used to make static property hierarchies.
 -- Essence arg: own essence
@@ -127,31 +140,33 @@ data PropertyKeyValue (lvl :: Level) where
   -- | Separate property
   PropKeyVal :: Essence lvl -> PropertyOwning lvl -> PropertyKeyValue lvl
 
+-- | Purely static property that should not be materialized.
 data StaticProperty (lvl :: Level) where
   StaticProp
     :: StaticPropertyRoot lvl
     -> StaticProperty lvl
 
+-- | Static property that must be materialized.
 data Property (lvl :: Level) where
-  -- | Static prop reference. Will not be materialized.
+  -- | Static prop reference. Referenced prop can't be materialized.
   StaticPropRef
     :: StaticProperty lvl
     -> Property lvl
   -- | Lear prop. Value will be materialized as const.
   PropConst
-    :: PropertyRoot lvl
+    :: StaticPropertyRoot lvl
     -> ValDef lvl
     -> Property lvl
   -- | Lear prop. Value will be materialized as mutable var (TVar).
   PropVal
-    :: PropertyRoot lvl
+    :: StaticPropertyRoot lvl
     -> ValDef lvl
     -> Property lvl
   -- | Compound property.
   -- Each prop in the bag is a mutable reference.
   -- Each prop can be replaced by some other prop.
   PropDict
-    :: PropertyRoot lvl
+    :: StaticPropertyRoot lvl
     -> [PropertyKeyValue lvl]
     -> Property lvl
   -- | Property script

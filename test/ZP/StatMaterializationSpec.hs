@@ -17,7 +17,6 @@ import qualified Data.Map as Map
 
 type HPValOwnProp     = OwnProp (KB.HPVal 100)
 type PosValSharedProp = SharedProp (KB.PosConst 3 5)
-type DoorStateProp    = OwnProp KB.OpenStateRef
 
 
 matDoor :: Materializer (Property 'ValueLevel)
@@ -28,7 +27,7 @@ matDoor = mat $ Proxy @KB.Door
 
 matDoorCustom :: Materializer (Property 'ValueLevel)
 matDoorCustom = do
-  root <- mat $ Proxy @(EssRoot KB.EDoor)
+  root <- mat $ Proxy @(EssStaticRoot KB.EDoor)
 
   ehp       <- mat $ Proxy @KB.EHP
   hpPropOwn <- mat $ Proxy @HPValOwnProp

@@ -33,7 +33,7 @@ data PropertyOwning
 
 data PropertyRef
   = DynamicPropertyRef Essence
-  | StaticPropertyRef (SMod.PropertyRoot 'SMod.ValueLevel)
+  | StaticPropertyRef (SMod.StaticPropertyRoot 'SMod.ValueLevel)
 
 data PropertyBag
   = SingleProperty PropertyOwning
