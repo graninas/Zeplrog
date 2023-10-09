@@ -42,6 +42,25 @@ mat' staticProps statModel = do
   (_, a) <- runMaterializer staticProps (mat False statModel)
   pure a
 
+withShared
+  :: Bool
+  -> SMod.StaticPropertyRoot 'SMod.ValueLevel
+  -> SMod.Property 'SMod.ValueLevel
+  -> Materializer (Essence, Property)
+  -> Materializer (Essence, Property)
+withShared False root _ matProp = matProp
+withShared True root prop matProp = do
+  ess <- mat False root
+  Env _ propsVar <- ask
+  props <- readTVarIO propsVar
+  case Map.lookup ess props of
+    Nothing -> do
+      (_, prop) <- mat False prop
+      let props' = Map.insert ess prop props
+      atomically $ writeTVar propsVar props'
+      pure (ess, prop)
+    Just found -> pure (ess, found)
+
 ---------- Materialization --------------
 
 -- Materialize root and essence
@@ -67,26 +86,6 @@ instance
 
 
 -- Materialize property
-
-withShared
-  :: Bool
-  -> SMod.StaticPropertyRoot 'SMod.ValueLevel
-  -> SMod.Property 'SMod.ValueLevel
-  -> Materializer (Essence, Property)
-  -> Materializer (Essence, Property)
-withShared False root _ matProp = matProp
-withShared True root prop matProp = do
-  ess <- mat False root
-  Env _ propsVar <- ask
-  props <- readTVarIO propsVar
-  case Map.lookup ess props of
-    Nothing -> do
-      (_, prop) <- mat False prop
-      let props' = Map.insert ess prop props
-      atomically $ writeTVar propsVar props'
-      pure (ess, prop)
-    Just found -> pure (ess, found)
-
 
 instance
   Mat (SMod.Property 'SMod.ValueLevel)

@@ -48,7 +48,8 @@ type Door = PropDict (EssStaticRoot EDoor)
 
     -- | Abilities to react to effects
    , PropKeyBag EAbilities
-      '[ SharedProp (PropScript EPushableScript PushableScript)
+      '[ SharedProp (PropScript (EssStaticRoot EPushableScript)
+                    PushableScript)
        ]
    ]
 

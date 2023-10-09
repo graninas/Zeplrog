@@ -18,7 +18,7 @@ import Data.Proxy
 import qualified Data.Map as Map
 
 
-doorMat :: SMat.Materializer (SMod.Property 'SMod.ValueLevel)
+doorMat :: SMat.Materializer (SMod.Essence 'SMod.ValueLevel, SMod.Property 'SMod.ValueLevel)
 doorMat = SMat.mat $ Proxy @KB.Door
 
 spec :: Spec
@@ -26,14 +26,14 @@ spec = do
   describe "Materialization test" $ do
 
     it "Full materialization: door" $ do
-      (SMat.Env statPropsVar, statDoorProp) <- SMat.runMaterializer doorMat
+      (SMat.Env statPropsVar, (ess1, statDoorProp)) <- SMat.runMaterializer doorMat
 
       statProps <- readTVarIO statPropsVar
-      (Env _ sharedPropsVar, (ess, doorProp)) <-
+      (Env _ sharedPropsVar, (ess2, doorProp)) <-
         runMaterializer statProps $ mat False statDoorProp
       sharedProps <- readTVarIO sharedPropsVar
 
-      ess `shouldBe` "abc"
+      ess2 `shouldBe` "abc"
       Map.size sharedProps `shouldBe` 111
 
 

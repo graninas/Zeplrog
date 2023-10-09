@@ -19,15 +19,15 @@ type HPValOwnProp     = OwnProp (KB.HPVal 100)
 type PosValSharedProp = SharedProp (KB.PosConst 3 5)
 
 
-matDoor :: Materializer (Property 'ValueLevel)
+matDoor :: Materializer (Essence 'ValueLevel, Property 'ValueLevel)
 matDoor = mat $ Proxy @KB.Door
 
 
 -- Manually materialized door
 
-matDoorCustom :: Materializer (Property 'ValueLevel)
+matDoorCustom :: Materializer (Essence 'ValueLevel, Property 'ValueLevel)
 matDoorCustom = do
-  root <- mat $ Proxy @(EssStaticRoot KB.EDoor)
+  (ess, root) <- mat $ Proxy @(EssStaticRoot KB.EDoor)
 
   ehp       <- mat $ Proxy @KB.EHP
   hpPropOwn <- mat $ Proxy @HPValOwnProp
@@ -44,13 +44,15 @@ matDoorCustom = do
         -- , (eState, stateOwn)
         ]
 
-  pure $ PropDict root props
+  pure (ess, PropDict root props)
 
 spec :: Spec
 spec = do
   describe "Static materialization tests" $ do
     it "Door materialization test" $ do
-      (_, door) <- runMaterializer matDoor
+      (Env statPropsVar, (ess, door)) <- runMaterializer matDoor
+      statProps <- readTVarIO statPropsVar
+      Map.size statProps `shouldBe` 4555
       case door of
         PropDict root props -> do
           -- TODO: more tests of the prop

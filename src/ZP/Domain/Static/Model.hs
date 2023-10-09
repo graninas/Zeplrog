@@ -6,6 +6,8 @@ module ZP.Domain.Static.Model where
 import ZP.Prelude
 import GHC.TypeLits
 
+import qualified Text.Show as T
+
 ------ Common and General -----------------
 
 -- | Specific mechanism (a kind of the HKD pattern)
@@ -37,6 +39,9 @@ instance Eq (Essence 'ValueLevel) where
 
 instance Ord (Essence 'ValueLevel) where
   compare (Ess a) (Ess b) = compare a b
+
+instance T.Show (Essence 'ValueLevel) where
+  show (Ess a) = T.show a
 
 -- | Value definition
 
@@ -171,7 +176,7 @@ data Property (lvl :: Level) where
     -> Property lvl
   -- | Property script
   PropScript
-    :: Essence lvl
+    :: StaticPropertyRoot lvl
     -> Script lvl
     -> Property lvl
 
