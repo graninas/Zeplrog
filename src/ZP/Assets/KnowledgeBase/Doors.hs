@@ -16,15 +16,8 @@ type Close = StaticProp (EssStaticRoot EClose)
 type StateOpen  = StaticProp (PropStaticRoot EStateOpen Open)
 type StateClose = StaticProp (PropStaticRoot EStateClose Close)
 
-type OpenStateRef = PropRef
-  '[ EStates
-   , EStateOpen
-   ]
-
-type CloseStateRef = PropRef
-  '[ EStates
-   , EStateClose
-   ]
+type StatePropRefVal = PropVal (EssRoot EStateRef)
+  (PropRefValue '[ EStates, EStateClose ])
 
 type PushableScript = SimpleScript EPushable
   '[ SimpleQuery
@@ -34,10 +27,10 @@ type PushableScript = SimpleScript EPushable
    ]
   '[ ConditionalAction
       (ConditionDef "is open" Eq (BoolValue True))
-      (ReplaceProp '[ EState ] CloseStateRef)
+      (ReplaceProp '[ EState ] '[ EStates, EStateClose ])
    , ConditionalAction
       (ConditionDef "is open" Eq (BoolValue False))
-      (ReplaceProp '[ EState ] OpenStateRef)
+      (ReplaceProp '[ EState ] '[ EStates, EStateOpen ])
    ]
 
 type Door = PropDict (EssRoot EDoor)
@@ -51,7 +44,7 @@ type Door = PropDict (EssRoot EDoor)
        ]
 
     -- | Current state
-   , PropKeyVal EState (OwnProp OpenStateRef)
+   , PropKeyVal EState (OwnProp StatePropRefVal)
 
     -- | Abilities to react to effects
    , PropKeyBag EAbilities

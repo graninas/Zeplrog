@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 94a5a5312c606080864d8f3f3bda1ed80d936977b401bf3fd2980930b53579be
+-- hash: 39626cea5686217113b765cec453016a646f4f6b33f720920b3c4c88f824e891
 
 name:           zeplrog
 version:        0.0.0.1
@@ -29,13 +29,10 @@ library
       ZP.Assets.KnowledgeBase.Common
       ZP.Assets.KnowledgeBase.Doors
       ZP.Assets.KnowledgeBase.Essences
-      ZP.Domain.Browser.Implementation
-      ZP.Domain.Browser.Language
-      ZP.Domain.Browser.Methods
       ZP.Domain.Dynamic.Materialization
-      ZP.Domain.Dynamic.Model.Common
-      ZP.Domain.Dynamic.Model.Property
+      ZP.Domain.Dynamic.Model
       ZP.Domain.Static.Materialization
+      ZP.Domain.Static.Materializer
       ZP.Domain.Static.Model
       ZP.Prelude
   other-modules:
@@ -111,13 +108,10 @@ executable zeplrog
       ZP.Assets.KnowledgeBase.Common
       ZP.Assets.KnowledgeBase.Doors
       ZP.Assets.KnowledgeBase.Essences
-      ZP.Domain.Browser.Implementation
-      ZP.Domain.Browser.Language
-      ZP.Domain.Browser.Methods
       ZP.Domain.Dynamic.Materialization
-      ZP.Domain.Dynamic.Model.Common
-      ZP.Domain.Dynamic.Model.Property
+      ZP.Domain.Dynamic.Model
       ZP.Domain.Static.Materialization
+      ZP.Domain.Static.Materializer
       ZP.Domain.Static.Model
       ZP.Prelude
       Paths_zeplrog

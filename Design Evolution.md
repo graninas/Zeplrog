@@ -60,7 +60,7 @@ Materialization is based on type classes that convert the static typed model int
 
 ```haskell
 data Env = Env
-  { sharedProps :: TVar (Map.Map DMod.DynEssence DMod.DynamicProperty)
+  { sharedProps :: TVar (Map.Map DMod.Essence DMod.DynamicProperty)
   }
 
 type Materializer a = ReaderT Env IO a
@@ -90,7 +90,7 @@ data StaticPropertyRef where
     -- It will require A LOT boilerplate.
     -- It's a proof that static types can be accessed from
     -- the runtime.
-    :: Browse GetEssence p DynEssence
+    :: Browse GetEssence p Essence
     => Proxy (p :: SMod.Property)
     -> StaticPropertyRef
 ```
@@ -162,7 +162,7 @@ The old static to dynamic materialization was affected slightly:
 ```haskell
 instance
   KnownSymbol symb =>
-  Mat ('Ess @TypeLevel symb) DMod.DynEssence where
+  Mat ('Ess @TypeLevel symb) DMod.Essence where
   mat _ _ = pure $ symbolVal (Proxy @symb)
 ```
 

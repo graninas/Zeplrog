@@ -37,6 +37,7 @@ data ValDef (lvl :: Level) where
   IntRangeValue :: (IntegerType lvl, IntegerType lvl) -> ValDef lvl
   BoolValue     :: Bool -> ValDef lvl
   PairValue     :: ValDef lvl -> ValDef  lvl-> ValDef lvl
+  PropRefValue  :: [Essence lvl] -> ValDef lvl
 
 -- | Variable definition
 
@@ -49,7 +50,6 @@ data VarDef (lvl :: Level) where
   PairVar       :: VarName lvl -> VarDef lvl -> VarDef lvl -> VarDef lvl
 
 ------ Query and Procedure Script ------------
-
 
 data QuerySetting where
   FollowReferences :: QuerySetting
@@ -80,7 +80,7 @@ data Condition (lvl :: Level) where
 data Procedure (lvl :: Level) where
   ReplaceProp
     :: [Essence lvl]
-    -> Property lvl
+    -> [Essence lvl]
     -> Procedure lvl
 
 data Action (lvl :: Level) where
@@ -97,9 +97,7 @@ data Script (lvl :: Level) where
     -> [Action lvl]
     -> Script lvl
 
-
 ------ Property -----
-
 
 -- | Used to make property hierarchies.
 -- Essence arg: own essence
@@ -122,15 +120,12 @@ data PropertyOwning (lvl :: Level) where
   -- | Property will be materialized only once and shared between parents.
   SharedProp :: Property lvl -> PropertyOwning lvl
 
-
-type Category (lvl :: Level) = Essence lvl
-
 data PropertyKeyValue (lvl :: Level) where
   -- | Implicit dictionary of properties.
   -- When materialized, becomes a dict with keys taken from properties
-  PropKeyBag :: Category lvl -> [PropertyOwning lvl] -> PropertyKeyValue lvl
+  PropKeyBag :: Essence lvl -> [PropertyOwning lvl] -> PropertyKeyValue lvl
   -- | Separate property
-  PropKeyVal :: Category lvl -> PropertyOwning lvl -> PropertyKeyValue lvl
+  PropKeyVal :: Essence lvl -> PropertyOwning lvl -> PropertyKeyValue lvl
 
 data StaticProperty (lvl :: Level) where
   StaticProp
@@ -141,11 +136,6 @@ data Property (lvl :: Level) where
   -- | Static prop reference. Will not be materialized.
   StaticPropRef
     :: StaticProperty lvl
-    -> Property lvl
-  -- | Leaf prop. Points to another prop with an essence path.
-  --   Will be materialized as a const.
-  PropRef
-    :: [Essence lvl]
     -> Property lvl
   -- | Lear prop. Value will be materialized as const.
   PropConst

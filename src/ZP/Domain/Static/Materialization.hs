@@ -5,36 +5,12 @@ module ZP.Domain.Static.Materialization where
 import ZP.Prelude
 
 import ZP.Domain.Static.Model
+import ZP.Domain.Static.Materializer
 
 import GHC.TypeLits
 import Data.Proxy
 import qualified Data.Map as Map
 
-
----------- Interface ------------------
-
-data Env = Env
-  { sharedProps :: TVar
-      (Map.Map (Essence 'ValueLevel) (Property 'ValueLevel))
-  }
-
-type Materializer a = ReaderT Env IO a
-
--- | Materialization type class.
-class Mat a b | a -> b where
-  mat :: Proxy a -> Materializer b
-
-runMaterializer :: Materializer a -> IO (Env, a)
-runMaterializer m = do
-  sharedProps' <- liftIO $ newTVarIO Map.empty
-  let env = Env sharedProps'
-  res <- runReaderT m env
-  pure (env, res)
-
-mat' :: Mat a b => Proxy a -> IO b
-mat' proxy = do
-  (_, a) <- runMaterializer (mat proxy)
-  pure a
 
 ---------- Materialization --------------
 
@@ -212,15 +188,15 @@ instance
 -- Materialize Prop Key Val
 
 instance
-  ( Mat category (Category 'ValueLevel)
+  ( Mat ess (Essence 'ValueLevel)
   , Mat propOwn (PropertyOwning 'ValueLevel)
   ) =>
-  Mat ('PropKeyVal @'TypeLevel category propOwn)
+  Mat ('PropKeyVal @'TypeLevel ess propOwn)
       (PropertyKeyValue 'ValueLevel) where
   mat _ = do
-    category <- mat $ Proxy @category
-    propOwn  <- mat $ Proxy @propOwn
-    pure $ PropKeyVal category propOwn
+    ess     <- mat $ Proxy @ess
+    propOwn <- mat $ Proxy @propOwn
+    pure $ PropKeyVal ess propOwn
 
 
 data PropOwns propOwns
@@ -241,15 +217,15 @@ instance
     pure $ propOwn : propOwns
 
 instance
-  ( Mat category (Category 'ValueLevel)
+  ( Mat ess (Essence 'ValueLevel)
   , Mat (PropOwns propOwns) [PropertyOwning 'ValueLevel]
   ) =>
-  Mat ('PropKeyBag @'TypeLevel category propOwns)
+  Mat ('PropKeyBag @'TypeLevel ess propOwns)
       (PropertyKeyValue 'ValueLevel) where
   mat _ = do
-    category <- mat $ Proxy @category
+    ess      <- mat $ Proxy @ess
     propOwns <- mat $ Proxy @(PropOwns propOwns)
-    pure $ PropKeyBag category propOwns
+    pure $ PropKeyBag ess propOwns
 
 -- Materialize owning/sharing
 
