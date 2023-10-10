@@ -51,7 +51,6 @@ instance
     varDef2 <- mat $ Proxy @varDef2
     pure $ PairVar varName varDef1 varDef2
 
-
 -- Statically materialize value
 
 instance

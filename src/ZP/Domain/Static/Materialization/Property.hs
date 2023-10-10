@@ -28,11 +28,13 @@ withProperty
   -> Materializer (Essence 'ValueLevel, Property 'ValueLevel)
   -> Materializer (Essence 'ValueLevel, Property 'ValueLevel)
 withProperty rootProxy matProp = do
-  Env propsRef <- ask
+  Env dbg propsRef <- ask
   props1 <- readIORef propsRef
   (ess, _) <- mat rootProxy
 
-  trace ("Cur stat prop: " <> show ess) $ pure ()
+  when (DebugEnabled == dbg)
+    $ trace ("Cur stat prop: " <> show ess)
+    $ pure ()
 
   case Map.lookup ess props1 of
     Just prop -> pure (ess, prop)

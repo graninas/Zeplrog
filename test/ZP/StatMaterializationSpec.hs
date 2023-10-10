@@ -49,7 +49,7 @@ spec :: Spec
 spec = do
   describe "Static materialization tests" $ do
     it "Door materialization test" $ do
-      (Env statPropsVar, (ess, door)) <- runMaterializer matDoor
+      (Env _ statPropsVar, (ess, door)) <- runMaterializer DebugEnabled matDoor
       statProps <- readIORef statPropsVar
 
       length statProps `shouldBe` 7

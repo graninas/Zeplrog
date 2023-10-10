@@ -16,9 +16,10 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
-doorMat :: SMat.Materializer (
-  SMod.Essence 'SMod.ValueLevel,
-  SMod.Property 'SMod.ValueLevel)
+doorMat :: SMat.Materializer
+  ( SMod.Essence 'SMod.ValueLevel
+  , SMod.Property 'SMod.ValueLevel
+  )
 doorMat = SMat.mat $ Proxy @KB.Door
 
 spec :: Spec
@@ -26,8 +27,8 @@ spec = do
   describe "Materialization test" $ do
 
     it "Full materialization: door" $ do
-      (SMat.Env statPropsVar, (ess1, statDoorProp)) <-
-        SMat.runMaterializer doorMat
+      (SMat.Env _ statPropsVar, (ess1, statDoorProp)) <-
+        SMat.runMaterializer SMat.DebugEnabled doorMat
 
       statProps <- readIORef statPropsVar
       (Env _ sharedPropsVar, (ess2, doorProp)) <-

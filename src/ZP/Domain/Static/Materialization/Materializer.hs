@@ -16,7 +16,12 @@ import qualified Data.Map.Strict as Map
 type StaticProperties =
   Map.Map (Essence 'ValueLevel) (Property 'ValueLevel)
 
-newtype Env = Env (IORef StaticProperties)
+data DebugMode
+  = DebugEnabled
+  | DebugDisabled
+  deriving (Eq)
+
+data Env = Env DebugMode (IORef StaticProperties)
 
 type Materializer a = ReaderT Env IO a
 
@@ -24,14 +29,14 @@ type Materializer a = ReaderT Env IO a
 class Mat a b | a -> b where
   mat :: Proxy a -> Materializer b
 
-runMaterializer :: Materializer a -> IO (Env, a)
-runMaterializer m = do
+runMaterializer :: DebugMode -> Materializer a -> IO (Env, a)
+runMaterializer dbg m = do
   staticProps <- liftIO $ newIORef Map.empty
-  let env = Env staticProps
+  let env = Env dbg staticProps
   res <- runReaderT m env
   pure (env, res)
 
-mat' :: Mat a b => Proxy a -> IO b
-mat' proxy = do
-  (_, a) <- runMaterializer (mat proxy)
+mat' :: DebugMode -> Mat a b => Proxy a -> IO b
+mat' dbg proxy = do
+  (_, a) <- runMaterializer dbg (mat proxy)
   pure a
