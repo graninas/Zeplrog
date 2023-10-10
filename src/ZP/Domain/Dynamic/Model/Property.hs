@@ -31,6 +31,6 @@ data Property = Property
   { dpEssence    :: Essence
   , dpParentProp :: PropertyRef
   , dpScript     :: TVar (Maybe Script)
-  , dpPropsDict  :: TVar (Map.Map Essence PropertyBag)
+  , dpPropsBag   :: TVar (Map.Map Essence PropertyBag)
   , dpPropValue  :: TVar (Maybe PropertyValue)
   }

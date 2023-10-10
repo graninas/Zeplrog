@@ -33,7 +33,7 @@ instance
   mat _ (SMod.PairValue val1 val2) = do
     val1' <- mat False val1
     val2' <- mat False val2
-    pure $ PairValue val1' val2'
+    pure $ PairValue (val1', val2')
   mat _ (SMod.PropRefValue essPath) = do
     essPath' <- mapM (mat False) essPath
 

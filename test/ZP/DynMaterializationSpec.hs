@@ -46,7 +46,7 @@ spec = do
 
     it "Full materialization: game" $ do
       (SMat.Env _ statPropsVar, statGame) <-
-        SMat.runMaterializer SMat.DebugEnabled gameMat
+        SMat.runMaterializer SMat.DebugDisabled gameMat
       statProps <- readIORef statPropsVar
       (Env _ _, game) <-
         runMaterializer statProps $ mat False statGame

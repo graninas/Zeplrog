@@ -23,7 +23,7 @@ data Level = TypeLevel | ValueLevel
 
 type family StringType (lvl :: Level) where
   StringType 'TypeLevel  = Symbol
-  StringType 'ValueLevel = String
+  StringType 'ValueLevel = String     -- TODO: use Text
 
 type family IntegerType (lvl :: Level) where
   IntegerType 'TypeLevel  = Nat

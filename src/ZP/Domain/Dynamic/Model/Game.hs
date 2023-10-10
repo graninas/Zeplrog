@@ -11,6 +11,6 @@ import ZP.Domain.Dynamic.Model.Effect
 import qualified Data.Map as Map
 
 data Game = Game
-  { props       :: Map.Map Essence Property
-  , effTriggers :: [EffectTrigger]
+  { gProps       :: Map.Map Essence Property
+  , gEffTriggers :: [EffectTrigger]
   }

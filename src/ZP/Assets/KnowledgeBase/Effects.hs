@@ -10,9 +10,9 @@ import Prelude (Bool(..))
 import GHC.TypeLits
 
 type PhysicalImpact = Eff EPhysicalImpact
-type Push           = Eff EPhysicalImpact
-type Shockwave      = Eff EPhysicalImpact
-type Kick           = Eff EPhysicalImpact
+type Push           = Eff EPush
+type Shockwave      = Eff EShockwave
+type Kick           = Eff EKick
 
 type Triggers =
   '[ EffTrigger Push      PhysicalImpact
