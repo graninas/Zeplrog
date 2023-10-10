@@ -45,13 +45,7 @@ withProperty rootProxy matProp = do
 
       pure (ess, prop)
 
--- Statically materialize property root and essence
-
-instance
-  ( KnownSymbol symb
-  ) =>
-  Mat ('Ess @'TypeLevel symb) (Essence 'ValueLevel) where
-  mat _ = pure $ Ess $ symbolVal (Proxy @symb)
+-- Statically materialize property root
 
 instance
   ( Mat ess (Essence 'ValueLevel)
@@ -109,13 +103,14 @@ instance
 
 instance
   ( Mat root (Essence 'ValueLevel, StaticPropertyRoot 'ValueLevel)
+  , Mat script (Script 'ValueLevel)
   ) =>
   Mat ('PropScript @'TypeLevel root script)
       (Essence 'ValueLevel, Property 'ValueLevel) where
   mat _ = withProperty (Proxy @root) $ do
     (ess, root) <- mat $ Proxy @root
-    -- pure (ess, PropScript root NoScript)    -- TODO: temporary
-    error "not implemented"
+    script      <- mat $ Proxy @script
+    pure (ess, PropScript root script)
 
 instance
   ( Mat prop (Essence 'ValueLevel, Property 'ValueLevel)

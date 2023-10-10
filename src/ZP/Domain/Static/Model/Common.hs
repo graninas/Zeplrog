@@ -60,6 +60,5 @@ type VarName (lvl :: Level) = StringType lvl
 
 data VarDef (lvl :: Level) where
   IntVar        :: VarName lvl -> VarDef lvl
-  IntRangeVar   :: VarName lvl -> VarDef lvl
   BoolVar       :: VarName lvl -> VarDef lvl
   PairVar       :: VarName lvl -> VarDef lvl -> VarDef lvl -> VarDef lvl

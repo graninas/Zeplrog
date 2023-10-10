@@ -18,7 +18,7 @@ data CompareOp where
   QEq :: CompareOp
 
 data QueryTerm (lvl :: Level) where
-  QEssence :: Essence lvl -> QueryTerm lvl
+  QEssence    :: Essence lvl -> QueryTerm lvl
   QGetEssence :: QueryTerm lvl
 
 type QueryPath (lvl :: Level) = [QueryTerm lvl]
