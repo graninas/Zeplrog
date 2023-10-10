@@ -188,15 +188,19 @@ instance
     pure $ propOwn : propOwns
 
 instance
-  Mat prop (Essence 'ValueLevel, Property 'ValueLevel) =>
-  Mat ('OwnProp @'TypeLevel prop) (PropertyOwning 'ValueLevel) where
+  ( Mat prop (Essence 'ValueLevel, Property 'ValueLevel)
+  ) =>
+  Mat ('OwnProp @'TypeLevel prop)
+      (PropertyOwning 'ValueLevel) where
   mat _ = do
     (_, prop) <- mat $ Proxy @prop
     pure $ OwnProp prop
 
 instance
-  Mat prop (Essence 'ValueLevel, Property 'ValueLevel) =>
-  Mat ('SharedProp @'TypeLevel prop) (PropertyOwning 'ValueLevel) where
+  ( Mat prop (Essence 'ValueLevel, Property 'ValueLevel)
+  ) =>
+  Mat ('SharedProp @'TypeLevel prop)
+      (PropertyOwning 'ValueLevel) where
   mat _ = do
     (_, prop) <- mat $ Proxy @prop
     pure $ SharedProp prop

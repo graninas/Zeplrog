@@ -38,3 +38,8 @@ type EGuard         = Ess @TypeLevel "object:guard"
 type EDoor          = Ess @TypeLevel "object:door"
 
 
+type EPhysicalImpact = Ess @TypeLevel "effect:physical impact"
+type EPush           = Ess @TypeLevel "effect:push"
+type EShockwave      = Ess @TypeLevel "effect:shockwave"
+type EKick           = Ess @TypeLevel "effect:kick"
+

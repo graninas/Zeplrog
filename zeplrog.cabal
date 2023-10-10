@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c7346d3c4f1d6d2c1f5239ed7ffab353c971bfd3a61a4c620d5ae3c47e8e0fd7
+-- hash: 94a04437730ac138c86962de57fff3fb5be38f5d70200dfa04b796173f2a6f9a
 
 name:           zeplrog
 version:        0.0.0.1
@@ -28,23 +28,33 @@ library
       ZP.Assets.KnowledgeBase.Agents
       ZP.Assets.KnowledgeBase.Common
       ZP.Assets.KnowledgeBase.Doors
+      ZP.Assets.KnowledgeBase.Effects
       ZP.Assets.KnowledgeBase.Essences
+      ZP.Assets.KnowledgeBase.Game
       ZP.Domain.Dynamic.Materialization
       ZP.Domain.Dynamic.Materialization.Common
+      ZP.Domain.Dynamic.Materialization.Effect
+      ZP.Domain.Dynamic.Materialization.Game
       ZP.Domain.Dynamic.Materialization.Materializer
       ZP.Domain.Dynamic.Materialization.Property
       ZP.Domain.Dynamic.Materialization.Script
       ZP.Domain.Dynamic.Model
       ZP.Domain.Dynamic.Model.Common
+      ZP.Domain.Dynamic.Model.Effect
+      ZP.Domain.Dynamic.Model.Game
       ZP.Domain.Dynamic.Model.Property
       ZP.Domain.Dynamic.Model.Script
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
+      ZP.Domain.Static.Materialization.Effect
+      ZP.Domain.Static.Materialization.Game
       ZP.Domain.Static.Materialization.Materializer
       ZP.Domain.Static.Materialization.Property
       ZP.Domain.Static.Materialization.Script
       ZP.Domain.Static.Model
       ZP.Domain.Static.Model.Common
+      ZP.Domain.Static.Model.Effect
+      ZP.Domain.Static.Model.Game
       ZP.Domain.Static.Model.Property
       ZP.Domain.Static.Model.Script
       ZP.Prelude
@@ -120,23 +130,33 @@ executable zeplrog
       ZP.Assets.KnowledgeBase.Agents
       ZP.Assets.KnowledgeBase.Common
       ZP.Assets.KnowledgeBase.Doors
+      ZP.Assets.KnowledgeBase.Effects
       ZP.Assets.KnowledgeBase.Essences
+      ZP.Assets.KnowledgeBase.Game
       ZP.Domain.Dynamic.Materialization
       ZP.Domain.Dynamic.Materialization.Common
+      ZP.Domain.Dynamic.Materialization.Effect
+      ZP.Domain.Dynamic.Materialization.Game
       ZP.Domain.Dynamic.Materialization.Materializer
       ZP.Domain.Dynamic.Materialization.Property
       ZP.Domain.Dynamic.Materialization.Script
       ZP.Domain.Dynamic.Model
       ZP.Domain.Dynamic.Model.Common
+      ZP.Domain.Dynamic.Model.Effect
+      ZP.Domain.Dynamic.Model.Game
       ZP.Domain.Dynamic.Model.Property
       ZP.Domain.Dynamic.Model.Script
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
+      ZP.Domain.Static.Materialization.Effect
+      ZP.Domain.Static.Materialization.Game
       ZP.Domain.Static.Materialization.Materializer
       ZP.Domain.Static.Materialization.Property
       ZP.Domain.Static.Materialization.Script
       ZP.Domain.Static.Model
       ZP.Domain.Static.Model.Common
+      ZP.Domain.Static.Model.Effect
+      ZP.Domain.Static.Model.Game
       ZP.Domain.Static.Model.Property
       ZP.Domain.Static.Model.Script
       ZP.Prelude
@@ -209,7 +229,7 @@ test-suite tests
   main-is: Spec.hs
   other-modules:
       ZP.DynMaterializationSpec
-      ZP.StatMaterializationSpec
+      ZP.GameSpec
       Paths_zeplrog
   hs-source-dirs:
       test/

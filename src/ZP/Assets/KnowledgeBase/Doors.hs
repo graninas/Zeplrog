@@ -19,7 +19,7 @@ type StateClose = StaticProp (PropStaticRoot EStateClose Close)
 type StatePropRefVal = PropVal (EssStaticRoot EStateRef)
   (PropRefValue '[ EStates, EStateClose ])
 
-type PushableScript = SimpleScript EPushable
+type PushableScript = SimpleScript EPushableScript
   '[ SimpleQuery
         '[ FollowReferences ]
         '[ QEssence EState, QGetEssence ]
@@ -48,11 +48,10 @@ type Door = PropDict (EssStaticRoot EDoor)
 
     -- | Abilities to react to effects
    , PropKeyBag EAbilities
-      '[ SharedProp (PropScript (EssStaticRoot EPushableScript)
+      '[ SharedProp (PropScript (EssStaticRoot EPushable)
                     PushableScript)
        ]
    ]
-
 
 
 --
@@ -117,9 +116,9 @@ type Door = PropDict (EssStaticRoot EDoor)
 --     ]
 --
 -- Dilemmas:
---  * Open/close can be a separate properties
+--  * Open/close can be separate properties
 --  * Open/close value can be an intrinsic
---      OR a "current property"
+--      OR "current property"
 --  * Open/close action can be outside of the iternal doors
 --      OR it can be a part of the external doors
 --  * API can be an external graph link connecting doors
