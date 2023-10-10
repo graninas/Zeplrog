@@ -5,8 +5,7 @@ module ZP.Domain.Dynamic.Model where
 import ZP.Prelude
 
 import GHC.TypeLits
-import qualified Data.Map as Map
-import qualified Data.Set as Set
+import qualified Data.Map.Strict as Map
 
 import qualified ZP.Domain.Static.Model as SMod
 

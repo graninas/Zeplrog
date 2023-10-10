@@ -8,7 +8,7 @@ import ZP.Domain.Static.Model
 
 import GHC.TypeLits
 import Data.Proxy
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 
 
 ---------- Interface ------------------
@@ -16,7 +16,7 @@ import qualified Data.Map as Map
 type StaticProperties =
   Map.Map (Essence 'ValueLevel) (Property 'ValueLevel)
 
-newtype Env = Env (TVar StaticProperties)
+newtype Env = Env (IORef StaticProperties)
 
 type Materializer a = ReaderT Env IO a
 
@@ -26,7 +26,7 @@ class Mat a b | a -> b where
 
 runMaterializer :: Materializer a -> IO (Env, a)
 runMaterializer m = do
-  staticProps <- liftIO $ newTVarIO Map.empty
+  staticProps <- liftIO $ newIORef Map.empty
   let env = Env staticProps
   res <- runReaderT m env
   pure (env, res)

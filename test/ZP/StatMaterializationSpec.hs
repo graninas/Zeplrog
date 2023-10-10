@@ -12,7 +12,7 @@ import qualified ZP.Assets.KnowledgeBase as KB
 import Test.Hspec
 
 import Data.Proxy
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 
 
 type HPValOwnProp     = OwnProp (KB.HPVal 100)
@@ -51,12 +51,12 @@ spec = do
   describe "Static materialization tests" $ do
     it "Door materialization test" $ do
       (Env statPropsVar, (ess, door)) <- runMaterializer matDoor
-      statProps <- readTVarIO statPropsVar
+      statProps <- readIORef statPropsVar
+      length statProps `shouldBe` 5
       case door of
         PropDict root props -> do
           -- TODO: more tests of the prop
           length props `shouldBe` 5
-          Map.size statProps `shouldBe` 5
         _ -> error "invalid materialization result"
 
   -- describe "Materialization test" $ do

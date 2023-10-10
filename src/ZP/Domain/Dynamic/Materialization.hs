@@ -10,7 +10,7 @@ import ZP.Domain.Dynamic.Model
 
 import GHC.TypeLits
 import Data.Proxy
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 
 
 ---------- Interface ------------------

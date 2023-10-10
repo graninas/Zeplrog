@@ -9,7 +9,7 @@ import ZP.Domain.Static.Materializer
 
 import GHC.TypeLits
 import Data.Proxy
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 
 
 ---------- Materialization --------------
@@ -28,27 +28,19 @@ withProperty
   -> Materializer (Essence 'ValueLevel, Property 'ValueLevel)
   -> Materializer (Essence 'ValueLevel, Property 'ValueLevel)
 withProperty rootProxy matProp = do
-  Env propsVar <- ask
-  props <- readTVarIO propsVar
-
+  Env propsRef <- ask
+  props1 <- readIORef propsRef
   (ess, _) <- mat rootProxy
 
-  case Map.lookup ess props of
-    Just prop -> do
-      -- TODO: temporary debug output
-      error $ "duplicated property: " <> show ess
-      pure (ess, prop)
+  case Map.lookup ess props1 of
+    Just prop -> pure (ess, prop)
     Nothing -> do
-      -- "object:door"
-      -- "intrinsics:pos"
-      -- "ref:state"
-      -- "script:pushable"
-
-      when (Map.size props == 4) $
-        error $ "property: " <> show ess
       (_, prop) <- matProp
-      let props' = Map.insert ess prop props
-      atomically $ writeTVar propsVar props'
+
+      props2 <- readIORef propsRef
+      let props2' = Map.insert ess prop props2
+      writeIORef propsRef props2'
+
       pure (ess, prop)
 
 -- Statically materialize property root and essence
@@ -112,6 +104,17 @@ instance
 -- Statically materialize property
 
 instance
+  ( Mat root (Essence 'ValueLevel, StaticPropertyRoot 'ValueLevel)
+  , Mat (SrcPropKVs propKVs) ResPropKVs
+  ) =>
+  Mat ('PropDict @'TypeLevel root propKVs)
+      (Essence 'ValueLevel, Property 'ValueLevel) where
+  mat _ = withProperty (Proxy @root) $ do
+    (ess, root) <- mat $ Proxy @root
+    propKVs <- mat $ Proxy @(SrcPropKVs propKVs)
+    pure (ess, PropDict root propKVs)
+
+instance
   ( Mat val (ValDef 'ValueLevel)
   , Mat root (Essence 'ValueLevel, StaticPropertyRoot 'ValueLevel)
   ) =>
@@ -132,17 +135,6 @@ instance
     (ess, root) <- mat $ Proxy @root
     val  <- mat $ Proxy @val
     pure (ess, PropConst root val)
-
-instance
-  ( Mat root (Essence 'ValueLevel, StaticPropertyRoot 'ValueLevel)
-  , Mat (SrcPropKVs propKVs) ResPropKVs
-  ) =>
-  Mat ('PropDict @'TypeLevel root propKVs)
-      (Essence 'ValueLevel, Property 'ValueLevel) where
-  mat _ = withProperty (Proxy @root) $ do
-    (ess, root) <- mat $ Proxy @root
-    propKVs <- mat $ Proxy @(SrcPropKVs propKVs)
-    pure (ess, PropDict root propKVs)
 
 instance
   ( Mat staticProp (Essence 'ValueLevel, StaticProperty 'ValueLevel)

@@ -15,7 +15,7 @@ import qualified ZP.Assets.KnowledgeBase as KB
 import Test.Hspec
 
 import Data.Proxy
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 
 
 doorMat :: SMat.Materializer (SMod.Essence 'SMod.ValueLevel, SMod.Property 'SMod.ValueLevel)
@@ -26,9 +26,10 @@ spec = do
   describe "Materialization test" $ do
 
     it "Full materialization: door" $ do
-      (SMat.Env statPropsVar, (ess1, statDoorProp)) <- SMat.runMaterializer doorMat
+      (SMat.Env statPropsVar, (ess1, statDoorProp)) <-
+        SMat.runMaterializer doorMat
 
-      statProps <- readTVarIO statPropsVar
+      statProps <- readIORef statPropsVar
       (Env _ sharedPropsVar, (ess2, doorProp)) <-
         runMaterializer statProps $ mat False statDoorProp
       sharedProps <- readTVarIO sharedPropsVar
