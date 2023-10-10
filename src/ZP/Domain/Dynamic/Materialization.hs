@@ -115,30 +115,48 @@ instance
       valVar    <- newTVarIO $ Just $ VarValue dynValVar
       propsVar  <- newTVarIO $ Map.empty
       pure (ess, Property ess spRef propsVar valVar)
-  mat _ (SMod.StaticPropRef statProp) = do
-    let statEss = getStaticEssence statProp
-    let statRoot = getStaticPropRoot statProp
-    ess <- mat False statEss
 
-    Env statProps _ <- ask
-    unless (Map.member statEss statProps)
-      $ error $ "Static property not found: " <> show ess
+  mat _ (SMod.StaticProp root) = do
+    error "stat prop not implemented"
+    -- ess <- mat False root
 
-    let ref = StaticPropertyRef statRoot
-    propsVar <- newTVarIO Map.empty
-    valVar <- newTVarIO Nothing
-    pure (ess, Property ess ref propsVar valVar)
+    -- Env statProps _ <- ask
 
-getStaticEssence
-  :: SMod.StaticProperty 'SMod.ValueLevel
-  -> SMod.Essence 'SMod.ValueLevel
-getStaticEssence (SMod.StaticProp (SMod.EssStaticRoot ess)) = ess
-getStaticEssence (SMod.StaticProp (SMod.PropStaticRoot ess _)) = ess
+    -- unless (Map.member ess statProps)
+    --   $ error $ "Static property not found: " <> show ess
 
-getStaticPropRoot
-  :: SMod.StaticProperty 'SMod.ValueLevel
-  -> SMod.StaticPropertyRoot 'SMod.ValueLevel
-getStaticPropRoot (SMod.StaticProp root) = root
+    -- let ref = StaticPropertyRef root
+    -- propsVar <- newTVarIO Map.empty
+    -- valVar   <- newTVarIO Nothing
+    -- pure (ess, Property ess ref propsVar valVar)
+
+
+  mat _ (SMod.StaticPropRef prop) = do
+    error "ref not implemented"
+    -- let ess = getEssence statProp
+
+    -- let statRoot = getStaticPropRoot statProp
+    -- ess <- mat False statEss
+
+    -- Env statProps _ <- ask
+    -- unless (Map.member statEss statProps)
+    --   $ error $ "Static property not found: " <> show ess
+
+    -- let ref = StaticPropertyRef statRoot
+    -- propsVar <- newTVarIO Map.empty
+    -- valVar <- newTVarIO Nothing
+    -- pure (ess, Property ess ref propsVar valVar)
+
+-- getStaticEssence
+--   :: SMod.StaticProperty 'SMod.ValueLevel
+--   -> SMod.Essence 'SMod.ValueLevel
+-- getStaticEssence (SMod.StaticProp (SMod.EssStaticRoot ess)) = ess
+-- getStaticEssence (SMod.StaticProp (SMod.PropStaticRoot ess _)) = ess
+
+-- getStaticPropRoot
+--   :: SMod.StaticProperty 'SMod.ValueLevel
+--   -> SMod.StaticPropertyRoot 'SMod.ValueLevel
+-- getStaticPropRoot (SMod.StaticProp root) = root
 
 instance
   Mat (SMod.PropertyOwning 'SMod.ValueLevel)

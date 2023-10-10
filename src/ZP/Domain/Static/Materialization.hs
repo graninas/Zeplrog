@@ -32,6 +32,8 @@ withProperty rootProxy matProp = do
   props1 <- readIORef propsRef
   (ess, _) <- mat rootProxy
 
+  trace ("Cur stat prop: " <> show ess) $ pure ()
+
   case Map.lookup ess props1 of
     Just prop -> pure (ess, prop)
     Nothing -> do
@@ -46,34 +48,35 @@ withProperty rootProxy matProp = do
 -- Statically materialize property root and essence
 
 instance
-  KnownSymbol symb =>
+  ( KnownSymbol symb
+  ) =>
   Mat ('Ess @'TypeLevel symb) (Essence 'ValueLevel) where
   mat _ = pure $ Ess $ symbolVal (Proxy @symb)
 
 instance
-  Mat ess (Essence 'ValueLevel) =>
+  ( Mat ess (Essence 'ValueLevel)
+  ) =>
   Mat ('EssStaticRoot @'TypeLevel ess)
       (Essence 'ValueLevel, StaticPropertyRoot 'ValueLevel) where
   mat _ = do
     ess <- mat $ Proxy @ess
     pure (ess, EssStaticRoot ess)
 
--- Statically materialize static root
-
 instance
   ( Mat ess (Essence 'ValueLevel)
-  , Mat statProp (Essence 'ValueLevel, StaticProperty 'ValueLevel)
+  , Mat prop (Essence 'ValueLevel, Property 'ValueLevel)
   ) =>
-  Mat ('PropStaticRoot @'TypeLevel ess statProp)
+  Mat ('PropStaticRoot @'TypeLevel ess prop)
       (Essence 'ValueLevel, StaticPropertyRoot 'ValueLevel) where
   mat _ = do
-    ess <- mat $ Proxy @ess
-    (_, statProp) <- mat $ Proxy @statProp
-    pure (ess, PropStaticRoot ess statProp)
+    (ess, prop) <- mat $ Proxy @prop
+    pure (ess, PropStaticRoot ess prop)
 
 -- Statically materialize values
 
-instance KnownNat intVal =>
+instance
+  ( KnownNat intVal
+  ) =>
   Mat ('IntValue @'TypeLevel intVal)
       (ValDef 'ValueLevel) where
   mat _ = pure
@@ -137,22 +140,30 @@ instance
     pure (ess, PropConst root val)
 
 instance
-  ( Mat staticProp (Essence 'ValueLevel, StaticProperty 'ValueLevel)
-  ) =>
-  Mat ('StaticPropRef @'TypeLevel staticProp)
-      (Essence 'ValueLevel, Property 'ValueLevel) where
-  mat _ = do
-    (ess, sp) <- mat $ Proxy @staticProp
-    pure (ess, StaticPropRef sp)
-
-instance
   ( Mat root (Essence 'ValueLevel, StaticPropertyRoot 'ValueLevel)
   ) =>
   Mat ('PropScript @'TypeLevel root script)
       (Essence 'ValueLevel, Property 'ValueLevel) where
   mat _ = withProperty (Proxy @root) $ do
     (ess, root) <- mat $ Proxy @root
+    trace ("TODO: stat materialization of script") $ pure ()
     pure (ess, PropScript root NoScript)    -- TODO: temporary
+
+instance
+  ( Mat prop (Essence 'ValueLevel, Property 'ValueLevel)
+  ) =>
+  Mat ('StaticPropRef @'TypeLevel prop)
+      (Essence 'ValueLevel, Property 'ValueLevel) where
+  mat _ = mat $ Proxy @prop
+
+instance
+  ( Mat root (Essence 'ValueLevel, StaticPropertyRoot 'ValueLevel)
+  ) =>
+  Mat ('StaticProp @'TypeLevel root)
+      (Essence 'ValueLevel, Property 'ValueLevel) where
+  mat _ = withProperty (Proxy @root) $ do
+    (ess, root) <- mat $ Proxy @root
+    pure (ess, StaticPropRef $ StaticProp root)
 
 -- Statically materialize property key values
 
@@ -186,17 +197,6 @@ instance
     ess     <- mat $ Proxy @ess
     essPath <- mat $ Proxy @(Essences essPath)
     pure $ ess : essPath
-
--- Statically materialize static prop
-
-instance
-  ( Mat root (Essence 'ValueLevel, StaticPropertyRoot 'ValueLevel)
-  ) =>
-  Mat ('StaticProp @'TypeLevel root)
-      (Essence 'ValueLevel, StaticProperty 'ValueLevel) where
-  mat _ = do
-    (ess, root) <- mat $ Proxy @root
-    pure (ess, StaticProp root)
 
 -- Statically materialize Prop Key Val
 

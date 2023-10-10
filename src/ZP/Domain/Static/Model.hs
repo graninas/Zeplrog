@@ -129,7 +129,7 @@ data Script (lvl :: Level) where
 -- Property arg: parent property
 data StaticPropertyRoot (lvl :: Level) where
   EssStaticRoot   :: Essence lvl -> StaticPropertyRoot lvl
-  PropStaticRoot  :: Essence lvl -> StaticProperty lvl -> StaticPropertyRoot lvl
+  PropStaticRoot  :: Essence lvl -> Property lvl -> StaticPropertyRoot lvl
 
 -- Property owning replaces materialization from the prev version
 data PropertyOwning (lvl :: Level) where
@@ -145,36 +145,40 @@ data PropertyKeyValue (lvl :: Level) where
   -- | Separate property
   PropKeyVal :: Essence lvl -> PropertyOwning lvl -> PropertyKeyValue lvl
 
--- | Purely static property that should not be materialized.
-data StaticProperty (lvl :: Level) where
+-- -- | Purely static property that should not be materialized.
+-- data StaticProperty (lvl :: Level) where
+--   StaticProp
+--     :: StaticPropertyRoot lvl
+--     -> StaticProperty lvl
+
+-- | Static property that must be stat and dyn materialized.
+data Property (lvl :: Level) where
+  -- | Static prop. Referenced prop can't be dyn materialized.
   StaticProp
     :: StaticPropertyRoot lvl
-    -> StaticProperty lvl
-
--- | Static property that must be materialized.
-data Property (lvl :: Level) where
-  -- | Static prop reference. Referenced prop can't be materialized.
-  StaticPropRef
-    :: StaticProperty lvl
     -> Property lvl
-  -- | Lear prop. Value will be materialized as const.
+  -- | Static prop reference. The referenced prop can't be dyn materialized.
+  StaticPropRef
+    :: Property lvl
+    -> Property lvl
+  -- | Lear prop. Value will be dyn materialized as const.
   PropConst
     :: StaticPropertyRoot lvl
     -> ValDef lvl
     -> Property lvl
-  -- | Lear prop. Value will be materialized as mutable var (TVar).
+  -- | Lear prop. Value will be dyn materialized as mutable var (TVar).
   PropVal
     :: StaticPropertyRoot lvl
     -> ValDef lvl
     -> Property lvl
   -- | Compound property.
   -- Each prop in the bag is a mutable reference.
-  -- Each prop can be replaced by some other prop.
+  -- Each prop can be replaced by some other prop in the dyn model.
   PropDict
     :: StaticPropertyRoot lvl
     -> [PropertyKeyValue lvl]
     -> Property lvl
-  -- | Property script
+  -- | Property script.
   PropScript
     :: StaticPropertyRoot lvl
     -> Script lvl

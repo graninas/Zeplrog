@@ -18,7 +18,9 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
-doorMat :: SMat.Materializer (SMod.Essence 'SMod.ValueLevel, SMod.Property 'SMod.ValueLevel)
+doorMat :: SMat.Materializer (
+  SMod.Essence 'SMod.ValueLevel,
+  SMod.Property 'SMod.ValueLevel)
 doorMat = SMat.mat $ Proxy @KB.Door
 
 spec :: Spec
