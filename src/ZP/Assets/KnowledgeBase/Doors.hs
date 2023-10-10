@@ -43,7 +43,7 @@ type Door = PropDict (EssStaticRoot EDoor)
        , OwnProp (StaticPropRef StateClose)
        ]
 
-    -- | Current state
+    -- | Current state. Points to a close/open state
    , PropKeyVal EState (OwnProp StatePropRefVal)
 
     -- | Abilities to react to effects

@@ -15,11 +15,12 @@ type Essence = String
 data Value
   = PairValue Value Value
   | IntValue Int
+  | BoolValue Bool
   -- | EssenceValue Description Essence
   -- | ListValue [PropertyValue]
   -- | ActingObjectValue ActingObject
   -- | ActivePropertyValue Description ActiveProperty
-  -- | StaticPropertyValue StaticProperty
+  | PropRefValue [Essence]
   deriving (Show, Eq, Ord)
 
 data PropertyValue

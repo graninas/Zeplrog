@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 39626cea5686217113b765cec453016a646f4f6b33f720920b3c4c88f824e891
+-- hash: a465ed277b435bcd1b73f9f6254e4d8263a1bcb5dcb2c81f7a0722b2b5d94ae8
 
 name:           zeplrog
 version:        0.0.0.1
@@ -34,6 +34,7 @@ library
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materializer
       ZP.Domain.Static.Model
+      ZP.Domain.Static.ScriptMaterialization
       ZP.Prelude
   other-modules:
       Paths_zeplrog
@@ -113,6 +114,7 @@ executable zeplrog
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materializer
       ZP.Domain.Static.Model
+      ZP.Domain.Static.ScriptMaterialization
       ZP.Prelude
       Paths_zeplrog
   hs-source-dirs:

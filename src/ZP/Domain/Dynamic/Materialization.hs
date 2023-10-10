@@ -72,18 +72,24 @@ instance
 instance
   Mat (SMod.StaticPropertyRoot 'SMod.ValueLevel) Essence where
   mat _ (SMod.EssStaticRoot ess) = mat False ess
+  mat _ (SMod.PropStaticRoot ess _) = mat False ess
 
 -- Materialize value
 
 instance
   Mat (SMod.ValDef 'SMod.ValueLevel) Value where
   mat _ (SMod.IntValue val) = pure $ IntValue val
+  mat _ (SMod.BoolValue val) = pure $ BoolValue val
   mat _ (SMod.PairValue val1 val2) = do
     val1' <- mat False val1
     val2' <- mat False val2
     pure $ PairValue val1' val2'
-  mat _ _ = error "mat valdef not implemented"
+  mat _ (SMod.PropRefValue essPath) = do
+    essPath' <- mapM (mat False) essPath
 
+    -- TODO: should we ensure that the referenced property already exists?
+
+    pure $ PropRefValue essPath'
 
 -- Materialize property
 
@@ -118,45 +124,29 @@ instance
 
   mat _ (SMod.StaticProp root) = do
     error "stat prop not implemented"
-    -- ess <- mat False root
-
-    -- Env statProps _ <- ask
-
-    -- unless (Map.member ess statProps)
-    --   $ error $ "Static property not found: " <> show ess
-
-    -- let ref = StaticPropertyRef root
-    -- propsVar <- newTVarIO Map.empty
-    -- valVar   <- newTVarIO Nothing
-    -- pure (ess, Property ess ref propsVar valVar)
-
 
   mat _ (SMod.StaticPropRef prop) = do
-    error "ref not implemented"
-    -- let ess = getEssence statProp
+    let SMod.StaticProp root = prop
+    let statEss = getEssence root
 
-    -- let statRoot = getStaticPropRoot statProp
-    -- ess <- mat False statEss
+    Env statProps _ <- ask
+    unless (Map.member statEss statProps)
+      $ error $ "Static property not found: " <> show statEss
 
-    -- Env statProps _ <- ask
-    -- unless (Map.member statEss statProps)
-    --   $ error $ "Static property not found: " <> show ess
+    ess <- mat False statEss
+    let ref = StaticPropertyRef root
+    propsVar <- newTVarIO Map.empty
+    valVar <- newTVarIO Nothing
+    pure (ess, Property ess ref propsVar valVar)
 
-    -- let ref = StaticPropertyRef statRoot
-    -- propsVar <- newTVarIO Map.empty
-    -- valVar <- newTVarIO Nothing
-    -- pure (ess, Property ess ref propsVar valVar)
+  mat _ (SMod.PropScript root script) = do
+    error "script not implemented"
 
--- getStaticEssence
---   :: SMod.StaticProperty 'SMod.ValueLevel
---   -> SMod.Essence 'SMod.ValueLevel
--- getStaticEssence (SMod.StaticProp (SMod.EssStaticRoot ess)) = ess
--- getStaticEssence (SMod.StaticProp (SMod.PropStaticRoot ess _)) = ess
-
--- getStaticPropRoot
---   :: SMod.StaticProperty 'SMod.ValueLevel
---   -> SMod.StaticPropertyRoot 'SMod.ValueLevel
--- getStaticPropRoot (SMod.StaticProp root) = root
+getEssence
+  :: SMod.StaticPropertyRoot 'SMod.ValueLevel
+  -> SMod.Essence 'SMod.ValueLevel
+getEssence (SMod.EssStaticRoot ess) = ess
+getEssence (SMod.PropStaticRoot ess _) = ess
 
 instance
   Mat (SMod.PropertyOwning 'SMod.ValueLevel)

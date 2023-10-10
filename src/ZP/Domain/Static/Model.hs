@@ -47,9 +47,11 @@ instance T.Show (Essence 'ValueLevel) where
 
 data ValDef (lvl :: Level) where
   IntValue      :: IntegerType lvl -> ValDef lvl
-  IntRangeValue :: (IntegerType lvl, IntegerType lvl) -> ValDef lvl
   BoolValue     :: Bool -> ValDef lvl
   PairValue     :: ValDef lvl -> ValDef  lvl-> ValDef lvl
+
+  -- Should be dyn materialized as a mutable reference to a property
+  -- (list of essences relative to the parent property)
   PropRefValue  :: [Essence lvl] -> ValDef lvl
 
 -- | Variable definition
@@ -112,18 +114,6 @@ data Script (lvl :: Level) where
 
 ------ Property -----
 
-  -- This is ambiguiuos:
-  --   should the prop be materialized and then, while dynamic, referenced as a root?
-  --   or a static prop should be referenced without materialization?
--- | Used to make property hierarchies.
--- Essence arg: own essence
--- Property arg: parent property
--- data PropertyRoot (lvl :: Level) where
---   EssRoot   :: Essence lvl -> PropertyRoot lvl
-  -- PropRoot  :: Essence lvl -> Property lvl -> PropertyRoot lvl
-
-
-
 -- | Used to make static property hierarchies.
 -- Essence arg: own essence
 -- Property arg: parent property
@@ -144,12 +134,6 @@ data PropertyKeyValue (lvl :: Level) where
   PropKeyBag :: Essence lvl -> [PropertyOwning lvl] -> PropertyKeyValue lvl
   -- | Separate property
   PropKeyVal :: Essence lvl -> PropertyOwning lvl -> PropertyKeyValue lvl
-
--- -- | Purely static property that should not be materialized.
--- data StaticProperty (lvl :: Level) where
---   StaticProp
---     :: StaticPropertyRoot lvl
---     -> StaticProperty lvl
 
 -- | Static property that must be stat and dyn materialized.
 data Property (lvl :: Level) where
