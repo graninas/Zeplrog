@@ -5,9 +5,7 @@ module ZP.DynMaterializationSpec where
 import ZP.Prelude
 
 import qualified ZP.Domain.Static.Model as SMod
-import qualified ZP.Domain.Static.Materializer as SMat
 import qualified ZP.Domain.Static.Materialization as SMat
-import qualified ZP.Domain.Dynamic.Model as DMod
 import ZP.Domain.Dynamic.Model
 import ZP.Domain.Dynamic.Materialization
 import qualified ZP.Assets.KnowledgeBase as KB

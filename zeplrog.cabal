@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a465ed277b435bcd1b73f9f6254e4d8263a1bcb5dcb2c81f7a0722b2b5d94ae8
+-- hash: c7346d3c4f1d6d2c1f5239ed7ffab353c971bfd3a61a4c620d5ae3c47e8e0fd7
 
 name:           zeplrog
 version:        0.0.0.1
@@ -30,11 +30,23 @@ library
       ZP.Assets.KnowledgeBase.Doors
       ZP.Assets.KnowledgeBase.Essences
       ZP.Domain.Dynamic.Materialization
+      ZP.Domain.Dynamic.Materialization.Common
+      ZP.Domain.Dynamic.Materialization.Materializer
+      ZP.Domain.Dynamic.Materialization.Property
+      ZP.Domain.Dynamic.Materialization.Script
       ZP.Domain.Dynamic.Model
+      ZP.Domain.Dynamic.Model.Common
+      ZP.Domain.Dynamic.Model.Property
+      ZP.Domain.Dynamic.Model.Script
       ZP.Domain.Static.Materialization
-      ZP.Domain.Static.Materializer
+      ZP.Domain.Static.Materialization.Common
+      ZP.Domain.Static.Materialization.Materializer
+      ZP.Domain.Static.Materialization.Property
+      ZP.Domain.Static.Materialization.Script
       ZP.Domain.Static.Model
-      ZP.Domain.Static.ScriptMaterialization
+      ZP.Domain.Static.Model.Common
+      ZP.Domain.Static.Model.Property
+      ZP.Domain.Static.Model.Script
       ZP.Prelude
   other-modules:
       Paths_zeplrog
@@ -110,11 +122,23 @@ executable zeplrog
       ZP.Assets.KnowledgeBase.Doors
       ZP.Assets.KnowledgeBase.Essences
       ZP.Domain.Dynamic.Materialization
+      ZP.Domain.Dynamic.Materialization.Common
+      ZP.Domain.Dynamic.Materialization.Materializer
+      ZP.Domain.Dynamic.Materialization.Property
+      ZP.Domain.Dynamic.Materialization.Script
       ZP.Domain.Dynamic.Model
+      ZP.Domain.Dynamic.Model.Common
+      ZP.Domain.Dynamic.Model.Property
+      ZP.Domain.Dynamic.Model.Script
       ZP.Domain.Static.Materialization
-      ZP.Domain.Static.Materializer
+      ZP.Domain.Static.Materialization.Common
+      ZP.Domain.Static.Materialization.Materializer
+      ZP.Domain.Static.Materialization.Property
+      ZP.Domain.Static.Materialization.Script
       ZP.Domain.Static.Model
-      ZP.Domain.Static.ScriptMaterialization
+      ZP.Domain.Static.Model.Common
+      ZP.Domain.Static.Model.Property
+      ZP.Domain.Static.Model.Script
       ZP.Prelude
       Paths_zeplrog
   hs-source-dirs:

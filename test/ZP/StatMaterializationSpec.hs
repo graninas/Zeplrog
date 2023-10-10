@@ -5,7 +5,6 @@ module ZP.StatMaterializationSpec where
 import ZP.Prelude
 
 import ZP.Domain.Static.Model
-import ZP.Domain.Static.Materializer
 import ZP.Domain.Static.Materialization
 import qualified ZP.Assets.KnowledgeBase as KB
 

@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE UndecidableInstances #-}
-module ZP.Domain.Static.Materializer where
+module ZP.Domain.Static.Materialization.Materializer where
 
 import ZP.Prelude
 

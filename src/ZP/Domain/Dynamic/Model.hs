@@ -1,47 +1,8 @@
-{-# LANGUAGE DataKinds #-}
-
-module ZP.Domain.Dynamic.Model where
-
-import ZP.Prelude
-
-import GHC.TypeLits
-import qualified Data.Map.Strict as Map
-
-import qualified ZP.Domain.Static.Model as SMod
+module ZP.Domain.Dynamic.Model
+  ( module X
+  ) where
 
 
-type Essence = String
-
-data Value
-  = PairValue Value Value
-  | IntValue Int
-  | BoolValue Bool
-  -- | EssenceValue Description Essence
-  -- | ListValue [PropertyValue]
-  -- | ActingObjectValue ActingObject
-  -- | ActivePropertyValue Description ActiveProperty
-  | PropRefValue [Essence]
-  deriving (Show, Eq, Ord)
-
-data PropertyValue
-  = VarValue (TVar Value)
-  | ConstValue Value
-
-data PropertyOwning
-  = OwnProperty Property
-  | SharedProperty PropertyRef
-
-data PropertyRef
-  = DynamicPropertyRef Essence
-  | StaticPropertyRef (SMod.StaticPropertyRoot 'SMod.ValueLevel)
-
-data PropertyBag
-  = SingleProperty PropertyOwning
-  | PropertyDict (Map.Map Essence PropertyOwning)
-
-data Property = Property
-  { dpEssence    :: Essence
-  , dpParentProp :: PropertyRef
-  , dpPropsDict  :: TVar (Map.Map Essence PropertyBag)
-  , dpPropValue  :: TVar (Maybe PropertyValue)
-  }
+import ZP.Domain.Dynamic.Model.Common as X
+import ZP.Domain.Dynamic.Model.Script as X
+import ZP.Domain.Dynamic.Model.Property as X
