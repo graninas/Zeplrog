@@ -4,6 +4,8 @@ module ZP.Domain.Dynamic.Model.Script where
 
 import ZP.Prelude
 
-import qualified Data.Map.Strict as Map
-
+import qualified ZP.Domain.Static.Model as SMod
 import ZP.Domain.Dynamic.Model.Common
+
+
+newtype Script = Script (SMod.Script 'SMod.ValueLevel)

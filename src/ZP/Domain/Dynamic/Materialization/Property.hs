@@ -46,26 +46,29 @@ instance
       let spRef = StaticPropertyRef root
       ess      <- mat False root
       props    <- mapM (mat False) propKVs
+      scriptVar <- newTVarIO Nothing
       propsVar <- newTVarIO $ Map.fromList props
       valVar   <- newTVarIO Nothing
-      pure (ess, Property ess spRef propsVar valVar)
+      pure (ess, Property ess spRef scriptVar propsVar valVar)
   mat shared prop@(SMod.PropConst root valDef)
     = withShared shared root prop $ do
       let spRef = StaticPropertyRef root
       ess      <- mat False root
       val      <- mat False valDef
+      scriptVar <- newTVarIO Nothing
       valVar   <- newTVarIO $ Just $ ConstValue val
-      propsVar <- newTVarIO $ Map.empty
-      pure (ess, Property ess spRef propsVar valVar)
+      propsVar <- newTVarIO Map.empty
+      pure (ess, Property ess spRef scriptVar propsVar valVar)
   mat shared prop@(SMod.PropVal root valDef)
     = withShared shared root prop $ do
       let spRef = StaticPropertyRef root
       ess       <- mat False root
       val       <- mat False valDef
-      dynValVar <- newTVarIO $ val
+      dynValVar <- newTVarIO val
       valVar    <- newTVarIO $ Just $ VarValue dynValVar
-      propsVar  <- newTVarIO $ Map.empty
-      pure (ess, Property ess spRef propsVar valVar)
+      scriptVar <- newTVarIO Nothing
+      propsVar  <- newTVarIO Map.empty
+      pure (ess, Property ess spRef scriptVar propsVar valVar)
 
   mat _ (SMod.StaticProp root) = do
     error "stat prop not implemented"
@@ -79,13 +82,20 @@ instance
       $ error $ "Static property not found: " <> show statEss
 
     ess <- mat False statEss
-    let ref = StaticPropertyRef root
-    propsVar <- newTVarIO Map.empty
-    valVar <- newTVarIO Nothing
-    pure (ess, Property ess ref propsVar valVar)
+    let spRef = StaticPropertyRef root
+    propsVar  <- newTVarIO Map.empty
+    scriptVar <- newTVarIO Nothing
+    valVar    <- newTVarIO Nothing
+    pure (ess, Property ess spRef scriptVar propsVar valVar)
 
   mat _ (SMod.PropScript root script) = do
-    error "script not implemented"
+      let spRef = StaticPropertyRef root
+      ess       <- mat False root
+      valVar    <- newTVarIO Nothing
+      propsVar  <- newTVarIO Map.empty
+      scriptVar <- newTVarIO $ Just $ Script script
+      pure (ess, Property ess spRef scriptVar propsVar valVar)
+
 
 getEssence
   :: SMod.StaticPropertyRoot 'SMod.ValueLevel

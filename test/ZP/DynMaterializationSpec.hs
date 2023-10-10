@@ -34,8 +34,8 @@ spec = do
         runMaterializer statProps $ mat False statDoorProp
       sharedProps <- readTVarIO sharedPropsVar
 
-      ess2 `shouldBe` "abc"
-      Map.size sharedProps `shouldBe` 111
+      ess2 `shouldBe` "object:door"
+      Map.size sharedProps `shouldBe` 1
 
 
     -- it "Materialization: value prop" $ do
