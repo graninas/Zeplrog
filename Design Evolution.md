@@ -171,3 +171,8 @@ DynamicProperty/StaticPropertyRef existential mechanism
 while materializing. Existential static ref was removed.
 It should be replaced by references to the value-level static model.
 
+
+**Stage 2, Iteration 3**
+
+The idea remains the same but models were reworked much.
+Static properties and references were simplified.
