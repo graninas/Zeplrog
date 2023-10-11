@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 94a04437730ac138c86962de57fff3fb5be38f5d70200dfa04b796173f2a6f9a
+-- hash: 7633c23125d841c1caa744a9e96a79a952f24871cd94eb12a04766ed2fdc96bf
 
 name:           zeplrog
 version:        0.0.0.1
@@ -44,6 +44,7 @@ library
       ZP.Domain.Dynamic.Model.Game
       ZP.Domain.Dynamic.Model.Property
       ZP.Domain.Dynamic.Model.Script
+      ZP.Domain.Materializer
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
       ZP.Domain.Static.Materialization.Effect
@@ -55,9 +56,11 @@ library
       ZP.Domain.Static.Model.Common
       ZP.Domain.Static.Model.Effect
       ZP.Domain.Static.Model.Game
+      ZP.Domain.Static.Model.Helpers
       ZP.Domain.Static.Model.Property
       ZP.Domain.Static.Model.Script
       ZP.Prelude
+      ZP.System.Debug
   other-modules:
       Paths_zeplrog
   hs-source-dirs:
@@ -146,6 +149,7 @@ executable zeplrog
       ZP.Domain.Dynamic.Model.Game
       ZP.Domain.Dynamic.Model.Property
       ZP.Domain.Dynamic.Model.Script
+      ZP.Domain.Materializer
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
       ZP.Domain.Static.Materialization.Effect
@@ -157,9 +161,11 @@ executable zeplrog
       ZP.Domain.Static.Model.Common
       ZP.Domain.Static.Model.Effect
       ZP.Domain.Static.Model.Game
+      ZP.Domain.Static.Model.Helpers
       ZP.Domain.Static.Model.Property
       ZP.Domain.Static.Model.Script
       ZP.Prelude
+      ZP.System.Debug
       Paths_zeplrog
   hs-source-dirs:
       src/
@@ -228,8 +234,10 @@ test-suite tests
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      ZP.AgentsSpec
       ZP.DynMaterializationSpec
       ZP.GameSpec
+      ZP.StatMaterializationSpec
       Paths_zeplrog
   hs-source-dirs:
       test/

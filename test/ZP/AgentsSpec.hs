@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 
-module ZP.GameSpec where
+module ZP.AgentsSpec where
 
 import ZP.Prelude
 
@@ -19,10 +19,14 @@ import qualified Data.Map.Strict as Map
 
 spec :: Spec
 spec = do
-  describe "Game tests" $ do
+  describe "Agents tests" $ do
 
-    xit "Effect triggering test" $ do
-      (sEnv, dEnv) <- makeEnvs DebugDisabled
+    xit "Materialize actions test" $ do
+
+      -- gameRt <- newGameRuntime DebugEnabled
+      -- actor <- materialize gameRt $ Proxy @KB.GuardActor
+
+
 
       1 `shouldBe` 2
 

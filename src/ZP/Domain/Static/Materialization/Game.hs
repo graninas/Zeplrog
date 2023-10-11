@@ -21,47 +21,47 @@ data Triggs ts
 -- Statically materialize triggers
 
 instance
-  Mat (Triggs '[]) [Trigger 'ValueLevel] where
-  mat _ = pure []
+  SMat (Triggs '[]) [Trigger 'ValueLevel] where
+  sMat _ = pure []
 
 instance
-  ( Mat trig (Trigger 'ValueLevel)
-  , Mat (Triggs triggs) [Trigger 'ValueLevel]
+  ( SMat trig (Trigger 'ValueLevel)
+  , SMat (Triggs triggs) [Trigger 'ValueLevel]
   ) =>
-  Mat (Triggs (trig ': triggs))
+  SMat (Triggs (trig ': triggs))
       [Trigger 'ValueLevel] where
-  mat _ = do
-    trig  <- mat $ Proxy @trig
-    triggs <- mat $ Proxy @(Triggs triggs)
+  sMat _ = do
+    trig  <- sMat $ Proxy @trig
+    triggs <- sMat $ Proxy @(Triggs triggs)
     pure $ trig : triggs
 
 -- Statically materialize props
 
 instance
-  Mat (Props '[]) [(Essence 'ValueLevel, Property 'ValueLevel)] where
-  mat _ = pure []
+  SMat (Props '[]) [(Essence 'ValueLevel, Property 'ValueLevel)] where
+  sMat _ = pure []
 
 instance
-  ( Mat prop (Essence 'ValueLevel, Property 'ValueLevel)
-  , Mat (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
+  ( SMat prop (Essence 'ValueLevel, Property 'ValueLevel)
+  , SMat (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
   ) =>
-  Mat (Props (prop ': props))
+  SMat (Props (prop ': props))
       [(Essence 'ValueLevel, Property 'ValueLevel)] where
-  mat _ = do
-    prop  <- mat $ Proxy @prop
-    props <- mat $ Proxy @(Props props)
+  sMat _ = do
+    prop  <- sMat $ Proxy @prop
+    props <- sMat $ Proxy @(Props props)
     pure $ prop : props
 
 -- Statically materialize game env
 
 instance
-  ( Mat (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
-  , Mat (Triggs triggs) [Trigger 'ValueLevel]
+  ( SMat (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
+  , SMat (Triggs triggs) [Trigger 'ValueLevel]
   ) =>
-  Mat ('GameEnvironment @TypeLevel props triggs)
+  SMat ('GameEnvironment @TypeLevel props triggs)
       (Game 'ValueLevel) where
-  mat _ = do
-    props  <- mat $ Proxy @(Props props)
-    triggs <- mat $ Proxy @(Triggs triggs)
+  sMat _ = do
+    props  <- sMat $ Proxy @(Props props)
+    triggs <- sMat $ Proxy @(Triggs triggs)
     let props' = map snd props
     pure $ GameEnvironment props' triggs

@@ -3,6 +3,8 @@ module ZP.Domain.Dynamic.Materialization.Materializer where
 
 import ZP.Prelude
 
+import ZP.System.Debug
+import ZP.Domain.Static.Materialization.Materializer
 import qualified ZP.Domain.Static.Materialization as SMat
 import ZP.Domain.Dynamic.Model
 
@@ -11,29 +13,46 @@ import qualified Data.Map.Strict as Map
 
 ---------- Dynamic materializer interface ------------------
 
-data Env = Env
-  SMat.StaticProperties
-  (TVar (Map.Map Essence Property))
+-- TODO: make Materializer thread-safe (STM instead of IO)
 
-type Materializer a = ReaderT Env IO a
+type DynamicProperties = Map.Map Essence Property
+
+data DEnv = DEnv
+  SEnv
+  (TVar DynamicProperties)
+
+type DMaterializer a = ReaderT DEnv IO a
 
 type Shared = Bool
 
 -- | Materialization type class.
-class Mat a b | a -> b where
-  mat :: Shared -> a -> Materializer b
+class DMat a b | a -> b where
+  dMat :: Shared -> a -> DMaterializer b
 
-runMaterializer
-  :: SMat.StaticProperties
-  -> Materializer a
-  -> IO (Env, a)
-runMaterializer staticProps m = do
-  sharedProps <- liftIO $ newTVarIO Map.empty
-  let env = Env staticProps sharedProps
-  res <- runReaderT m env
-  pure (env, res)
+runDMaterializer :: DEnv -> DMaterializer a -> IO a
+runDMaterializer dEnv m = runReaderT m dEnv
 
-mat' :: Mat a b => SMat.StaticProperties -> a -> IO b
-mat' staticProps statModel = do
-  (_, a) <- runMaterializer staticProps (mat False statModel)
-  pure a
+dMat' :: DMat a b => DEnv -> a -> IO b
+dMat' dEnv itVL = runDMaterializer dEnv $ dMat False itVL
+
+fullMat
+  :: SMat itTL itVL
+  => DMat itVL res
+  => DEnv
+  -> Proxy itTL
+  -> IO res
+fullMat dEnv@(DEnv sEnv _) proxy = do
+  itVL <- sMat' sEnv proxy
+  dMat' dEnv itVL
+
+makeDEnv :: SEnv -> IO DEnv
+makeDEnv sEnv = DEnv
+  <$> pure sEnv
+  <*> newTVarIO Map.empty
+
+makeEnvs :: DebugMode -> IO (SEnv, DEnv)
+makeEnvs dbg = do
+  sEnv <- makeSEnv dbg
+  dEnv <- makeDEnv sEnv
+  pure (sEnv, dEnv)
+

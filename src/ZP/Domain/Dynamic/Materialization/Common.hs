@@ -16,26 +16,26 @@ import qualified Data.Map.Strict as Map
 -- Materialize root and essence
 
 instance
-  Mat (SMod.Essence 'SMod.ValueLevel) Essence where
-  mat _ (SMod.Ess ess) = pure ess
+  DMat (SMod.Essence 'SMod.ValueLevel) Essence where
+  dMat _ (SMod.Ess ess) = pure ess
 
 instance
-  Mat (SMod.StaticPropertyRoot 'SMod.ValueLevel) Essence where
-  mat _ (SMod.EssStaticRoot ess) = mat False ess
-  mat _ (SMod.PropStaticRoot ess _) = mat False ess   -- TODO: property itself - ???
+  DMat (SMod.StaticPropertyRoot 'SMod.ValueLevel) Essence where
+  dMat _ (SMod.EssStaticRoot ess)    = dMat False ess
+  dMat _ (SMod.PropStaticRoot ess _) = dMat False ess   -- TODO: property itself - ???
 
 -- Materialize value
 
 instance
-  Mat (SMod.ValDef 'SMod.ValueLevel) Value where
-  mat _ (SMod.IntValue val) = pure $ IntValue val
-  mat _ (SMod.BoolValue val) = pure $ BoolValue val
-  mat _ (SMod.PairValue val1 val2) = do
-    val1' <- mat False val1
-    val2' <- mat False val2
+  DMat (SMod.ValDef 'SMod.ValueLevel) Value where
+  dMat _ (SMod.IntValue val) = pure $ IntValue val
+  dMat _ (SMod.BoolValue val) = pure $ BoolValue val
+  dMat _ (SMod.PairValue val1 val2) = do
+    val1' <- dMat False val1
+    val2' <- dMat False val2
     pure $ PairValue (val1', val2')
-  mat _ (SMod.PropRefValue essPath) = do
-    essPath' <- mapM (mat False) essPath
+  dMat _ (SMod.PropRefValue essPath) = do
+    essPath' <- mapM (dMat False) essPath
 
     -- TODO: should we ensure that the referenced property already exists?
 

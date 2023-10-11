@@ -4,54 +4,38 @@ module ZP.DynMaterializationSpec where
 
 import ZP.Prelude
 
+import ZP.System.Debug
 import qualified ZP.Domain.Static.Model as SMod
-import qualified ZP.Domain.Static.Materialization as SMat
 import ZP.Domain.Dynamic.Model
-import ZP.Domain.Dynamic.Materialization
 import qualified ZP.Assets.KnowledgeBase as KB
+
+import ZP.Domain.Materializer
 
 import Test.Hspec
 
 import Data.Proxy
 import qualified Data.Map.Strict as Map
 
-
-doorMat :: SMat.Materializer
-  ( SMod.Essence 'SMod.ValueLevel
-  , SMod.Property 'SMod.ValueLevel
-  )
-doorMat = SMat.mat $ Proxy @KB.Door
-
-gameMat :: SMat.Materializer
-  ( SMod.Game 'SMod.ValueLevel
-  )
-gameMat = SMat.mat $ Proxy @KB.Zeplrog
-
-
 spec :: Spec
 spec = do
-  describe "Materialization tests" $ do
+  describe "Dyn materialization tests" $ do
 
     it "Full materialization: door" $ do
-      (SMat.Env _ statPropsVar, (ess1, statDoorProp)) <-
-        SMat.runMaterializer SMat.DebugDisabled doorMat
+      (sEnv, dEnv@(DEnv _ sharedPropsVar)) <- makeEnvs DebugDisabled
 
-      statProps <- readIORef statPropsVar
-      (Env _ sharedPropsVar, (ess2, doorProp)) <-
-        runMaterializer statProps $ mat False statDoorProp
+      (essStat, doorStat) <- sMat' sEnv $ Proxy @KB.Door
+      ess  <- dMat' dEnv essStat
+      door <- dMat' dEnv doorStat
+
       sharedProps <- readTVarIO sharedPropsVar
 
-      ess2 `shouldBe` "object:door"
+      ess `shouldBe` "object:door"
       Map.size sharedProps `shouldBe` 1
 
     it "Full materialization: game" $ do
-      (SMat.Env _ statPropsVar, statGame) <-
-        SMat.runMaterializer SMat.DebugDisabled gameMat
-      statProps <- readIORef statPropsVar
-      (Env _ _, game) <-
-        runMaterializer statProps $ mat False statGame
+      (sEnv, dEnv) <- makeEnvs DebugDisabled
 
-      let Game props triggs = game
+      Game props triggs <- fullMat dEnv $ Proxy @KB.Zeplrog
 
       length props `shouldBe` 1
       length triggs `shouldBe` 4

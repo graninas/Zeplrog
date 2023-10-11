@@ -5,7 +5,8 @@ module ZP.Domain.Dynamic.Materialization.Property where
 import ZP.Prelude
 
 import qualified ZP.Domain.Static.Model as SMod
-import qualified ZP.Domain.Static.Materialization as SMat
+import ZP.Domain.Static.Materialization ()
+import ZP.Domain.Static.Materialization.Materializer
 import ZP.Domain.Dynamic.Model
 import ZP.Domain.Dynamic.Materialization.Materializer
 import ZP.Domain.Dynamic.Materialization.Common
@@ -19,16 +20,16 @@ withShared
   :: Bool
   -> SMod.StaticPropertyRoot 'SMod.ValueLevel
   -> SMod.Property 'SMod.ValueLevel
-  -> Materializer (Essence, Property)
-  -> Materializer (Essence, Property)
+  -> DMaterializer (Essence, Property)
+  -> DMaterializer (Essence, Property)
 withShared False root _ matProp = matProp
 withShared True root prop matProp = do
-  ess <- mat False root
-  Env _ propsVar <- ask
+  ess <- dMat False root
+  DEnv _ propsVar <- ask
   props <- readTVarIO propsVar
   case Map.lookup ess props of
     Nothing -> do
-      (_, prop) <- mat False prop
+      (_, prop) <- dMat False prop
       let props' = Map.insert ess prop props
       atomically $ writeTVar propsVar props'
       pure (ess, prop)
@@ -39,58 +40,60 @@ withShared True root prop matProp = do
 -- Materialize property
 
 instance
-  Mat (SMod.Property 'SMod.ValueLevel)
+  DMat (SMod.Property 'SMod.ValueLevel)
       (Essence, Property) where
-  mat shared prop@(SMod.PropDict root propKVs)
+  dMat shared prop@(SMod.PropDict root propKVs)
     = withShared shared root prop $ do
       let spRef = StaticPropertyRef root
-      ess      <- mat False root
-      props    <- mapM (mat False) propKVs
+      ess       <- dMat False root
+      props     <- mapM (dMat False) propKVs
       scriptVar <- newTVarIO Nothing
-      propsVar <- newTVarIO $ Map.fromList props
-      valVar   <- newTVarIO Nothing
+      propsVar  <- newTVarIO $ Map.fromList props
+      valVar    <- newTVarIO Nothing
       pure (ess, Property ess spRef scriptVar propsVar valVar)
-  mat shared prop@(SMod.PropConst root valDef)
+  dMat shared prop@(SMod.PropConst root valDef)
     = withShared shared root prop $ do
       let spRef = StaticPropertyRef root
-      ess      <- mat False root
-      val      <- mat False valDef
+      ess       <- dMat False root
+      val       <- dMat False valDef
       scriptVar <- newTVarIO Nothing
-      valVar   <- newTVarIO $ Just $ ConstValue val
-      propsVar <- newTVarIO Map.empty
+      valVar    <- newTVarIO $ Just $ ConstValue val
+      propsVar  <- newTVarIO Map.empty
       pure (ess, Property ess spRef scriptVar propsVar valVar)
-  mat shared prop@(SMod.PropVal root valDef)
+  dMat shared prop@(SMod.PropVal root valDef)
     = withShared shared root prop $ do
       let spRef = StaticPropertyRef root
-      ess       <- mat False root
-      val       <- mat False valDef
+      ess       <- dMat False root
+      val       <- dMat False valDef
       dynValVar <- newTVarIO val
       valVar    <- newTVarIO $ Just $ VarValue dynValVar
       scriptVar <- newTVarIO Nothing
       propsVar  <- newTVarIO Map.empty
       pure (ess, Property ess spRef scriptVar propsVar valVar)
 
-  mat _ (SMod.StaticProp root) = do
+  dMat _ (SMod.StaticProp root) = do
     error "stat prop not implemented"
 
-  mat _ (SMod.StaticPropRef prop) = do
+  dMat _ (SMod.StaticPropRef prop) = do
     let SMod.StaticProp root = prop
     let statEss = getEssence root
 
-    Env statProps _ <- ask
+    DEnv (SEnv _ statPropsVar) _ <- ask
+    statProps <- readTVarIO statPropsVar
+
     unless (Map.member statEss statProps)
       $ error $ "Static property not found: " <> show statEss
 
-    ess <- mat False statEss
+    ess <- dMat False statEss
     let spRef = StaticPropertyRef root
     propsVar  <- newTVarIO Map.empty
     scriptVar <- newTVarIO Nothing
     valVar    <- newTVarIO Nothing
     pure (ess, Property ess spRef scriptVar propsVar valVar)
 
-  mat _ (SMod.PropScript root script) = do
+  dMat _ (SMod.PropScript root script) = do
       let spRef = StaticPropertyRef root
-      ess       <- mat False root
+      ess       <- dMat False root
       valVar    <- newTVarIO Nothing
       propsVar  <- newTVarIO Map.empty
       scriptVar <- newTVarIO $ Just $ Script script
@@ -104,24 +107,24 @@ getEssence (SMod.EssStaticRoot ess) = ess
 getEssence (SMod.PropStaticRoot ess _) = ess
 
 instance
-  Mat (SMod.PropertyOwning 'SMod.ValueLevel)
+  DMat (SMod.PropertyOwning 'SMod.ValueLevel)
     (Essence, PropertyOwning) where
-  mat _ (SMod.OwnProp prop) = do
-    (ess', prop') <- mat False prop
+  dMat _ (SMod.OwnProp prop) = do
+    (ess', prop') <- dMat False prop
     pure (ess', OwnProperty prop')
-  mat _ (SMod.SharedProp prop) = do
-    (ess', _) <- mat True prop
+  dMat _ (SMod.SharedProp prop) = do
+    (ess', _) <- dMat True prop
     pure (ess', SharedProperty $ DynamicPropertyRef ess')
 
 instance
-  Mat (SMod.PropertyKeyValue 'SMod.ValueLevel)
+  DMat (SMod.PropertyKeyValue 'SMod.ValueLevel)
       (Essence, PropertyBag) where
-  mat _ (SMod.PropKeyBag ess ownings) = do
-    ess'     <- mat False ess
-    ownings' <- mapM (mat False) ownings
+  dMat _ (SMod.PropKeyBag ess ownings) = do
+    ess'     <- dMat False ess
+    ownings' <- mapM (dMat False) ownings
     pure (ess', PropertyDict $ Map.fromList ownings')
-  mat _ (SMod.PropKeyVal ess owning) = do
-    ess'    <- mat False ess
-    (_, owning') <- mat False owning
+  dMat _ (SMod.PropKeyVal ess owning) = do
+    ess'    <- dMat False ess
+    (_, owning') <- dMat False owning
     pure (ess', SingleProperty owning')
 

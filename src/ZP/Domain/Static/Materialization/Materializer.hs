@@ -4,6 +4,7 @@ module ZP.Domain.Static.Materialization.Materializer where
 
 import ZP.Prelude
 
+import ZP.System.Debug
 import ZP.Domain.Static.Model
 
 import GHC.TypeLits
@@ -13,30 +14,27 @@ import qualified Data.Map.Strict as Map
 
 ---------- Interface ------------------
 
+-- TODO: make Materializer thread-safe (STM instead of IO)
+
 type StaticProperties =
   Map.Map (Essence 'ValueLevel) (Property 'ValueLevel)
 
-data DebugMode
-  = DebugEnabled
-  | DebugDisabled
-  deriving (Eq)
+data SEnv = SEnv DebugMode (TVar StaticProperties)
 
-data Env = Env DebugMode (IORef StaticProperties)
-
-type Materializer a = ReaderT Env IO a
+type SMaterializer a = ReaderT SEnv IO a
 
 -- | Materialization type class.
-class Mat a b | a -> b where
-  mat :: Proxy a -> Materializer b
+class SMat a b | a -> b where
+  sMat :: Proxy a -> SMaterializer b
 
-runMaterializer :: DebugMode -> Materializer a -> IO (Env, a)
-runMaterializer dbg m = do
-  staticProps <- liftIO $ newIORef Map.empty
-  let env = Env dbg staticProps
-  res <- runReaderT m env
-  pure (env, res)
+runSMaterializer :: SEnv -> SMaterializer a -> IO a
+runSMaterializer sEnv m = runReaderT m sEnv
 
-mat' :: DebugMode -> Mat a b => Proxy a -> IO b
-mat' dbg proxy = do
-  (_, a) <- runMaterializer dbg (mat proxy)
-  pure a
+sMat' :: SMat a b => SEnv -> Proxy a -> IO b
+sMat' sEnv proxy = runSMaterializer sEnv $ sMat proxy
+
+makeSEnv :: DebugMode -> IO SEnv
+makeSEnv dbg = SEnv
+  <$> pure dbg
+  <*> newTVarIO Map.empty
+

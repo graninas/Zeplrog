@@ -66,3 +66,8 @@ data Property (lvl :: Level) where
     -> Script lvl
     -> Property lvl
 
+
+------ Short identifiers ----------
+
+type PropertyTL = Property 'TypeLevel
+type PropertyVL = Property 'ValueLevel

@@ -11,8 +11,12 @@ type EDiscovering   = Ess @TypeLevel "action:discovering"
 type ESettingGoals  = Ess @TypeLevel "action:setting goals"
 type EPlanning      = Ess @TypeLevel "action:planning"
 type EFollowingPlan = Ess @TypeLevel "action:following plan"
+type EIdling        = Ess @TypeLevel "action:idling"
 type ENoAction      = Ess @TypeLevel "action:no action"
+
+type EActionLoop    = Ess @TypeLevel "system:action loop"
 type EGoal          = Ess @TypeLevel "goal"
+
 
 type EHP            = Ess @TypeLevel "intrinsics:hp"
 type EPos           = Ess @TypeLevel "intrinsics:pos"
