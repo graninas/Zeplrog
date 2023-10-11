@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7c4e89fcc94809b40a88ef81db43768d6c9a48bbafd2e0d8b0c99547562ef457
+-- hash: 479417fa4ae19b6bed7930a5f380ae7049355db8d796c9a714ac42af8b5f5548
 
 name:           zeplrog
 version:        0.0.0.1
@@ -48,10 +48,12 @@ library
       ZP.Domain.Dynamic.Model.Script
       ZP.Domain.Dynamic.Model.World
       ZP.Domain.Materializer
+      ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
       ZP.Domain.Static.Materialization.Effect
       ZP.Domain.Static.Materialization.Game
+      ZP.Domain.Static.Materialization.Macro
       ZP.Domain.Static.Materialization.Materializer
       ZP.Domain.Static.Materialization.Property
       ZP.Domain.Static.Materialization.Script
@@ -158,10 +160,12 @@ executable zeplrog
       ZP.Domain.Dynamic.Model.Script
       ZP.Domain.Dynamic.Model.World
       ZP.Domain.Materializer
+      ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
       ZP.Domain.Static.Materialization.Effect
       ZP.Domain.Static.Materialization.Game
+      ZP.Domain.Static.Materialization.Macro
       ZP.Domain.Static.Materialization.Materializer
       ZP.Domain.Static.Materialization.Property
       ZP.Domain.Static.Materialization.Script

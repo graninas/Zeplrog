@@ -3,6 +3,7 @@
 module ZP.Assets.KnowledgeBase.Game where
 
 import ZP.Domain.Static.Model
+import ZP.Domain.Static.Macro
 import ZP.Assets.KnowledgeBase.Essences
 import ZP.Assets.KnowledgeBase.Common
 import ZP.Assets.KnowledgeBase.Doors
@@ -14,10 +15,12 @@ import GHC.TypeLits
 
 
 
-type Zeplrog world = GameEnvironment
-  world
-  '[ Door ]
-  Triggers
+type Zeplrog world = MGame
+  '[ UseWorld world
+   , UseTriggers Triggers
+   , Displace 2 8 Door
+   ]
+
 
 
 -- Mad thought: different games with own props and effects,
