@@ -3,6 +3,7 @@
 module ZP.Assets.KnowledgeBase.Effects where
 
 import ZP.Domain.Static.Model
+import ZP.Domain.Hardcode.KnowledgeBase
 import ZP.Assets.KnowledgeBase.Essences
 import ZP.Assets.KnowledgeBase.Common
 

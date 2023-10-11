@@ -3,6 +3,7 @@
 module ZP.Assets.KnowledgeBase.Essences where
 
 import ZP.Domain.Static.Model
+import ZP.Domain.Hardcode.KnowledgeBase
 
 import GHC.TypeLits
 
@@ -19,7 +20,6 @@ type EGoal          = Ess @TypeLevel "goal"
 
 
 type EHP            = Ess @TypeLevel "intrinsics:hp"
-type EPos           = Ess @TypeLevel "intrinsics:pos"
 type EInventory     = Ess @TypeLevel "category:inventory"
 type EIntrinsics    = Ess @TypeLevel "category:intrinsics"
 type EAbilities     = Ess @TypeLevel "category:abilities"

@@ -20,7 +20,7 @@ spec = do
   describe "Dyn materialization tests" $ do
 
     it "Full materialization: door" $ do
-      (sEnv, dEnv@(DEnv _ sharedPropsVar)) <- makeEnvs DebugDisabled
+      (sEnv, dEnv@(DEnv _ sharedPropsVar)) <- makeEnvs DebugEnabled
 
       (essStat, doorStat) <- sMat' sEnv () $ Proxy @KB.Door
       ess  <- dMat' dEnv () essStat
@@ -32,9 +32,9 @@ spec = do
       Map.size sharedProps `shouldBe` 1
 
     it "Full materialization: game" $ do
-      (sEnv, dEnv) <- makeEnvs DebugDisabled
+      (sEnv, dEnv) <- makeEnvs DebugEnabled
 
-      Game _ props triggs <- fullMat dEnv ()
+      Game _ cells props triggs <- fullMat dEnv ()
         $ Proxy @(KB.Zeplrog KB.World1)
 
       length props `shouldBe` 1

@@ -14,6 +14,7 @@ import qualified Data.Map as Map
 
 data Game = Game
   { gWorld       :: World
+  , gCells       :: [Int]     -- TODO: cells
   , gProps       :: Map.Map Essence Property
   , gEffTriggers :: [EffectTrigger]
   }

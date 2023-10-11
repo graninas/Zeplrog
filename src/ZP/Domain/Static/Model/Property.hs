@@ -71,3 +71,12 @@ data Property (lvl :: Level) where
 
 type PropertyTL = Property 'TypeLevel
 type PropertyVL = Property 'ValueLevel
+
+type StaticPropertyRootTL = StaticPropertyRoot 'TypeLevel
+type StaticPropertyRootVL = StaticPropertyRoot 'ValueLevel
+
+type PropertyKeyValueTL = PropertyKeyValue 'TypeLevel
+type PropertyKeyValueVL = PropertyKeyValue 'ValueLevel
+
+type PropertyOwningTL = PropertyOwning 'TypeLevel
+type PropertyOwningVL = PropertyOwning 'ValueLevel

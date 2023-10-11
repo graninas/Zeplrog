@@ -3,6 +3,7 @@
 module ZP.Assets.KnowledgeBase.Doors where
 
 import ZP.Domain.Static.Model
+import ZP.Domain.Hardcode.KnowledgeBase
 import ZP.Assets.KnowledgeBase.Essences
 import ZP.Assets.KnowledgeBase.Common
 
@@ -33,9 +34,9 @@ type PushableScript = SimpleScript EPushableScript
       (ReplaceProp '[ EState ] '[ EStates, EStateOpen ])
    ]
 
+-- | Template for all doors.
 type Door = PropDict (EssStaticRoot EDoor)
   '[ PropKeyVal EHP (OwnProp (HPVal 100))
-   , PropKeyVal EPos (SharedProp (PosConst 3 5))        -- TODO: identified from the map
 
     -- | Possible states
    , PropKeyBag EStates

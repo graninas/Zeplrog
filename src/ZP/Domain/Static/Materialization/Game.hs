@@ -60,11 +60,11 @@ instance
   , SMat p (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
   , SMat p (Triggs triggs) [Trigger 'ValueLevel]
   ) =>
-  SMat p ('GameEnvironment @TypeLevel world props triggs)
+  SMat p ('GameEnvironment @TypeLevel world cells props triggs)
       (Game 'ValueLevel) where
   sMat p _ = do
     world  <- sMat p $ Proxy @world
     props  <- sMat p $ Proxy @(Props props)
     triggs <- sMat p $ Proxy @(Triggs triggs)
     let props' = map snd props
-    pure $ GameEnvironment world props' triggs
+    pure $ GameEnvironment world [] props' triggs   -- TODO: objects

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 479417fa4ae19b6bed7930a5f380ae7049355db8d796c9a714ac42af8b5f5548
+-- hash: 6fc2e217e0335a6b9d93a3525f095f7e6ca77498f7034aa5bb643aa6819f209d
 
 name:           zeplrog
 version:        0.0.0.1
@@ -47,6 +47,7 @@ library
       ZP.Domain.Dynamic.Model.Property
       ZP.Domain.Dynamic.Model.Script
       ZP.Domain.Dynamic.Model.World
+      ZP.Domain.Hardcode.KnowledgeBase
       ZP.Domain.Materializer
       ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
@@ -66,6 +67,7 @@ library
       ZP.Domain.Static.Model.Property
       ZP.Domain.Static.Model.Script
       ZP.Domain.Static.Model.World
+      ZP.Domain.Static.Transform
       ZP.Prelude
       ZP.System.Debug
   other-modules:
@@ -159,6 +161,7 @@ executable zeplrog
       ZP.Domain.Dynamic.Model.Property
       ZP.Domain.Dynamic.Model.Script
       ZP.Domain.Dynamic.Model.World
+      ZP.Domain.Hardcode.KnowledgeBase
       ZP.Domain.Materializer
       ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
@@ -178,6 +181,7 @@ executable zeplrog
       ZP.Domain.Static.Model.Property
       ZP.Domain.Static.Model.Script
       ZP.Domain.Static.Model.World
+      ZP.Domain.Static.Transform
       ZP.Prelude
       ZP.System.Debug
       Paths_zeplrog

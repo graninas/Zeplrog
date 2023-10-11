@@ -4,6 +4,7 @@ module ZP.Assets.KnowledgeBase
   ( module X )
   where
 
+import ZP.Domain.Hardcode.KnowledgeBase as X
 import ZP.Assets.KnowledgeBase.Essences as X
 import ZP.Assets.KnowledgeBase.Common as X
 import ZP.Assets.KnowledgeBase.Doors as X

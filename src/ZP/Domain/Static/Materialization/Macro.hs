@@ -16,6 +16,8 @@ import ZP.Domain.Static.Materialization.Property
 import ZP.Domain.Static.Materialization.Effect
 import ZP.Domain.Static.Materialization.Game
 import ZP.Domain.Static.Materialization.World
+import ZP.Domain.Hardcode.KnowledgeBase
+import ZP.Domain.Static.Transform
 
 import GHC.TypeLits
 import Data.Proxy
@@ -35,22 +37,35 @@ instance
   ( SMat () world (World 'ValueLevel)
   ) =>
   SMat G ('UseWorld world) G where
-  sMat (GameEnvironment _ props triggs) _ = do
+  sMat (GameEnvironment _ cells props triggs) _ = do
     world <- sMat () $ Proxy @world
-    pure $ GameEnvironment world props triggs
+    pure $ GameEnvironment world cells props triggs
 
 instance
-  -- ( SMat () (Triggs triggs) [Trigger 'ValueLevel]
-  -- ) =>
-  SMat G ('UseTriggers world) G where
-  sMat (GameEnvironment world props triggs) _ = do
-    -- triggs <- sMat () $ Proxy @(Triggs triggs)
-    pure $ GameEnvironment world props triggs
+  ( SMat () (Triggs triggs) [Trigger 'ValueLevel]
+  ) =>
+  SMat G ('UseTriggers triggs) G where
+  sMat (GameEnvironment world cells props _) _ = do
+    triggs <- sMat () $ Proxy @(Triggs triggs)
+    pure $ GameEnvironment world cells props triggs
 
 instance
-  SMat G ('Displace a b c) G where
-  sMat (GameEnvironment world props triggs) _ = do
-    pure $ GameEnvironment world props triggs
+  ( KnownNat x
+  , KnownNat y
+  , SMat () prop (Essence 'ValueLevel, Property 'ValueLevel)
+  ) =>
+  SMat G ('PlaceObj x y prop) G where
+  sMat (GameEnvironment world cells props triggs) _ = do
+    (ess, prop) <- sMat () $ Proxy @prop
+    -- let x = natVal $ Proxy @x
+    -- let y = natVal $ Proxy @y
+
+    posProp <- sMat () $ Proxy @(PosVal x y)
+    let prop' = addSharedProperty [] posProp prop
+
+    -- TODO: verify the bounds
+
+    pure $ GameEnvironment world cells (prop' : props) triggs
 
 -- Statically interpret macroses
 
@@ -74,23 +89,6 @@ instance
   ) =>
   SMat () ('MGame macroses) G where
   sMat _ _ = do
-    let emptyGame = GameEnvironment @'ValueLevel (WorldData []) [] []
+    let emptyGame = GameEnvironment @'ValueLevel (WorldData []) [] [] []
     sMat emptyGame $ Proxy @(Macroses macroses)
-
-
--- data Game (lvl :: Level) where
---   GameEnvironment
---     :: World lvl
---     -> [ Property lvl ]
---     -> [ Trigger lvl ]
---     -> Game lvl
-
-
--- data MacroGame where
---   MGame :: [Macro] -> MacroGame
-
--- data Macro where
---   UseWorld    :: World TypeLevel -> Macro
---   UseTriggers :: [Trigger TypeLevel] -> Macro
---   Displace    :: Nat -> Nat -> Property TypeLevel -> Macro
 

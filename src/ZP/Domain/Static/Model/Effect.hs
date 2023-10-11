@@ -18,3 +18,11 @@ data Effect (lvl :: Level) where
 data Trigger (lvl :: Level) where
   EffTrigger     :: Effect lvl -> Effect lvl  -> Trigger lvl
   AbilityTrigger :: Effect lvl -> Essence lvl -> Trigger lvl
+
+
+------ Short identifiers ----------
+
+type EffectTL = Effect 'TypeLevel
+type EffectVL = Effect 'ValueLevel
+type TriggerTL = Trigger 'TypeLevel
+type TriggerVL = Trigger 'ValueLevel

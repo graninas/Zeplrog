@@ -4,6 +4,7 @@
 module ZP.Assets.KnowledgeBase.Agents where
 
 import ZP.Domain.Static.Model
+import ZP.Domain.Hardcode.KnowledgeBase
 import ZP.Assets.KnowledgeBase.Essences
 import ZP.Assets.KnowledgeBase.Common
 import ZP.Domain.Static.Model.Helpers
@@ -35,14 +36,11 @@ type ActionLoop = PropDict (EssStaticRoot EActionLoop)
 
 type RatActor = PropDict (EssStaticRoot ERat)
   '[ AddPropKV (OwnProp (HPVal 20))
-   , AddPropKV (SharedProp (PosConst 5 8))
-
    , AddPropKV (SharedProp ActionLoop)
    ]
 
 type GuardActor = PropDict (EssStaticRoot EGuard)
   '[ AddPropKV (OwnProp (HPVal 100))
-   , AddPropKV (SharedProp (PosConst 1 3))
    ]
 
 

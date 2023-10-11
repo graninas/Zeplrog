@@ -21,9 +21,11 @@ import qualified Data.Map.Strict as Map
 
 instance
   DMat p (SMod.Game 'SMod.ValueLevel) Game where
-  dMat _ p (SMod.GameEnvironment world props triggs) = do
+  dMat _ p (SMod.GameEnvironment world cells props triggs) = do
     world'  <- dMat False p world
     props'  <- mapM (dMat False p) props
     triggs' <- mapM (dMat False p) triggs
     let propDict = Map.fromList props'
-    pure $ Game world' propDict triggs'
+
+    -- TODO: cells
+    pure $ Game world' [] propDict triggs'

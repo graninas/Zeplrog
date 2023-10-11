@@ -22,5 +22,5 @@ data MacroGame where
 data Macro where
   UseWorld    :: World TypeLevel -> Macro
   UseTriggers :: [Trigger TypeLevel] -> Macro
-  Displace    :: Nat -> Nat -> Property TypeLevel -> Macro
+  PlaceObj    :: Nat -> Nat -> Property TypeLevel -> Macro
 

@@ -15,3 +15,8 @@ import ZP.Domain.Static.Model.Common
 data World (lvl :: Level) where
   WorldData :: [StringType lvl] -> World lvl
 
+
+------ Short identifiers ----------
+
+type WorldTL = World 'TypeLevel
+type WorldVL = World 'ValueLevel
