@@ -5,7 +5,6 @@ module ZP.DynMaterializationSpec where
 import ZP.Prelude
 
 import ZP.System.Debug
-import qualified ZP.Domain.Static.Model as SMod
 import ZP.Domain.Dynamic.Model
 import qualified ZP.Assets.KnowledgeBase as KB
 
@@ -25,7 +24,7 @@ spec = do
 
       (essStat, doorStat) <- sMat' sEnv $ Proxy @KB.Door
       ess  <- dMat' dEnv essStat
-      door <- dMat' dEnv doorStat
+      (_, door) <- dMat' dEnv doorStat
 
       sharedProps <- readTVarIO sharedPropsVar
 

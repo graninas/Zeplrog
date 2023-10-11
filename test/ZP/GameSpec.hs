@@ -5,10 +5,8 @@ module ZP.GameSpec where
 import ZP.Prelude
 
 import ZP.System.Debug
-import qualified ZP.Domain.Static.Model as SMod
-import qualified ZP.Domain.Static.Materialization as SMat
 import ZP.Domain.Dynamic.Model
-import ZP.Domain.Dynamic.Materialization
+import ZP.Domain.Materializer
 import qualified ZP.Assets.KnowledgeBase as KB
 
 import Test.Hspec

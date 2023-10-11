@@ -6,9 +6,8 @@ import ZP.Prelude
 
 import ZP.System.Debug
 import qualified ZP.Domain.Static.Model as SMod
-import qualified ZP.Domain.Static.Materialization as SMat
 import ZP.Domain.Dynamic.Model
-import ZP.Domain.Dynamic.Materialization
+import ZP.Domain.Materializer
 import qualified ZP.Assets.KnowledgeBase as KB
 
 import Test.Hspec
@@ -21,12 +20,14 @@ spec :: Spec
 spec = do
   describe "Agents tests" $ do
 
-    xit "Materialize actions test" $ do
+    it "Materialize actions test" $ do
+      (sEnv, dEnv) <- makeEnvs DebugDisabled
 
-      -- gameRt <- newGameRuntime DebugEnabled
-      -- actor <- materialize gameRt $ Proxy @KB.GuardActor
+      (essStat, guardStat) <- sMat' sEnv $ Proxy @KB.GuardActor
+      ess <- dMat' dEnv essStat
+      (_, guard) <- dMat' dEnv guardStat
 
+      let Property ess parent scriptVar propsBagVar valVar = guard
 
-
-      1 `shouldBe` 2
+      ess `shouldBe` "object:guard"
 
