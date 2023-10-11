@@ -16,31 +16,31 @@ import qualified Data.Map.Strict as Map
 -- Statically materialize trigger
 
 instance
-  ( SMat eff1 (Effect 'ValueLevel)
-  , SMat eff2 (Effect 'ValueLevel)
+  ( SMat p eff1 (Effect 'ValueLevel)
+  , SMat p eff2 (Effect 'ValueLevel)
   ) =>
-  SMat ('EffTrigger @TypeLevel eff1 eff2) (Trigger 'ValueLevel) where
-  sMat _ = do
-    eff1 <- sMat $ Proxy @eff1
-    eff2 <- sMat $ Proxy @eff2
+  SMat p ('EffTrigger @TypeLevel eff1 eff2) (Trigger 'ValueLevel) where
+  sMat p _ = do
+    eff1 <- sMat p $ Proxy @eff1
+    eff2 <- sMat p $ Proxy @eff2
     pure $ EffTrigger eff1 eff2
 
 instance
-  ( SMat eff (Effect 'ValueLevel)
-  , SMat ess (Essence 'ValueLevel)
+  ( SMat p eff (Effect 'ValueLevel)
+  , SMat p ess (Essence 'ValueLevel)
   ) =>
-  SMat ('AbilityTrigger @TypeLevel eff ess) (Trigger 'ValueLevel) where
-  sMat _ = do
-    eff <- sMat $ Proxy @eff
-    ess <- sMat $ Proxy @ess
+  SMat p ('AbilityTrigger @TypeLevel eff ess) (Trigger 'ValueLevel) where
+  sMat p _ = do
+    eff <- sMat p $ Proxy @eff
+    ess <- sMat p $ Proxy @ess
     pure $ AbilityTrigger eff ess
 
 -- Statically materialize effect
 
 instance
-  ( SMat ess (Essence 'ValueLevel)
+  ( SMat p ess (Essence 'ValueLevel)
   ) =>
-  SMat ('Eff @TypeLevel ess) (Effect 'ValueLevel) where
-  sMat _ = do
-    ess  <- sMat $ Proxy @ess
+  SMat p ('Eff @TypeLevel ess) (Effect 'ValueLevel) where
+  sMat p _ = do
+    ess  <- sMat p $ Proxy @ess
     pure $ Eff ess

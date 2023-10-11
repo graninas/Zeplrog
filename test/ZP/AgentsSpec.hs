@@ -23,9 +23,9 @@ spec = do
     it "Materialize actions test" $ do
       (sEnv, dEnv) <- makeEnvs DebugDisabled
 
-      (essStat, guardStat) <- sMat' sEnv $ Proxy @KB.GuardActor
-      ess <- dMat' dEnv essStat
-      (_, guard) <- dMat' dEnv guardStat
+      (essStat, guardStat) <- sMat' sEnv () $ Proxy @KB.GuardActor
+      ess <- dMat' dEnv () essStat
+      (_, guard) <- dMat' dEnv () guardStat
 
       let Property ess parent scriptVar propsBagVar valVar = guard
 

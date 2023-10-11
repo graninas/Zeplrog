@@ -20,10 +20,10 @@ import qualified Data.Map.Strict as Map
 -- Materialization of Game
 
 instance
-  DMat (SMod.Game 'SMod.ValueLevel) Game where
-  dMat _ (SMod.GameEnvironment world props triggs) = do
-    world'  <- dMat False world
-    props'  <- mapM (dMat False) props
-    triggs' <- mapM (dMat False) triggs
+  DMat p (SMod.Game 'SMod.ValueLevel) Game where
+  dMat _ p (SMod.GameEnvironment world props triggs) = do
+    world'  <- dMat False p world
+    props'  <- mapM (dMat False p) props
+    triggs' <- mapM (dMat False p) triggs
     let propDict = Map.fromList props'
     pure $ Game world' propDict triggs'

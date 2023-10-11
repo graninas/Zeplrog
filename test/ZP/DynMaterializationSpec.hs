@@ -22,9 +22,9 @@ spec = do
     it "Full materialization: door" $ do
       (sEnv, dEnv@(DEnv _ sharedPropsVar)) <- makeEnvs DebugDisabled
 
-      (essStat, doorStat) <- sMat' sEnv $ Proxy @KB.Door
-      ess  <- dMat' dEnv essStat
-      (_, door) <- dMat' dEnv doorStat
+      (essStat, doorStat) <- sMat' sEnv () $ Proxy @KB.Door
+      ess  <- dMat' dEnv () essStat
+      (_, door) <- dMat' dEnv () doorStat
 
       sharedProps <- readTVarIO sharedPropsVar
 
@@ -34,7 +34,8 @@ spec = do
     it "Full materialization: game" $ do
       (sEnv, dEnv) <- makeEnvs DebugDisabled
 
-      Game _ props triggs <- fullMat dEnv $ Proxy @(KB.Zeplrog KB.World1)
+      Game _ props triggs <- fullMat dEnv ()
+        $ Proxy @(KB.Zeplrog KB.World1)
 
       length props `shouldBe` 1
       length triggs `shouldBe` 4

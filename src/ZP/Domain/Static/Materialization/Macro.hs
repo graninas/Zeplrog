@@ -25,49 +25,58 @@ import qualified Data.Map.Strict as Map
 
 ------ Stat materialization macro -----
 
-data GameBuilder world props triggs macroses
-data GameBuilder1 world props triggs macro
+data Macroses macroses
+
+type G = Game 'ValueLevel
+
+-- Statically interpret macro
 
 instance
-  ( SMat world (World 'ValueLevel)
+  ( SMat () world (World 'ValueLevel)
   ) =>
-  SMat (GameBuilder1 world props triggs ('UseWorld world))
-       (World 'ValueLevel) where
-  sMat _ = do
-    world <- sMat $ Proxy @world
-    pure world
-
-
-
+  SMat G ('UseWorld world) G where
+  sMat (GameEnvironment _ props triggs) _ = do
+    world <- sMat () $ Proxy @world
+    pure $ GameEnvironment world props triggs
 
 instance
-  SMat (GameBuilder world props triggs '[])
-       (World 'ValueLevel) where
-  sMat _ = pure ()
+  -- ( SMat () (Triggs triggs) [Trigger 'ValueLevel]
+  -- ) =>
+  SMat G ('UseTriggers world) G where
+  sMat (GameEnvironment world props triggs) _ = do
+    -- triggs <- sMat () $ Proxy @(Triggs triggs)
+    pure $ GameEnvironment world props triggs
 
 instance
-  ( SMat (GameBuilder1 world props triggs macro)
-         (World 'ValueLevel)
-  , SMat (GameBuilder world props triggs macroses)
-         (World 'ValueLevel)
+  SMat G ('Displace a b c) G where
+  sMat (GameEnvironment world props triggs) _ = do
+    pure $ GameEnvironment world props triggs
+
+-- Statically interpret macroses
+
+instance
+  SMat G (Macroses '[]) G where
+  sMat g _ = pure g
+
+instance
+  ( SMat G macro G
+  , SMat G (Macroses macroses) G
   ) =>
-  SMat (GameBuilder world props triggs (macro ': macroses))
-       (World 'ValueLevel) where
-  sMat _ = do
-    _ <- sMat $ Proxy @(GameBuilder1 world props triggs macro)
-    _ <- sMat $ Proxy @(GameBuilder world props triggs macroses)
-    pure ()
+  SMat G (Macroses (macro ': macroses)) G where
+  sMat g1 _ = do
+    g2 <- sMat g1 $ Proxy @macro
+    sMat g2 $ Proxy @(Macroses macroses)
+
+-- Statically build the game with macroses
 
 instance
-  ( SMat (GameBuilder world props triggs macroses)
-         (World 'ValueLevel)
+  ( SMat G (Macroses macroses) G
   ) =>
-  SMat ('MGame macroses) (Game 'ValueLevel) where
-  sMat _ = do
-    game <- sMat $ Proxy @(GameBuilder world props triggs macroses)
+  SMat () ('MGame macroses) G where
+  sMat _ _ = do
+    let emptyGame = GameEnvironment @'ValueLevel (WorldData []) [] []
+    sMat emptyGame $ Proxy @(Macroses macroses)
 
-    -- tmp
-    pure $ GameEnvironment @'ValueLevel (WorldData []) [] []
 
 -- data Game (lvl :: Level) where
 --   GameEnvironment

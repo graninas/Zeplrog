@@ -26,24 +26,25 @@ type DMaterializer a = ReaderT DEnv IO a
 type Shared = Bool
 
 -- | Materialization type class.
-class DMat a b | a -> b where
-  dMat :: Shared -> a -> DMaterializer b
+class DMat payload a b | a -> b where
+  dMat :: Shared -> payload -> a -> DMaterializer b
 
 runDMaterializer :: DEnv -> DMaterializer a -> IO a
 runDMaterializer dEnv m = runReaderT m dEnv
 
-dMat' :: DMat a b => DEnv -> a -> IO b
-dMat' dEnv itVL = runDMaterializer dEnv $ dMat False itVL
+dMat' :: DMat payload a b => DEnv -> payload -> a -> IO b
+dMat' dEnv p itVL = runDMaterializer dEnv $ dMat False p itVL
 
 fullMat
-  :: SMat itTL itVL
-  => DMat itVL res
+  :: SMat payload itTL itVL
+  => DMat payload itVL res
   => DEnv
+  -> payload
   -> Proxy itTL
   -> IO res
-fullMat dEnv@(DEnv sEnv _) proxy = do
-  itVL <- sMat' sEnv proxy
-  dMat' dEnv itVL
+fullMat dEnv@(DEnv sEnv _) p proxy = do
+  itVL <- sMat' sEnv p proxy
+  dMat' dEnv p itVL
 
 makeDEnv :: SEnv -> IO DEnv
 makeDEnv sEnv = DEnv

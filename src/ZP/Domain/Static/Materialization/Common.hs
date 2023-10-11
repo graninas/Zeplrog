@@ -21,36 +21,36 @@ data Essences essPath
 instance
   ( KnownSymbol str
   ) =>
-  SMat str String where
-  sMat _ = pure $ symbolVal $ Proxy @str
+  SMat p str String where
+  sMat p _ = pure $ symbolVal $ Proxy @str
 
 instance
   ( KnownSymbol varName
   ) =>
-  SMat ('IntVar @'TypeLevel varName) (VarDef 'ValueLevel) where
-  sMat _ = do
+  SMat p ('IntVar @'TypeLevel varName) (VarDef 'ValueLevel) where
+  sMat p _ = do
     let varName = symbolVal $ Proxy @varName
     pure $ IntVar varName
 
 instance
   ( KnownSymbol varName
   ) =>
-  SMat ('BoolVar @'TypeLevel varName) (VarDef 'ValueLevel) where
-  sMat _ = do
+  SMat p ('BoolVar @'TypeLevel varName) (VarDef 'ValueLevel) where
+  sMat p _ = do
     let varName = symbolVal $ Proxy @varName
     pure $ BoolVar varName
 
 instance
   ( KnownSymbol varName
-  , SMat varDef1 (VarDef 'ValueLevel)
-  , SMat varDef2 (VarDef 'ValueLevel)
+  , SMat p varDef1 (VarDef 'ValueLevel)
+  , SMat p varDef2 (VarDef 'ValueLevel)
   ) =>
-  SMat ('PairVar @'TypeLevel varName varDef1 varDef2)
+  SMat p ('PairVar @'TypeLevel varName varDef1 varDef2)
       (VarDef 'ValueLevel) where
-  sMat _ = do
+  sMat p _ = do
     let varName = symbolVal $ Proxy @varName
-    varDef1 <- sMat $ Proxy @varDef1
-    varDef2 <- sMat $ Proxy @varDef2
+    varDef1 <- sMat p $ Proxy @varDef1
+    varDef2 <- sMat p $ Proxy @varDef2
     pure $ PairVar varName varDef1 varDef2
 
 -- Statically materialize value
@@ -58,39 +58,39 @@ instance
 instance
   ( KnownNat intVal
   ) =>
-  SMat ('IntValue @'TypeLevel intVal)
+  SMat p ('IntValue @'TypeLevel intVal)
       (ValDef 'ValueLevel) where
-  sMat _ = pure
+  sMat p _ = pure
       $ IntValue
       $ fromIntegral
       $ natVal
       $ Proxy @intVal
 
 instance
-  ( SMat val1 (ValDef 'ValueLevel)
-  , SMat val2 (ValDef 'ValueLevel)
+  ( SMat p val1 (ValDef 'ValueLevel)
+  , SMat p val2 (ValDef 'ValueLevel)
   ) =>
-  SMat ('PairValue @'TypeLevel val1 val2) (ValDef 'ValueLevel) where
-  sMat _ = do
-    val1 <- sMat $ Proxy @val1
-    val2 <- sMat $ Proxy @val2
+  SMat p ('PairValue @'TypeLevel val1 val2) (ValDef 'ValueLevel) where
+  sMat p _ = do
+    val1 <- sMat p $ Proxy @val1
+    val2 <- sMat p $ Proxy @val2
     pure $ PairValue val1 val2
 
 instance
-  SMat ('BoolValue @'TypeLevel 'True) (ValDef 'ValueLevel) where
-  sMat _ = pure $ BoolValue True
+  SMat p ('BoolValue @'TypeLevel 'True) (ValDef 'ValueLevel) where
+  sMat p _ = pure $ BoolValue True
 
 instance
-  SMat ('BoolValue @'TypeLevel 'False) (ValDef 'ValueLevel) where
-  sMat _ = pure $ BoolValue False
+  SMat p ('BoolValue @'TypeLevel 'False) (ValDef 'ValueLevel) where
+  sMat p _ = pure $ BoolValue False
 
 instance
-  ( SMat (Essences essPath) [Essence 'ValueLevel]
+  ( SMat p (Essences essPath) [Essence 'ValueLevel]
   ) =>
-  SMat ('PropRefValue @'TypeLevel essPath)
+  SMat p ('PropRefValue @'TypeLevel essPath)
       (ValDef 'ValueLevel) where
-  sMat _ = do
-    path <- sMat $ Proxy @(Essences essPath)
+  sMat p _ = do
+    path <- sMat p $ Proxy @(Essences essPath)
     pure $ PropRefValue path
 
 -- Statically materialize Essence path
@@ -98,20 +98,20 @@ instance
 instance
   ( KnownSymbol symb
   ) =>
-  SMat ('Ess @'TypeLevel symb) (Essence 'ValueLevel) where
-  sMat _ = pure $ Ess $ symbolVal (Proxy @symb)
+  SMat p ('Ess @'TypeLevel symb) (Essence 'ValueLevel) where
+  sMat p _ = pure $ Ess $ symbolVal (Proxy @symb)
 
 instance
-  SMat (Essences '[]) [Essence 'ValueLevel] where
-  sMat _ = pure []
+  SMat p (Essences '[]) [Essence 'ValueLevel] where
+  sMat p _ = pure []
 
 instance
-  ( SMat ess (Essence 'ValueLevel)
-  , SMat (Essences essPath) [Essence 'ValueLevel]
+  ( SMat p ess (Essence 'ValueLevel)
+  , SMat p (Essences essPath) [Essence 'ValueLevel]
   ) =>
-  SMat (Essences (ess ': essPath))
+  SMat p (Essences (ess ': essPath))
       [Essence 'ValueLevel] where
-  sMat _ = do
-    ess     <- sMat $ Proxy @ess
-    essPath <- sMat $ Proxy @(Essences essPath)
+  sMat p _ = do
+    ess     <- sMat p $ Proxy @ess
+    essPath <- sMat p $ Proxy @(Essences essPath)
     pure $ ess : essPath

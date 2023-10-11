@@ -24,14 +24,14 @@ data SEnv = SEnv DebugMode (TVar StaticProperties)
 type SMaterializer a = ReaderT SEnv IO a
 
 -- | Materialization type class.
-class SMat a b | a -> b where
-  sMat :: Proxy a -> SMaterializer b
+class SMat payload a b | a -> b where
+  sMat :: payload -> Proxy a -> SMaterializer b
 
 runSMaterializer :: SEnv -> SMaterializer a -> IO a
 runSMaterializer sEnv m = runReaderT m sEnv
 
-sMat' :: SMat a b => SEnv -> Proxy a -> IO b
-sMat' sEnv proxy = runSMaterializer sEnv $ sMat proxy
+sMat' :: SMat payload a b => SEnv -> payload -> Proxy a -> IO b
+sMat' sEnv p proxy = runSMaterializer sEnv $ sMat p proxy
 
 makeSEnv :: DebugMode -> IO SEnv
 makeSEnv dbg = SEnv

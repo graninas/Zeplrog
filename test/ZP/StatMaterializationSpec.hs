@@ -22,7 +22,7 @@ spec = do
     it "Door materialization test" $ do
       sEnv@(SEnv _ statPropsVar) <- makeSEnv DebugDisabled
 
-      (Ess ess, door) <- sMat' sEnv $ Proxy @KB.Door
+      (Ess ess, door) <- sMat' sEnv () $ Proxy @KB.Door
 
       statProps <- readTVarIO statPropsVar
       length statProps `shouldBe` 7
@@ -36,7 +36,7 @@ spec = do
     it "Game materialization test" $ do
       sEnv@(SEnv _ statPropsVar) <- makeSEnv DebugDisabled
 
-      game <- sMat' sEnv $ Proxy @(KB.Zeplrog KB.World1)
+      game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
 
       statProps <- readTVarIO statPropsVar
 

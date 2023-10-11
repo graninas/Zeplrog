@@ -22,49 +22,49 @@ data Triggs ts
 -- Statically materialize triggers
 
 instance
-  SMat (Triggs '[]) [Trigger 'ValueLevel] where
-  sMat _ = pure []
+  SMat p (Triggs '[]) [Trigger 'ValueLevel] where
+  sMat p _ = pure []
 
 instance
-  ( SMat trig (Trigger 'ValueLevel)
-  , SMat (Triggs triggs) [Trigger 'ValueLevel]
+  ( SMat p trig (Trigger 'ValueLevel)
+  , SMat p (Triggs triggs) [Trigger 'ValueLevel]
   ) =>
-  SMat (Triggs (trig ': triggs))
+  SMat p (Triggs (trig ': triggs))
       [Trigger 'ValueLevel] where
-  sMat _ = do
-    trig  <- sMat $ Proxy @trig
-    triggs <- sMat $ Proxy @(Triggs triggs)
+  sMat p _ = do
+    trig  <- sMat p $ Proxy @trig
+    triggs <- sMat p $ Proxy @(Triggs triggs)
     pure $ trig : triggs
 
 -- Statically materialize props
 
 instance
-  SMat (Props '[]) [(Essence 'ValueLevel, Property 'ValueLevel)] where
-  sMat _ = pure []
+  SMat p (Props '[]) [(Essence 'ValueLevel, Property 'ValueLevel)] where
+  sMat p _ = pure []
 
 instance
-  ( SMat prop (Essence 'ValueLevel, Property 'ValueLevel)
-  , SMat (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
+  ( SMat p prop (Essence 'ValueLevel, Property 'ValueLevel)
+  , SMat p (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
   ) =>
-  SMat (Props (prop ': props))
+  SMat p (Props (prop ': props))
       [(Essence 'ValueLevel, Property 'ValueLevel)] where
-  sMat _ = do
-    prop  <- sMat $ Proxy @prop
-    props <- sMat $ Proxy @(Props props)
+  sMat p _ = do
+    prop  <- sMat p $ Proxy @prop
+    props <- sMat p $ Proxy @(Props props)
     pure $ prop : props
 
 -- Statically materialize game env
 
 instance
-  ( SMat world (World 'ValueLevel)
-  , SMat (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
-  , SMat (Triggs triggs) [Trigger 'ValueLevel]
+  ( SMat p world (World 'ValueLevel)
+  , SMat p (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
+  , SMat p (Triggs triggs) [Trigger 'ValueLevel]
   ) =>
-  SMat ('GameEnvironment @TypeLevel world props triggs)
+  SMat p ('GameEnvironment @TypeLevel world props triggs)
       (Game 'ValueLevel) where
-  sMat _ = do
-    world  <- sMat $ Proxy @world
-    props  <- sMat $ Proxy @(Props props)
-    triggs <- sMat $ Proxy @(Triggs triggs)
+  sMat p _ = do
+    world  <- sMat p $ Proxy @world
+    props  <- sMat p $ Proxy @(Props props)
+    triggs <- sMat p $ Proxy @(Triggs triggs)
     let props' = map snd props
     pure $ GameEnvironment world props' triggs

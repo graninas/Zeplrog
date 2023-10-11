@@ -23,157 +23,157 @@ data QPathItems items
 -- Statically materialize settings
 
 instance
-  SMat 'FollowReferences QuerySetting where
-  sMat _ = pure FollowReferences
+  SMat p 'FollowReferences QuerySetting where
+  sMat p _ = pure FollowReferences
 
 instance
-  SMat (Settings '[]) [QuerySetting] where
-  sMat _ = pure []
+  SMat p (Settings '[]) [QuerySetting] where
+  sMat p _ = pure []
 
 instance
-  ( SMat setting QuerySetting
-  , SMat (Settings settings) [QuerySetting]
+  ( SMat p setting QuerySetting
+  , SMat p (Settings settings) [QuerySetting]
   ) =>
-  SMat (Settings (setting ': settings))
+  SMat p (Settings (setting ': settings))
       [QuerySetting] where
-  sMat _ = do
-    setting  <- sMat $ Proxy @setting
-    settings <- sMat $ Proxy @(Settings settings)
+  sMat p _ = do
+    setting  <- sMat p $ Proxy @setting
+    settings <- sMat p $ Proxy @(Settings settings)
     pure $ setting : settings
 
 -- Statically materialize query term
 
 instance
-  ( SMat ess (Essence 'ValueLevel)
+  ( SMat p ess (Essence 'ValueLevel)
   ) =>
-  SMat ('QEssence @'TypeLevel ess) (QueryTerm 'ValueLevel) where
-  sMat _ = do
-    ess <- sMat $ Proxy @ess
+  SMat p ('QEssence @'TypeLevel ess) (QueryTerm 'ValueLevel) where
+  sMat p _ = do
+    ess <- sMat p $ Proxy @ess
     pure $ QEssence ess
 
 instance
-  SMat ('QGetEssence @'TypeLevel) (QueryTerm 'ValueLevel) where
-  sMat _ = pure QGetEssence
+  SMat p ('QGetEssence @'TypeLevel) (QueryTerm 'ValueLevel) where
+  sMat p _ = pure QGetEssence
 
 -- Statically materialize query path
 
 instance
-  SMat (QPathItems '[]) [QueryTerm 'ValueLevel] where
-  sMat _ = pure []
+  SMat p (QPathItems '[]) [QueryTerm 'ValueLevel] where
+  sMat p _ = pure []
 
 instance
-  ( SMat item (QueryTerm 'ValueLevel)
-  , SMat (QPathItems items) [QueryTerm 'ValueLevel]
+  ( SMat p item (QueryTerm 'ValueLevel)
+  , SMat p (QPathItems items) [QueryTerm 'ValueLevel]
   ) =>
-  SMat (QPathItems (item ': items))
+  SMat p (QPathItems (item ': items))
       [QueryTerm 'ValueLevel] where
-  sMat _ = do
-    item  <- sMat $ Proxy @item
-    items <- sMat $ Proxy @(QPathItems items)
+  sMat p _ = do
+    item  <- sMat p $ Proxy @item
+    items <- sMat p $ Proxy @(QPathItems items)
     pure $ item : items
 
 -- Statically materialize query
 
 instance
-  ( SMat (Settings settings) [QuerySetting]
-  , SMat (QPathItems qPath) [QueryTerm 'ValueLevel]
-  , SMat varDef (VarDef 'ValueLevel)
+  ( SMat p (Settings settings) [QuerySetting]
+  , SMat p (QPathItems qPath) [QueryTerm 'ValueLevel]
+  , SMat p varDef (VarDef 'ValueLevel)
   ) =>
-  SMat ('SimpleQuery @'TypeLevel settings qPath varDef) (Query 'ValueLevel) where
-  sMat _ = do
-    settings <- sMat $ Proxy @(Settings settings)
-    qPath    <- sMat $ Proxy @(QPathItems qPath)
-    varDef   <- sMat $ Proxy @varDef
+  SMat p ('SimpleQuery @'TypeLevel settings qPath varDef) (Query 'ValueLevel) where
+  sMat p _ = do
+    settings <- sMat p $ Proxy @(Settings settings)
+    qPath    <- sMat p $ Proxy @(QPathItems qPath)
+    varDef   <- sMat p $ Proxy @varDef
     pure $ SimpleQuery settings qPath varDef
 
 -- Statically materialize queries
 
 instance
-  SMat (Queries '[]) [Query 'ValueLevel] where
-  sMat _ = pure []
+  SMat p (Queries '[]) [Query 'ValueLevel] where
+  sMat p _ = pure []
 
 instance
-  ( SMat q (Query 'ValueLevel)
-  , SMat (Queries qs) [Query 'ValueLevel]
+  ( SMat p q (Query 'ValueLevel)
+  , SMat p (Queries qs) [Query 'ValueLevel]
   ) =>
-  SMat (Queries (q ': qs))
+  SMat p (Queries (q ': qs))
       [Query 'ValueLevel] where
-  sMat _ = do
-    q     <- sMat $ Proxy @q
-    qs <- sMat $ Proxy @(Queries qs)
+  sMat p _ = do
+    q     <- sMat p $ Proxy @q
+    qs <- sMat p $ Proxy @(Queries qs)
     pure $ q : qs
 
 -- Statically materialize compare op
 
 instance
-  SMat 'QEq CompareOp where
-  sMat _ = pure QEq
+  SMat p 'QEq CompareOp where
+  sMat p _ = pure QEq
 
 -- Statically materialize procedure
 
 instance
-  ( SMat (Essences whatProp) [Essence 'ValueLevel]
-  , SMat (Essences withProp) [Essence 'ValueLevel]
+  ( SMat p (Essences whatProp) [Essence 'ValueLevel]
+  , SMat p (Essences withProp) [Essence 'ValueLevel]
   ) =>
-  SMat ('ReplaceProp @'TypeLevel whatProp withProp) (Procedure 'ValueLevel) where
-  sMat _ = do
-    whatPropPath <- sMat $ Proxy @(Essences whatProp)
-    withPropPath <- sMat $ Proxy @(Essences withProp)
+  SMat p ('ReplaceProp @'TypeLevel whatProp withProp) (Procedure 'ValueLevel) where
+  sMat p _ = do
+    whatPropPath <- sMat p $ Proxy @(Essences whatProp)
+    withPropPath <- sMat p $ Proxy @(Essences withProp)
     pure $ ReplaceProp whatPropPath withPropPath
 
 -- Statically materialize condition
 
 instance
-  ( SMat varName (VarName 'ValueLevel)
-  , SMat op CompareOp
-  , SMat valDef (ValDef 'ValueLevel)
+  ( SMat p varName (VarName 'ValueLevel)
+  , SMat p op CompareOp
+  , SMat p valDef (ValDef 'ValueLevel)
   ) =>
-  SMat ('ConditionDef @'TypeLevel varName op valDef) (Condition 'ValueLevel) where
-  sMat _ = do
-    varName <- sMat $ Proxy @varName
-    op      <- sMat $ Proxy @op
-    valDef  <- sMat $ Proxy @valDef
+  SMat p ('ConditionDef @'TypeLevel varName op valDef) (Condition 'ValueLevel) where
+  sMat p _ = do
+    varName <- sMat p $ Proxy @varName
+    op      <- sMat p $ Proxy @op
+    valDef  <- sMat p $ Proxy @valDef
     pure $ ConditionDef varName op valDef
 
 -- Statically materialize action
 
 instance
-  ( SMat cond (Condition 'ValueLevel)
-  , SMat procedure (Procedure 'ValueLevel)
+  ( SMat p cond (Condition 'ValueLevel)
+  , SMat p procedure (Procedure 'ValueLevel)
   ) =>
-  SMat ('ConditionalAction @'TypeLevel cond procedure) (Action 'ValueLevel) where
-  sMat _ = do
-    cond      <- sMat $ Proxy @cond
-    procedure <- sMat $ Proxy @procedure
+  SMat p ('ConditionalAction @'TypeLevel cond procedure) (Action 'ValueLevel) where
+  sMat p _ = do
+    cond      <- sMat p $ Proxy @cond
+    procedure <- sMat p $ Proxy @procedure
     pure $ ConditionalAction cond procedure
 
 -- Statically materialize actions
 
 instance
-  SMat (Actions '[]) [Action 'ValueLevel] where
-  sMat _ = pure []
+  SMat p (Actions '[]) [Action 'ValueLevel] where
+  sMat p _ = pure []
 
 instance
-  ( SMat act (Action 'ValueLevel)
-  , SMat (Actions acts) [Action 'ValueLevel]
+  ( SMat p act (Action 'ValueLevel)
+  , SMat p (Actions acts) [Action 'ValueLevel]
   ) =>
-  SMat (Actions (act ': acts))
+  SMat p (Actions (act ': acts))
       [Action 'ValueLevel] where
-  sMat _ = do
-    act  <- sMat $ Proxy @act
-    acts <- sMat $ Proxy @(Actions acts)
+  sMat p _ = do
+    act  <- sMat p $ Proxy @act
+    acts <- sMat p $ Proxy @(Actions acts)
     pure $ act : acts
 
 -- Statically materialize script
 
 instance
-  ( SMat ess (Essence 'ValueLevel)
-  , SMat (Queries queries) [Query 'ValueLevel]
-  , SMat (Actions actions) [Action 'ValueLevel]
+  ( SMat p ess (Essence 'ValueLevel)
+  , SMat p (Queries queries) [Query 'ValueLevel]
+  , SMat p (Actions actions) [Action 'ValueLevel]
   ) =>
-  SMat ('SimpleScript @'TypeLevel ess queries actions) (Script 'ValueLevel) where
-  sMat _ = do
-    ess     <- sMat $ Proxy @ess
-    queries <- sMat $ Proxy @(Queries queries)
-    actions <- sMat $ Proxy @(Actions actions)
+  SMat p ('SimpleScript @'TypeLevel ess queries actions) (Script 'ValueLevel) where
+  sMat p _ = do
+    ess     <- sMat p $ Proxy @ess
+    queries <- sMat p $ Proxy @(Queries queries)
+    actions <- sMat p $ Proxy @(Actions actions)
     pure $ SimpleScript ess queries actions
