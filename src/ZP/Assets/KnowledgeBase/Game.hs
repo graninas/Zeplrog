@@ -14,7 +14,8 @@ import GHC.TypeLits
 
 
 
-type Zeplrog = GameEnvironment
+type Zeplrog world = GameEnvironment
+  world
   '[ Door ]
   Triggers
 

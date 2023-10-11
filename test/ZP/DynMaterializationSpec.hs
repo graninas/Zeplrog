@@ -34,7 +34,7 @@ spec = do
     it "Full materialization: game" $ do
       (sEnv, dEnv) <- makeEnvs DebugDisabled
 
-      Game props triggs <- fullMat dEnv $ Proxy @KB.Zeplrog
+      Game _ props triggs <- fullMat dEnv $ Proxy @(KB.Zeplrog KB.World1)
 
       length props `shouldBe` 1
       length triggs `shouldBe` 4

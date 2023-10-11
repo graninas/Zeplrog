@@ -9,6 +9,7 @@ import ZP.Domain.Static.Materialization.Materializer
 import ZP.Domain.Static.Materialization.Common
 import ZP.Domain.Static.Materialization.Effect
 import ZP.Domain.Static.Materialization.Property
+import ZP.Domain.Static.Materialization.World
 
 import GHC.TypeLits
 import Data.Proxy
@@ -55,13 +56,15 @@ instance
 -- Statically materialize game env
 
 instance
-  ( SMat (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
+  ( SMat world (World 'ValueLevel)
+  , SMat (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
   , SMat (Triggs triggs) [Trigger 'ValueLevel]
   ) =>
-  SMat ('GameEnvironment @TypeLevel props triggs)
+  SMat ('GameEnvironment @TypeLevel world props triggs)
       (Game 'ValueLevel) where
   sMat _ = do
+    world  <- sMat $ Proxy @world
     props  <- sMat $ Proxy @(Props props)
     triggs <- sMat $ Proxy @(Triggs triggs)
     let props' = map snd props
-    pure $ GameEnvironment props' triggs
+    pure $ GameEnvironment world props' triggs

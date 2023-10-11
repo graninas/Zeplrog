@@ -12,6 +12,8 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
+-- TODO: FIXME: bare String type
+
 data Essences essPath
 
 -- Statically materialize variable def

@@ -11,6 +11,7 @@ import ZP.Domain.Dynamic.Materialization.Materializer
 import ZP.Domain.Dynamic.Materialization.Common
 import ZP.Domain.Dynamic.Materialization.Property
 import ZP.Domain.Dynamic.Materialization.Effect
+import ZP.Domain.Dynamic.Materialization.World
 
 import Data.Proxy
 import qualified Data.Map.Strict as Map
@@ -20,8 +21,9 @@ import qualified Data.Map.Strict as Map
 
 instance
   DMat (SMod.Game 'SMod.ValueLevel) Game where
-  dMat _ prop@(SMod.GameEnvironment props triggs) = do
+  dMat _ (SMod.GameEnvironment world props triggs) = do
+    world'  <- dMat False world
     props'  <- mapM (dMat False) props
     triggs' <- mapM (dMat False) triggs
     let propDict = Map.fromList props'
-    pure $ Game propDict triggs'
+    pure $ Game world' propDict triggs'

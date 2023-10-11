@@ -36,13 +36,13 @@ spec = do
     it "Game materialization test" $ do
       sEnv@(SEnv _ statPropsVar) <- makeSEnv DebugDisabled
 
-      game <- sMat' sEnv $ Proxy @KB.Zeplrog
+      game <- sMat' sEnv $ Proxy @(KB.Zeplrog KB.World1)
 
       statProps <- readTVarIO statPropsVar
 
       length statProps `shouldBe` 7
 
-      let GameEnvironment props triggs = game
+      let GameEnvironment world props triggs = game
 
       length props `shouldBe` 1
       length triggs `shouldBe` 4

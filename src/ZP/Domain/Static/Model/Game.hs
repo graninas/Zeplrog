@@ -10,11 +10,13 @@ import qualified Text.Show as T
 import ZP.Domain.Static.Model.Common
 import ZP.Domain.Static.Model.Property
 import ZP.Domain.Static.Model.Effect
+import ZP.Domain.Static.Model.World
 
 ------ Game and environment -----
 
 data Game (lvl :: Level) where
   GameEnvironment
-    :: [ Property lvl ]
+    :: World lvl
+    -> [ Property lvl ]
     -> [ Trigger lvl ]
     -> Game lvl

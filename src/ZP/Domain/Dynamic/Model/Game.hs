@@ -7,10 +7,13 @@ import ZP.Prelude
 import ZP.Domain.Dynamic.Model.Common
 import ZP.Domain.Dynamic.Model.Property
 import ZP.Domain.Dynamic.Model.Effect
+import ZP.Domain.Dynamic.Model.Script
+import ZP.Domain.Dynamic.Model.World
 
 import qualified Data.Map as Map
 
 data Game = Game
-  { gProps       :: Map.Map Essence Property
+  { gWorld       :: World
+  , gProps       :: Map.Map Essence Property
   , gEffTriggers :: [EffectTrigger]
   }

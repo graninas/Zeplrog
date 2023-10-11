@@ -22,7 +22,6 @@ default-extensions:
 - TypeOperators
 - FunctionalDependencies
 - TypeFamilies
-# - DataKinds
 - FlexibleContexts
 - FlexibleInstances
 - PatternSynonyms

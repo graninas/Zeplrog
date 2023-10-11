@@ -15,9 +15,18 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
+
+
+
 spec :: Spec
 spec = do
   describe "Game tests" $ do
+
+    xit "World items displacement test" $ do
+      (sEnv, dEnv) <- makeEnvs DebugDisabled
+
+      1 `shouldBe` 2
+
 
     xit "Effect triggering test" $ do
       (sEnv, dEnv) <- makeEnvs DebugDisabled
