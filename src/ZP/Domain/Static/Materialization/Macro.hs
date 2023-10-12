@@ -33,26 +33,52 @@ type G = Game 'ValueLevel
 
 -- Statically interpret macro
 
+findPropertyByChar :: Char -> Map.Map Char PropertyVL -> [PropertyVL]
+findPropertyByChar c objMap = case Map.lookup c objMap of
+  Nothing -> []
+  Just z -> [z]
+
+propIcon :: PropertyVL -> Char
+propIcon _ = '#'
+
+-- | Using world data and props to build
+-- world objects in cells
 instance
-  ( SMat () world (World 'ValueLevel)
+  ( SMat () world WorldVL
+  , SMat () (Props props) [(EssenceVL, PropertyVL)]
   ) =>
   SMat G ('UseWorld world props) G where
-  sMat (GameEnvironment _ cells props triggs) _ = do
-    world <- sMat () $ Proxy @world
-    pure $ GameEnvironment world cells props triggs
+    -- TODO: preserve prev props
+  sMat (GameEnvironment _ cellsOld propsOld triggs) _ = do
+    world@(WorldData worldData) <- sMat () $ Proxy @world
+    props <- sMat () $ Proxy @(Props props)
+
+    let propsMap = Map.fromList
+          [(propIcon prop, prop) | (_, prop) <- props]
+
+    let cells = [ CellObject pos p |
+          (rowIndex, row) <- zip [0..] worldData,
+          (colIndex, ch)  <- zip [0..] row,
+          let pos = (rowIndex, colIndex),
+          p <- findPropertyByChar ch propsMap]
+
+    pure $ GameEnvironment world (cellsOld <> cells) propsOld triggs
 
 instance
-  ( SMat () (Triggs triggs) [Trigger 'ValueLevel]
+  ( SMat () (Triggs triggs) [TriggerVL]
   ) =>
+  -- TODO: preserve prev triggs
   SMat G ('UseTriggers triggs) G where
   sMat (GameEnvironment world cells props _) _ = do
     triggs <- sMat () $ Proxy @(Triggs triggs)
     pure $ GameEnvironment world cells props triggs
 
+
+-- TODO: rework. Placing should go to Cells
 instance
   ( KnownNat x
   , KnownNat y
-  , SMat () prop (Essence 'ValueLevel, Property 'ValueLevel)
+  , SMat () prop (EssenceVL, PropertyVL)
   ) =>
   SMat G ('PlaceObj x y prop) G where
   sMat (GameEnvironment world cells props triggs) _ = do

@@ -68,3 +68,9 @@ data VarDef (lvl :: Level) where
 
 type EssenceTL = Essence 'TypeLevel
 type EssenceVL = Essence 'ValueLevel
+
+type ValDefTL = ValDef 'TypeLevel
+type ValDefVL = ValDef 'ValueLevel
+
+type VarDefTL = VarDef 'TypeLevel
+type VarDefVL = VarDef 'ValueLevel

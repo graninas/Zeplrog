@@ -38,7 +38,7 @@ instance
 instance
   ( SMat p (Rowss rows) [String]
   ) =>
-  SMat p ('WorldData @TypeLevel rows) (World 'ValueLevel) where
+  SMat p ('WorldData @TypeLevel rows) WorldVL where
   sMat p _ = do
     rows <- sMat p $ Proxy @(Rowss rows)
     pure $ WorldData rows

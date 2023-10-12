@@ -16,49 +16,31 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
-data Props ps
 data Triggs ts
 
 -- Statically materialize triggers
 
 instance
-  SMat p (Triggs '[]) [Trigger 'ValueLevel] where
+  SMat p (Triggs '[]) [TriggerVL] where
   sMat p _ = pure []
 
 instance
-  ( SMat p trig (Trigger 'ValueLevel)
-  , SMat p (Triggs triggs) [Trigger 'ValueLevel]
+  ( SMat p trig TriggerVL
+  , SMat p (Triggs triggs) [TriggerVL]
   ) =>
   SMat p (Triggs (trig ': triggs))
-      [Trigger 'ValueLevel] where
+      [TriggerVL] where
   sMat p _ = do
     trig  <- sMat p $ Proxy @trig
     triggs <- sMat p $ Proxy @(Triggs triggs)
     pure $ trig : triggs
 
--- Statically materialize props
-
-instance
-  SMat p (Props '[]) [(Essence 'ValueLevel, Property 'ValueLevel)] where
-  sMat p _ = pure []
-
-instance
-  ( SMat p prop (Essence 'ValueLevel, Property 'ValueLevel)
-  , SMat p (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
-  ) =>
-  SMat p (Props (prop ': props))
-      [(Essence 'ValueLevel, Property 'ValueLevel)] where
-  sMat p _ = do
-    prop  <- sMat p $ Proxy @prop
-    props <- sMat p $ Proxy @(Props props)
-    pure $ prop : props
-
 -- Statically materialize game env
 
 instance
-  ( SMat p world (World 'ValueLevel)
-  , SMat p (Props props) [(Essence 'ValueLevel, Property 'ValueLevel)]
-  , SMat p (Triggs triggs) [Trigger 'ValueLevel]
+  ( SMat p world WorldVL
+  , SMat p (Props props) [(EssenceVL, PropertyVL)]
+  , SMat p (Triggs triggs) [TriggerVL]
   ) =>
   SMat p ('GameEnvironment @TypeLevel world cells props triggs)
       (Game 'ValueLevel) where

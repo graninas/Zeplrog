@@ -16,20 +16,20 @@ import qualified Data.Map.Strict as Map
 -- Statically materialize trigger
 
 instance
-  ( SMat p eff1 (Effect 'ValueLevel)
-  , SMat p eff2 (Effect 'ValueLevel)
+  ( SMat p eff1 EffectVL
+  , SMat p eff2 EffectVL
   ) =>
-  SMat p ('EffTrigger @TypeLevel eff1 eff2) (Trigger 'ValueLevel) where
+  SMat p ('EffTrigger @TypeLevel eff1 eff2) TriggerVL where
   sMat p _ = do
     eff1 <- sMat p $ Proxy @eff1
     eff2 <- sMat p $ Proxy @eff2
     pure $ EffTrigger eff1 eff2
 
 instance
-  ( SMat p eff (Effect 'ValueLevel)
-  , SMat p ess (Essence 'ValueLevel)
+  ( SMat p eff EffectVL
+  , SMat p ess EssenceVL
   ) =>
-  SMat p ('AbilityTrigger @TypeLevel eff ess) (Trigger 'ValueLevel) where
+  SMat p ('AbilityTrigger @TypeLevel eff ess) TriggerVL where
   sMat p _ = do
     eff <- sMat p $ Proxy @eff
     ess <- sMat p $ Proxy @ess
@@ -38,9 +38,9 @@ instance
 -- Statically materialize effect
 
 instance
-  ( SMat p ess (Essence 'ValueLevel)
+  ( SMat p ess EssenceVL
   ) =>
-  SMat p ('Eff @TypeLevel ess) (Effect 'ValueLevel) where
+  SMat p ('Eff @TypeLevel ess) EffectVL where
   sMat p _ = do
     ess  <- sMat p $ Proxy @ess
     pure $ Eff ess

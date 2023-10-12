@@ -14,14 +14,17 @@ import ZP.Domain.Static.Model.World
 
 ------ Game and environment -----
 
-data Cell (lvl :: Level) where
-  CellObjects :: Nat -> Nat -> [Essence lvl] -> Cell lvl
+-- | Objects in the world.
+-- No static type-level version.
+data Cell where
+  CellObject :: (Int, Int) -> PropertyVL -> Cell
+
 
 data Game (lvl :: Level) where
   GameEnvironment
-    :: World lvl
-    -> [ Cell lvl ]
-    -> [ Property lvl ]
+    :: World lvl              -- ^ Template world
+    -> [ Cell ]               -- ^ World objects
+    -> [ Property lvl ]       -- ^ Template static properties
     -> [ Trigger lvl ]
     -> Game lvl
 
@@ -30,5 +33,3 @@ data Game (lvl :: Level) where
 type GameTL = Game 'TypeLevel
 type GameVL = Game 'ValueLevel
 
-type CellTL = Cell 'TypeLevel
-type CellVL = Cell 'ValueLevel

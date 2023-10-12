@@ -27,7 +27,7 @@ instance
 instance
   ( KnownSymbol varName
   ) =>
-  SMat p ('IntVar @'TypeLevel varName) (VarDef 'ValueLevel) where
+  SMat p ('IntVar @'TypeLevel varName) VarDefVL where
   sMat p _ = do
     let varName = symbolVal $ Proxy @varName
     pure $ IntVar varName
@@ -35,18 +35,18 @@ instance
 instance
   ( KnownSymbol varName
   ) =>
-  SMat p ('BoolVar @'TypeLevel varName) (VarDef 'ValueLevel) where
+  SMat p ('BoolVar @'TypeLevel varName) VarDefVL where
   sMat p _ = do
     let varName = symbolVal $ Proxy @varName
     pure $ BoolVar varName
 
 instance
   ( KnownSymbol varName
-  , SMat p varDef1 (VarDef 'ValueLevel)
-  , SMat p varDef2 (VarDef 'ValueLevel)
+  , SMat p varDef1 VarDefVL
+  , SMat p varDef2 VarDefVL
   ) =>
   SMat p ('PairVar @'TypeLevel varName varDef1 varDef2)
-      (VarDef 'ValueLevel) where
+      VarDefVL where
   sMat p _ = do
     let varName = symbolVal $ Proxy @varName
     varDef1 <- sMat p $ Proxy @varDef1
@@ -59,7 +59,7 @@ instance
   ( KnownNat intVal
   ) =>
   SMat p ('IntValue @'TypeLevel intVal)
-      (ValDef 'ValueLevel) where
+      ValDefVL where
   sMat p _ = pure
       $ IntValue
       $ fromIntegral
@@ -67,34 +67,34 @@ instance
       $ Proxy @intVal
 
 instance
-  ( SMat p val1 (ValDef 'ValueLevel)
-  , SMat p val2 (ValDef 'ValueLevel)
+  ( SMat p val1 ValDefVL
+  , SMat p val2 ValDefVL
   ) =>
-  SMat p ('PairValue @'TypeLevel val1 val2) (ValDef 'ValueLevel) where
+  SMat p ('PairValue @'TypeLevel val1 val2) ValDefVL where
   sMat p _ = do
     val1 <- sMat p $ Proxy @val1
     val2 <- sMat p $ Proxy @val2
     pure $ PairValue val1 val2
 
 instance
-  SMat p ('BoolValue @'TypeLevel 'True) (ValDef 'ValueLevel) where
+  SMat p ('BoolValue @'TypeLevel 'True) ValDefVL where
   sMat p _ = pure $ BoolValue True
 
 instance
   ( KnownSymbol str
   ) =>
-  SMat p ('StringValue @'TypeLevel str) (ValDef 'ValueLevel) where
+  SMat p ('StringValue @'TypeLevel str) ValDefVL where
   sMat p _ = pure $ StringValue $ symbolVal $ Proxy @str
 
 instance
-  SMat p ('BoolValue @'TypeLevel 'False) (ValDef 'ValueLevel) where
+  SMat p ('BoolValue @'TypeLevel 'False) ValDefVL where
   sMat p _ = pure $ BoolValue False
 
 instance
-  ( SMat p (Essences essPath) [Essence 'ValueLevel]
+  ( SMat p (Essences essPath) [EssenceVL]
   ) =>
   SMat p ('PropRefValue @'TypeLevel essPath)
-      (ValDef 'ValueLevel) where
+      ValDefVL where
   sMat p _ = do
     path <- sMat p $ Proxy @(Essences essPath)
     pure $ PropRefValue path
@@ -104,19 +104,19 @@ instance
 instance
   ( KnownSymbol symb
   ) =>
-  SMat p ('Ess @'TypeLevel symb) (Essence 'ValueLevel) where
+  SMat p ('Ess @'TypeLevel symb) EssenceVL where
   sMat p _ = pure $ Ess $ symbolVal (Proxy @symb)
 
 instance
-  SMat p (Essences '[]) [Essence 'ValueLevel] where
+  SMat p (Essences '[]) [EssenceVL] where
   sMat p _ = pure []
 
 instance
-  ( SMat p ess (Essence 'ValueLevel)
-  , SMat p (Essences essPath) [Essence 'ValueLevel]
+  ( SMat p ess EssenceVL
+  , SMat p (Essences essPath) [EssenceVL]
   ) =>
   SMat p (Essences (ess ': essPath))
-      [Essence 'ValueLevel] where
+      [EssenceVL] where
   sMat p _ = do
     ess     <- sMat p $ Proxy @ess
     essPath <- sMat p $ Proxy @(Essences essPath)

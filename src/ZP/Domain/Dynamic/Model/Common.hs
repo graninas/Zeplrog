@@ -7,6 +7,8 @@ import ZP.Prelude
 -- TODO: use Text
 type Essence = String
 
+type ObjectId = Int
+
 data Value
   = PairValue (Value, Value)
   | IntValue Int

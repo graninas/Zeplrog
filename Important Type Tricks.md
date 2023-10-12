@@ -41,3 +41,23 @@ mkE :: forall ess symb
 mkE = symbolVal $ Proxy @symb
 ```
 
+**Type lists interpretation with helper empty ADTs**
+
+```haskell
+data Props props
+
+instance
+  SMat p (Props '[]) [()] where
+  sMat p _ = pure []
+
+instance
+  ( SMat p prop (EssenceVL, PropertyVL)
+  , SMat p (Props props) [(EssenceVL, PropertyVL)]
+  ) =>
+  SMat p (Props (prop ': props)) [(EssenceVL, PropertyVL)] where
+  sMat p _ = do
+    prop  <- sMat p $ Proxy @prop
+    props <- sMat p $ Proxy @(Props props)
+    pure $ prop : props
+
+```
