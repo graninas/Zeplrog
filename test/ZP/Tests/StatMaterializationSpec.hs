@@ -25,10 +25,13 @@ spec = do
       (Ess ess, door) <- sMat' sEnv () $ Proxy @KB.Door
 
       statProps <- readTVarIO statPropsVar
-      length statProps `shouldBe` 7
+
+      print $ "Stat props: " <> show (Map.keys statProps)
+
+      length statProps `shouldBe` 8
 
       case door of
-        PropDict root props -> length props `shouldBe` 5
+        PropDict root props -> length props `shouldBe` 6
         _ -> error "invalid materialization result"
 
       ess `shouldBe` "object:door"
@@ -37,26 +40,26 @@ spec = do
       sEnv@(SEnv _ statPropsVar) <- makeSEnv DebugEnabled
 
       game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
+      let GameEnvironment world cells props triggs = game
 
       statProps <- readTVarIO statPropsVar
 
-      length statProps `shouldBe` 7
+      print $ "Stat props: " <> show (Map.keys statProps)
 
-      let GameEnvironment world cells props triggs = game
-
-      length props `shouldBe` 1
+      length statProps `shouldBe` 10
+      length props `shouldBe` 3
       length triggs `shouldBe` 4
 
     it "Game materialization test (with macro)" $ do
       sEnv@(SEnv _ statPropsVar) <- makeSEnv DebugEnabled
 
       game <- sMat' sEnv () $ Proxy @(KB.Zeplrog' KB.World1)
+      let GameEnvironment world cells props triggs = game
 
       statProps <- readTVarIO statPropsVar
 
-      length statProps `shouldBe` 7
+      print $ "Stat props: " <> show (Map.keys statProps)
 
-      let GameEnvironment world cells props triggs = game
-
+      length statProps `shouldBe` 8
       length props `shouldBe` 1
       length triggs `shouldBe` 4

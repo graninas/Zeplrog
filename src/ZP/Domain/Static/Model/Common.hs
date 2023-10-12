@@ -49,6 +49,7 @@ data ValDef (lvl :: Level) where
   IntValue      :: IntegerType lvl -> ValDef lvl
   BoolValue     :: Bool -> ValDef lvl
   PairValue     :: ValDef lvl -> ValDef  lvl-> ValDef lvl
+  StringValue   :: StringType lvl-> ValDef lvl
 
   -- Should be dyn materialized as a mutable reference to a property
   -- (list of essences relative to the parent property)

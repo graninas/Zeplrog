@@ -27,6 +27,7 @@ spec = do
       (_, door) <- dMat' dEnv () doorStat
 
       sharedProps <- readTVarIO sharedPropsVar
+      print $ "Shared props: " <> show (Map.keys sharedProps)
 
       ess `shouldBe` "object:door"
       Map.size sharedProps `shouldBe` 1
@@ -39,7 +40,9 @@ spec = do
 
       let World worldVec worldMap = world
 
-      length props `shouldBe` 1
+      print $ "Props: " <> show (Map.keys props)
+
+      length props `shouldBe` 3
       length triggs `shouldBe` 4
       length worldMap `shouldBe` 65
 
@@ -66,8 +69,9 @@ spec = do
       let World worldVec worldMap = world
 
       statProps <- readTVarIO statPropsVar
+      print $ "Stat props: " <> show (Map.keys statProps)
 
-      length statProps `shouldBe` 7
+      length statProps `shouldBe` 8
       length props `shouldBe` 1
       length triggs `shouldBe` 4
       length worldMap `shouldBe` 65

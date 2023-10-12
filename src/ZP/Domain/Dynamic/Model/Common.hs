@@ -11,6 +11,7 @@ data Value
   = PairValue (Value, Value)
   | IntValue Int
   | BoolValue Bool
+  | StringValue String          -- TODO: use Text
   -- | EssenceValue Description Essence
   -- | ListValue [PropertyValue]
   -- | ActingObjectValue ActingObject

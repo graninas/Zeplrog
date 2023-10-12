@@ -36,7 +36,8 @@ type PushableScript = SimpleScript EPushableScript
 
 -- | Template for all doors (with pos prop)
 type Door = PropDict (EssStaticRoot EDoor)
-  '[ PropKeyVal EHP (OwnProp (HPVal 100))
+  '[ PropKeyVal EIcon (OwnProp (IconVal "+"))   -- TODO: open and close door with own icons
+   , PropKeyVal EHP (OwnProp (HPVal 100))
    , PropKeyVal EPos (SharedProp (PosConst 2 3))
 
     -- | Possible states
@@ -58,7 +59,8 @@ type Door = PropDict (EssStaticRoot EDoor)
 
 -- | Template for all doors (no pos prop)
 type Door2 = PropDict (EssStaticRoot EDoor)
-  '[ PropKeyVal EHP (OwnProp (HPVal 100))
+  '[ PropKeyVal EIcon (OwnProp (IconVal "+"))   -- TODO: open and close door with own icons
+   , PropKeyVal EHP (OwnProp (HPVal 100))
 
     -- | Possible states
    , PropKeyBag EStates

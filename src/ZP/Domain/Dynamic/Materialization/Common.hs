@@ -30,6 +30,7 @@ instance
   DMat p (SMod.ValDef 'SMod.ValueLevel) Value where
   dMat _ p (SMod.IntValue val)  = pure $ IntValue val
   dMat _ p (SMod.BoolValue val) = pure $ BoolValue val
+  dMat _ p (SMod.StringValue val) = pure $ StringValue val
   dMat _ p (SMod.PairValue val1 val2) = do
     val1' <- dMat False p val1
     val2' <- dMat False p val2

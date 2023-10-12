@@ -8,6 +8,7 @@ import ZP.Domain.Hardcode.KnowledgeBase
 import ZP.Assets.KnowledgeBase.Essences
 import ZP.Assets.KnowledgeBase.Common
 import ZP.Assets.KnowledgeBase.Doors
+import ZP.Assets.KnowledgeBase.Surroundings
 import ZP.Assets.KnowledgeBase.Agents
 import ZP.Assets.KnowledgeBase.Effects
 
@@ -15,9 +16,10 @@ import Prelude (Bool(..))
 import GHC.TypeLits
 
 
+type Surroundings = '[ Wall, EmptySpace ]
 
 type Zeplrog' world = MGame
-  '[ UseWorld world
+  '[ UseWorld world Surroundings
    , UseTriggers Triggers
    , PlaceObj 2 8 Door2
    ]
@@ -25,7 +27,7 @@ type Zeplrog' world = MGame
 type Zeplrog world = GameEnvironment
   world
   '[]
-  '[ Door ]
+  '[ Door, Wall, EmptySpace ]
   Triggers
 
 

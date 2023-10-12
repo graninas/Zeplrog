@@ -36,7 +36,7 @@ type G = Game 'ValueLevel
 instance
   ( SMat () world (World 'ValueLevel)
   ) =>
-  SMat G ('UseWorld world) G where
+  SMat G ('UseWorld world props) G where
   sMat (GameEnvironment _ cells props triggs) _ = do
     world <- sMat () $ Proxy @world
     pure $ GameEnvironment world cells props triggs

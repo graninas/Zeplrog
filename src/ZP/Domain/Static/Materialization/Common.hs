@@ -81,6 +81,12 @@ instance
   sMat p _ = pure $ BoolValue True
 
 instance
+  ( KnownSymbol str
+  ) =>
+  SMat p ('StringValue @'TypeLevel str) (ValDef 'ValueLevel) where
+  sMat p _ = pure $ StringValue $ symbolVal $ Proxy @str
+
+instance
   SMat p ('BoolValue @'TypeLevel 'False) (ValDef 'ValueLevel) where
   sMat p _ = pure $ BoolValue False
 

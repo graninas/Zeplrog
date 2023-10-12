@@ -16,11 +16,16 @@ import ZP.Domain.Static.Model.Script
 
 ------ Macro -----
 
+-- | Macros for building type-level game
 data MacroGame where
   MGame :: [Macro] -> MacroGame
 
+-- | Specific macro commands
 data Macro where
-  UseWorld    :: World TypeLevel -> Macro
-  UseTriggers :: [Trigger TypeLevel] -> Macro
-  PlaceObj    :: Nat -> Nat -> Property TypeLevel -> Macro
+  -- | Build the world using the map and properties for map objects
+  UseWorld    :: WorldTL -> [PropertyTL] -> Macro
+  -- | Use triggers
+  UseTriggers :: [TriggerTL] -> Macro
+  -- | Displace an object in the world
+  PlaceObj    :: Nat -> Nat -> PropertyTL -> Macro
 

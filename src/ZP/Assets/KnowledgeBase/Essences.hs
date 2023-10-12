@@ -16,7 +16,8 @@ type EIdling        = Ess @TypeLevel "action:idling"
 type ENoAction      = Ess @TypeLevel "action:no action"
 
 type EActionLoop    = Ess @TypeLevel "system:action loop"
-type EGoal          = Ess @TypeLevel "goal"
+type EIcon          = Ess @TypeLevel "system:icon"
+type EGoal          = Ess @TypeLevel "system:goal"
 
 
 type EHP            = Ess @TypeLevel "intrinsics:hp"
@@ -36,6 +37,8 @@ type EPushable      = Ess @TypeLevel "ability:pushable"
 
 type EPushableScript = Ess @TypeLevel "script:pushable"
 
+type EEmptySpace    = Ess @TypeLevel "object:empty space"
+type EWall          = Ess @TypeLevel "object:wall"
 type EWand          = Ess @TypeLevel "object:wand"
 type ERat           = Ess @TypeLevel "object:rat"
 type EGuard         = Ess @TypeLevel "object:guard"

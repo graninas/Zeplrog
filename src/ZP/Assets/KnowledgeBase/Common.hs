@@ -9,3 +9,5 @@ import GHC.TypeLits
 
 
 type HPVal hp = PropVal (EssStaticRoot EHP) (IntValue hp)
+
+type IconVal icon = PropVal (EssStaticRoot EIcon) (StringValue icon)
