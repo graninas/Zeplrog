@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6fc2e217e0335a6b9d93a3525f095f7e6ca77498f7034aa5bb643aa6819f209d
+-- hash: 03f24baae586ab5e7cfe49f80b8b039b277455dfda703552132bff00ed6283d4
 
 name:           zeplrog
 version:        0.0.0.1
@@ -252,10 +252,11 @@ test-suite tests
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      ZP.AgentsSpec
-      ZP.DynMaterializationSpec
-      ZP.GameSpec
-      ZP.StatMaterializationSpec
+      ZP.Testing.Utils
+      ZP.Tests.AgentsSpec
+      ZP.Tests.DynMaterializationSpec
+      ZP.Tests.GameSpec
+      ZP.Tests.StatMaterializationSpec
       Paths_zeplrog
   hs-source-dirs:
       test/

@@ -28,9 +28,9 @@ data PropertyBag
   | PropertyDict (Map.Map Essence PropertyOwning)
 
 data Property = Property
-  { dpEssence    :: Essence
-  , dpParentProp :: PropertyRef
-  , dpScript     :: TVar (Maybe Script)
-  , dpPropsBag   :: TVar (Map.Map Essence PropertyBag)
-  , dpPropValue  :: TVar (Maybe PropertyValue)
+  { pEssence    :: Essence
+  , pParentProp :: PropertyRef
+  , pScript     :: TVar (Maybe Script)
+  , pPropBags   :: TVar (Map.Map Essence PropertyBag)
+  , pPropValue  :: TVar (Maybe PropertyValue)
   }

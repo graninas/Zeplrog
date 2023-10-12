@@ -16,11 +16,17 @@ import GHC.TypeLits
 
 
 
-type Zeplrog world = MGame
+type Zeplrog' world = MGame
   '[ UseWorld world
    , UseTriggers Triggers
-   , PlaceObj 2 8 Door
+   , PlaceObj 2 8 Door2
    ]
+
+type Zeplrog world = GameEnvironment
+  world
+  '[]
+  '[ Door ]
+  Triggers
 
 
 

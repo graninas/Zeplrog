@@ -57,8 +57,6 @@ instance
   SMat G ('PlaceObj x y prop) G where
   sMat (GameEnvironment world cells props triggs) _ = do
     (ess, prop) <- sMat () $ Proxy @prop
-    -- let x = natVal $ Proxy @x
-    -- let y = natVal $ Proxy @y
 
     posProp <- sMat () $ Proxy @(PosVal x y)
     let prop' = addSharedProperty [] posProp prop

@@ -34,9 +34,10 @@ type PushableScript = SimpleScript EPushableScript
       (ReplaceProp '[ EState ] '[ EStates, EStateOpen ])
    ]
 
--- | Template for all doors.
+-- | Template for all doors (with pos prop)
 type Door = PropDict (EssStaticRoot EDoor)
   '[ PropKeyVal EHP (OwnProp (HPVal 100))
+   , PropKeyVal EPos (SharedProp (PosConst 2 3))
 
     -- | Possible states
    , PropKeyBag EStates
@@ -54,6 +55,26 @@ type Door = PropDict (EssStaticRoot EDoor)
        ]
    ]
 
+
+-- | Template for all doors (no pos prop)
+type Door2 = PropDict (EssStaticRoot EDoor)
+  '[ PropKeyVal EHP (OwnProp (HPVal 100))
+
+    -- | Possible states
+   , PropKeyBag EStates
+      '[ OwnProp (StaticPropRef StateOpen)
+       , OwnProp (StaticPropRef StateClose)
+       ]
+
+    -- | Current state. Points to a close/open state
+   , PropKeyVal EState (OwnProp StatePropRefVal)
+
+    -- | Abilities to react to effects
+   , PropKeyBag EAbilities
+      '[ SharedProp (PropScript (EssStaticRoot EPushable)
+                    PushableScript)
+       ]
+   ]
 
 --
 -- Door
