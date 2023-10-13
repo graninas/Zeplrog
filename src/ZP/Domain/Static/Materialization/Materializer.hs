@@ -49,6 +49,19 @@ makeSEnv dbg = SEnv
 
 ----- Utils ---------------
 
+
+getEssence :: PropertyRootVL -> EssenceVL
+getEssence (EssRoot ess) = ess
+getEssence (PropRoot ess _) = ess
+
+getRoot :: PropertyVL -> PropertyRootVL
+getRoot (StaticProp root) = root
+getRoot (StaticPropRef prop) = getRoot prop
+getRoot (PropVal root _) = root
+getRoot (PropDict root _) = root
+getRoot (PropScript root _) = root
+
+
 getNextStaticPropertyId'
   :: TVar StaticPropertyId
   -> SMaterializer StaticPropertyId
@@ -63,17 +76,18 @@ getNextStaticPropertyId = do
   getNextStaticPropertyId' statPropIdVar
 
 addStaticProperty
-  :: (EssenceVL, PropertyVL)
-  -> SMaterializer StaticPropertyId
-addStaticProperty (ess, prop) = do
-  SEnv _ statPropIdVar statPropsVar statEssencesVar <- ask
-
-  statPropId <- getNextStaticPropertyId' statPropIdVar
-
+  :: (StaticPropertyId, EssenceVL, PropertyVL)
+  -> SMaterializer ()
+addStaticProperty (statPropId, ess, prop) = do
+  SEnv _ _ statPropsVar statEssencesVar <- ask
   atomically $ do
     props <- readTVar statPropsVar
     esss  <- readTVar statEssencesVar
     writeTVar statPropsVar    $ Map.insert statPropId (ess, prop) props
     writeTVar statEssencesVar $ Map.insert ess (statPropId, prop) esss
 
-  pure statPropId
+
+traceDebug :: String -> SMaterializer ()
+traceDebug msg = do
+  SEnv dbg _ _ _ <- ask
+  when (dbg == DebugEnabled) $ trace msg $ pure ()

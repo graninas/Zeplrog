@@ -77,14 +77,3 @@ getNextPropertyId :: DMaterializer PropertyId
 getNextPropertyId = do
   DEnv _ propIdVar _ _ <- ask
   getNextPropertyId' propIdVar
-
-getEssence :: SMod.PropertyRootVL -> SMod.EssenceVL
-getEssence (SMod.EssRoot ess) = ess
-getEssence (SMod.PropRoot ess _) = ess
-
-getRoot :: SMod.PropertyVL -> SMod.PropertyRootVL
-getRoot (SMod.StaticProp root) = root
-getRoot (SMod.StaticPropRef prop) = getRoot prop
-getRoot (SMod.PropVal root _) = root
-getRoot (SMod.PropDict root _) = root
-getRoot (SMod.PropScript root _) = root

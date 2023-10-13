@@ -4,6 +4,7 @@ module ZP.Assets.KnowledgeBase.Common where
 
 import ZP.Domain.Static.Model
 import ZP.Assets.KnowledgeBase.Essences
+import ZP.Domain.Hardcode.KnowledgeBase
 
 import GHC.TypeLits
 

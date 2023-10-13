@@ -46,10 +46,10 @@ type PushableScript = SimpleScript EPushableScript
 
 
 -- | Abstract door. Should not be directely materialized.
-type AbstractDoor = PropDict (EssRoot AbstractDoor)
+type AbstractDoor = PropDict (EssRoot EAbstractDoor)
   '[ PropKeyVal EIcon (OwnProp (IconVal "+"))   -- TODO: open and close door with own icons
    , PropKeyVal EHP   (OwnProp (HPVal 50))
-   , PropKeyVal EPos  (OwnProp DerivedWorldPos)
+   , PropKeyVal EPos  (OwnProp DerivedWorldPosVal)
 
     -- | Possible states
    , PropKeyBag EStates

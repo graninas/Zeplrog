@@ -77,3 +77,7 @@ data Script (lvl :: Level) where
     -> [Action lvl]
     -> Script lvl
 
+------ Short identifiers ----------
+
+type ScriptTL = Script 'TypeLevel
+type ScriptVL = Script 'ValueLevel

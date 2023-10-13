@@ -23,38 +23,39 @@ data Props props
 
 type ResPropKVs = [PropertyKeyValueVL]
 
+
+-- | Lookups a property having this essence.
+--   If property found, it will be returned.
+--   If there is no such property, it will be created.
+
 withProperty
   :: SMat p root (EssenceVL, PropertyRootVL)
   => p
   -> Proxy root
-  -> SMaterializer (EssenceVL, PropertyVL)
-  -> SMaterializer (EssenceVL, PropertyVL)
-withProperty p rootProxy matProp = do
-  SEnv dbg statPropIdVar statPropsVar statEssencesVar <- ask
+  -> (PropertyRootVL -> SMaterializer PropertyVL)
+  -> SMaterializer PropertyVL
+withProperty p rootProxy matPropF = do
+  SEnv dbg _ _ statEssencesVar <- ask
 
-  (ess, _) <- sMat p rootProxy
+  (ess, root) <- sMat p rootProxy
 
-  when (dbg == DebugEnabled)
-    $ trace ("Static property to introduce: " <> show ess)
-    $ pure ()
+  traceDebug $ "Static property to introduce: " <> show ess
 
   esss <- readTVarIO statEssencesVar
 
-  (msg, prop) <- case Map.lookup ess esss of
-      Just (statPropId, prop) ->
-        pure (show ess <> ": already exists: " <> show statPropId, (ess, prop))
-      Nothing -> do
-        p@(ess, prop) <- matProp
+  case Map.lookup ess esss of
+    Just (statPropId, prop) -> do
+      traceDebug $ show ess <> ": already exists: " <> show statPropId
+      pure prop
+    Nothing -> do
+      statPropId <- getNextStaticPropertyId
+      prop <- matPropF root
 
-        statPropId <- addStaticProperty p
+      addStaticProperty (statPropId, ess, prop)
 
-        pure (show ess <> ": created: " <> show statPropId, p)
+      traceDebug $ show ess <> ": created: " <> show statPropId
 
-  when (dbg == DebugEnabled)
-    $ trace msg
-    $ pure ()
-
-  pure prop
+      pure prop
 
 -- Statically materialize property root
 
@@ -80,53 +81,76 @@ instance
 -- Statically materialize property
 
 instance
-  ( SMat p root (EssenceVL, PropertyRootVL)
-  , SMat p (SrcPropKVs propKVs) ResPropKVs
+  ( SMat p (SrcPropKVs propKVs) ResPropKVs
   ) =>
   SMat p ('PropDict @'TypeLevel root propKVs)
-         (EssenceVL, PropertyVL) where
-  sMat p _ = withProperty p (Proxy @root) $ do
-    (ess, root) <- sMat p $ Proxy @root
+         PropertyVL where
+  sMat p _ = withProperty p (Proxy @root) $ \root -> do
     propKVs <- sMat p $ Proxy @(SrcPropKVs propKVs)
-    pure (ess, PropDict root propKVs)
+    pure $ PropDict root propKVs
+
+instance
+  ( SMat p ess EssenceVL
+  , SMat p abstractProp PropertyVL
+  , SMat p (SrcPropKVs propKVs) ResPropKVs
+  ) =>
+  SMat p ('DerivedProperty @'TypeLevel ess abstractProp propKVs)
+         PropertyVL where
+  sMat p _ = do
+    ess <- sMat p $ Proxy @ess
+
+    traceDebug $ "Deriving property: " <> show ess
+
+    abstractProp <- sMat p $ Proxy @abstractProp
+
+    case abstractProp of
+      PropDict root abstractPropKVs -> do
+        let abstractPropEss = getEssence root
+        traceDebug $ "Abstract property to derive: " <> show abstractPropEss
+
+        statPropId <- getNextStaticPropertyId
+
+        propKVs <- sMat p $ Proxy @(SrcPropKVs propKVs)
+        let propKVs' = Map.union propKVs abstractPropKVs
+
+        let prop = PropDict (PropRoot abstractProp) propKVs'
+        addStaticProperty (statPropId, ess, prop)
+        traceDebug $ show ess <> ": new property is derived: " <> show statPropId
+
+        pure prop
+
+      _ -> error "abstract non-dict prop is not supported yet"
 
 instance
   ( SMat p val ValDefVL
-  , SMat p root (EssenceVL, PropertyRootVL)
   ) =>
   SMat p ('PropVal @'TypeLevel root val)
-         (EssenceVL, PropertyVL) where
-  sMat p _ = withProperty p (Proxy @root) $ do
-    (ess, root) <- sMat p $ Proxy @root
+         PropertyVL where
+  sMat p _ = withProperty p (Proxy @root) $ \root -> do
     val <- sMat p $ Proxy @val
-    pure (ess, PropVal root val)
+    pure $ PropVal root val
 
 instance
-  ( SMat p root (EssenceVL, PropertyRootVL)
-  , SMat p script (Script 'ValueLevel)
+  ( SMat p script ScriptVL
   ) =>
   SMat p ('PropScript @'TypeLevel root script)
-         (EssenceVL, PropertyVL) where
-  sMat p _ = withProperty p (Proxy @root) $ do
-    (ess, root) <- sMat p $ Proxy @root
-    script      <- sMat p $ Proxy @script
-    pure (ess, PropScript root script)
+         PropertyVL where
+  sMat p _ = withProperty p (Proxy @root) $ \root -> do
+    script <- sMat p $ Proxy @script
+    pure $ PropScript root script
 
 instance
-  ( SMat p prop (EssenceVL, PropertyVL)
+  ( SMat p prop PropertyVL
   ) =>
   SMat p ('StaticPropRef @'TypeLevel prop)
-         (EssenceVL, PropertyVL) where
+         PropertyVL where
   sMat p _ = sMat p $ Proxy @prop
 
 instance
-  ( SMat p root (EssenceVL, PropertyRootVL)
-  ) =>
   SMat p ('StaticProp @'TypeLevel root)
-         (EssenceVL, PropertyVL) where
-  sMat p _ = withProperty p (Proxy @root) $ do
-    (ess, root) <- sMat p $ Proxy @root
-    pure (ess, StaticPropRef $ StaticProp root)
+         PropertyVL where
+  sMat p _ = withProperty p (Proxy @root) $ \root -> do
+    StaticPropRef $ StaticProp root
 
 -- Statically materialize property key value list
 
@@ -151,7 +175,7 @@ instance
   , SMat p propOwn PropertyOwningVL
   ) =>
   SMat p ('PropKeyVal @'TypeLevel ess propOwn)
-         (PropertyKeyValueVL) where
+         PropertyKeyValueVL where
   sMat p _ = do
     ess     <- sMat p $ Proxy @ess
     propOwn <- sMat p $ Proxy @propOwn
@@ -162,7 +186,7 @@ instance
   , SMat p (PropOwns propOwns) [PropertyOwningVL]
   ) =>
   SMat p ('PropKeyBag @'TypeLevel ess propOwns)
-         (PropertyKeyValueVL) where
+         PropertyKeyValueVL where
   sMat p _ = do
     ess      <- sMat p $ Proxy @ess
     propOwns <- sMat p $ Proxy @(PropOwns propOwns)
@@ -188,34 +212,34 @@ instance
 -- Statically materialize property owning
 
 instance
-  ( SMat p prop (EssenceVL, PropertyVL)
+  ( SMat p prop PropertyVL
   ) =>
   SMat p ('OwnProp @'TypeLevel prop)
-         (PropertyOwningVL) where
+         PropertyOwningVL where
   sMat p _ = do
-    (_, prop) <- sMat p $ Proxy @prop
+    prop <- sMat p $ Proxy @prop
     pure $ OwnProp prop
 
 instance
-  ( SMat p prop (EssenceVL, PropertyVL)
+  ( SMat p prop PropertyVL
   ) =>
   SMat p ('SharedProp @'TypeLevel prop)
-         (PropertyOwningVL) where
+         PropertyOwningVL where
   sMat p _ = do
-    (_, prop) <- sMat p $ Proxy @prop
+    prop <- sMat p $ Proxy @prop
     pure $ SharedProp prop
 
 -- Statically materialize list of properties
 
 instance
-  SMat p (Props '[]) [(EssenceVL, PropertyVL)] where
+  SMat p (Props '[]) [PropertyVL] where
   sMat p _ = pure []
 
 instance
-  ( SMat p prop (EssenceVL, PropertyVL)
-  , SMat p (Props props) [(EssenceVL, PropertyVL)]
+  ( SMat p prop PropertyVL
+  , SMat p (Props props) [PropertyVL]
   ) =>
-  SMat p (Props (prop ': props)) [(EssenceVL, PropertyVL)] where
+  SMat p (Props (prop ': props)) [PropertyVL] where
   sMat p _ = do
     prop  <- sMat p $ Proxy @prop
     props <- sMat p $ Proxy @(Props props)
