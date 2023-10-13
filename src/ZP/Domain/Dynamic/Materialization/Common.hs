@@ -35,9 +35,9 @@ instance
     val1' <- dMat False p val1
     val2' <- dMat False p val2
     pure $ PairValue (val1', val2')
-  dMat _ p (SMod.PropRefValue essPath) = do
+  dMat _ p (SMod.PathValue essPath) = do
     essPath' <- mapM (dMat False p) essPath
 
     -- TODO: should we ensure that the referenced property already exists?
 
-    pure $ PropRefValue essPath'
+    pure $ PathValue essPath'

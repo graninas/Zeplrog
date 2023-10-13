@@ -93,11 +93,11 @@ instance
 instance
   ( SMat p (Essences essPath) [EssenceVL]
   ) =>
-  SMat p ('PropRefValue @'TypeLevel essPath)
+  SMat p ('PathValue @'TypeLevel essPath)
       ValDefVL where
   sMat p _ = do
     path <- sMat p $ Proxy @(Essences essPath)
-    pure $ PropRefValue path
+    pure $ PathValue path
 
 -- Statically materialize Essence path
 

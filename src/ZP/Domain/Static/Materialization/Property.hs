@@ -95,17 +95,6 @@ instance
     pure (ess, PropVal root val)
 
 instance
-  ( SMat p val ValDefVL
-  , SMat p root (EssenceVL, StaticPropertyRootVL)
-  ) =>
-  SMat p ('PropConst root val)
-      (EssenceVL, PropertyVL) where
-  sMat p _ = withProperty p (Proxy @root) $ do
-    (ess, root) <- sMat p $ Proxy @root
-    val  <- sMat p $ Proxy @val
-    pure (ess, PropConst root val)
-
-instance
   ( SMat p root (EssenceVL, StaticPropertyRootVL)
   , SMat p script (Script 'ValueLevel)
   ) =>

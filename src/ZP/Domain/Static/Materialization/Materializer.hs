@@ -16,8 +16,7 @@ import qualified Data.Map.Strict as Map
 
 -- TODO: make Materializer thread-safe (STM instead of IO)
 
-type StaticProperties =
-  Map.Map (Essence 'ValueLevel) (Property 'ValueLevel)
+type StaticProperties = Map.Map EssenceVL PropertyVL
 
 data SEnv = SEnv DebugMode (TVar StaticProperties)
 

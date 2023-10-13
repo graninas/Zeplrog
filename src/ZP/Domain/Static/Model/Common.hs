@@ -51,9 +51,8 @@ data ValDef (lvl :: Level) where
   PairValue     :: ValDef lvl -> ValDef  lvl-> ValDef lvl
   StringValue   :: StringType lvl-> ValDef lvl
 
-  -- Should be dyn materialized as a mutable reference to a property
-  -- (list of essences relative to the parent property)
-  PropRefValue  :: [Essence lvl] -> ValDef lvl
+  -- | Reference to a dynamic property relative to the parent prop
+  PathValue     :: [Essence lvl] -> ValDef lvl
 
 -- | Variable definition
 

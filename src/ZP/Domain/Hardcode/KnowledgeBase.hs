@@ -13,4 +13,3 @@ import ZP.Domain.Static.Model
 type EPos = Ess @TypeLevel "intrinsics:pos"
 
 type PosVal x y   = PropVal   (EssStaticRoot EPos) (PairValue (IntValue x) (IntValue y))
-type PosConst x y = PropConst (EssStaticRoot EPos) (PairValue (IntValue x) (IntValue y))

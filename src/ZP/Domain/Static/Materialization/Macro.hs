@@ -41,6 +41,7 @@ findPropertyByChar c objMap = case Map.lookup c objMap of
 propIcon :: PropertyVL -> Char
 propIcon _ = '#'
 
+-- TODO: a proper way to materialize the world
 -- | Using world data and props to build
 -- world objects in cells
 instance

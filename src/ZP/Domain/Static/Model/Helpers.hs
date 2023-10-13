@@ -18,7 +18,6 @@ type family AddPropKV a :: (PropertyKeyValue 'TypeLevel) where
 type family AddPropKV' a self :: (PropertyKeyValue 'TypeLevel) where
   AddPropKV' ('StaticProp root) self = AddPropKV'' root self
   AddPropKV' ('PropVal root valDef) self = AddPropKV'' root self
-  AddPropKV' ('PropConst root valDef) self = AddPropKV'' root self
 
 type family AddPropKV'' a self :: (PropertyKeyValue 'TypeLevel) where
   AddPropKV'' ('EssStaticRoot ess) self = PropKeyVal ess self

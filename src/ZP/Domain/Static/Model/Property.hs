@@ -43,11 +43,6 @@ data Property (lvl :: Level) where
   StaticPropRef
     :: Property lvl
     -> Property lvl
-  -- | Lear prop. Value will be dyn materialized as const.
-  PropConst
-    :: StaticPropertyRoot lvl
-    -> ValDef lvl
-    -> Property lvl
   -- | Lear prop. Value will be dyn materialized as mutable var (TVar).
   PropVal
     :: StaticPropertyRoot lvl

@@ -4,10 +4,11 @@ module ZP.Domain.Dynamic.Model.Common where
 
 import ZP.Prelude
 
+import qualified ZP.Domain.Static.Model as SMod
+
 -- TODO: use Text
 type Essence = String
-
-type ObjectId = Int
+type Category = Essence
 
 data Value
   = PairValue (Value, Value)
@@ -18,5 +19,6 @@ data Value
   -- | ListValue [PropertyValue]
   -- | ActingObjectValue ActingObject
   -- | ActivePropertyValue Description ActiveProperty
-  | PropRefValue [Essence]
+  | PathValue [Category]
+  | StaticPropertyRefValue SMod.StaticPropertyRootVL
   deriving (Show, Eq, Ord)

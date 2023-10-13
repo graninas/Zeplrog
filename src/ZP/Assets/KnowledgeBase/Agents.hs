@@ -41,6 +41,7 @@ type RatActor = PropDict (EssStaticRoot ERat)
 
 type GuardActor = PropDict (EssStaticRoot EGuard)
   '[ AddPropKV (OwnProp (HPVal 100))
+   , AddPropKV (SharedProp ActionLoop)
    ]
 
 

@@ -20,12 +20,28 @@ import qualified Data.Map.Strict as Map
 -- Materialization of Game
 
 instance
-  DMat p (SMod.Game 'SMod.ValueLevel) Game where
-  dMat _ p (SMod.GameEnvironment world cells props triggs) = do
+  DMat p SMod.GameVL Game where
+  dMat _ p (SMod.GameEnvironment world cells statProps triggs) = do
+    DEnv _ propIdVar objIdVar dynPropsVar
+    let statProps = Map.fromList
+          [(getEssence $ getRoot sProp, sProp) | sProp <- statProps]
+
+    let props = error "props not implemented"
+    let activeObjs = error "objects not implemented"
+
     world'  <- dMat False p world
-    props'  <- mapM (dMat False p) props
-    triggs' <- mapM (dMat False p) triggs
     let propDict = Map.fromList props'
 
+    -- TODO: triggs
+    triggs' <- mapM (dMat False p) triggs
     -- TODO: cells
-    pure $ Game world' [] propDict triggs'
+    -- pure $ Game world' (error "cells not implemented") propDict triggs'
+
+    pure $ Game
+      world'
+      propIdVar
+      objIdVar
+      statProps
+      props
+      activeObjs
+      triggs

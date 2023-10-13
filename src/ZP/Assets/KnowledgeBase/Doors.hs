@@ -18,7 +18,7 @@ type StateOpen  = StaticProp (PropStaticRoot EStateOpen Open)
 type StateClose = StaticProp (PropStaticRoot EStateClose Close)
 
 type StatePropRefVal = PropVal (EssStaticRoot EStateRef)
-  (PropRefValue '[ EStates, EStateClose ])
+  (PathValue '[ EStates, EStateClose ])
 
 type PushableScript = SimpleScript EPushableScript
   '[ SimpleQuery
@@ -38,7 +38,7 @@ type PushableScript = SimpleScript EPushableScript
 type Door = PropDict (EssStaticRoot EDoor)
   '[ PropKeyVal EIcon (OwnProp (IconVal "+"))   -- TODO: open and close door with own icons
    , PropKeyVal EHP (OwnProp (HPVal 100))
-   , PropKeyVal EPos (SharedProp (PosConst 2 3))
+   , PropKeyVal EPos (SharedProp (PosVal 2 3))
 
     -- | Possible states
    , PropKeyBag EStates
