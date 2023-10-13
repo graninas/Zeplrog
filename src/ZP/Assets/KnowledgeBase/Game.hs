@@ -16,19 +16,23 @@ import Prelude (Bool(..))
 import GHC.TypeLits
 
 
-type Surroundings = '[ Wall, EmptySpace ]
+-- type Zeplrog' world = MGame
+--   '[ UseWorld world Surroundings
+--    , UseTriggers Triggers
+--    , PlaceObj 2 8 GenericDoor
+--    ]
 
-type Zeplrog' world = MGame
-  '[ UseWorld world Surroundings
-   , UseTriggers Triggers
-   , PlaceObj 2 8 GenericDoor
-   ]
+type Zeplrog' world = Zeplrog world     -- tmp, no macro
 
 type Zeplrog world = GameEnvironment
   world
-  '[]
-  '[ SpecificDoor, Wall, EmptySpace ]
-  Triggers
+  '[ SpecificDoor
+   , Wall
+   , EmptySpace
+   ]
+  '[ WorldObj 2 8 GenericDoor
+   , WorldObj 3 9 Wall
+   ]
 
 
 

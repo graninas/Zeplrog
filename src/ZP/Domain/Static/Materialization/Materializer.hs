@@ -95,3 +95,5 @@ traceDebug :: String -> SMaterializer ()
 traceDebug msg = do
   SEnv dbg _ _ _ <- ask
   when (dbg == DebugEnabled) $ trace msg $ pure ()
+
+

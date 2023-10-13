@@ -68,36 +68,19 @@ type AbstractDoor = PropDict (EssRoot EAbstractDoor)
    ]
 
 
-
--- | Specific door at the specific location.
+-- | Specific door with a specific icon.
 type SpecificDoor = PropDict (PropRoot ESpecificDoor AbstractDoor)
   '[ PropKeyVal EIcon (OwnProp (IconVal "?"))   -- TODO: open and close door with own icons
    , PropKeyVal EHP   (OwnProp (HPVal 100))
-   , PropKeyVal EPos  (OwnProp (PosVal 2 3))
-
-    -- | Possible states
-   , PropKeyBag EStates
-      '[ OwnProp (StaticPropRef StateOpen)
-       , OwnProp (StaticPropRef StateClose)
-       ]
-
-    -- | Current state. Points to a close/open state
-   , PropKeyVal EState (OwnProp StatePropRefVal)
-
-    -- | Abilities to react to effects
-   , PropKeyBag EAbilities
-      '[ SharedProp (PropScript (EssRoot EPushable)
-                    PushableScript)
-       ]
    ]
 
 -- | Template for all doors having no predefined location.
 --   Derived from AbstractDoor.
 type GenericDoor = DerivedProperty EDoor AbstractDoor
-  '[ PropKeyVal EHP   (OwnProp (HPVal 70))
+  '[ PropKeyVal EHP (OwnProp (HPVal 70))
    ]
 
---
+
 -- Door
 --   EPos <shared> -------------> (PosConst 3 5)
 --   EHP  <own> (HPVal 100)

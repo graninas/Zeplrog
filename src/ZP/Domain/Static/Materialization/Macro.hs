@@ -27,93 +27,93 @@ import qualified Data.Map.Strict as Map
 
 ------ Stat materialization macro -----
 
-data Macroses macroses
+-- data Macroses macroses
 
-type G = Game 'ValueLevel
+-- type G = Game 'ValueLevel
 
--- Statically interpret macro
+-- -- Statically interpret macro
 
-findPropertyByChar :: Char -> Map.Map Char PropertyVL -> [PropertyVL]
-findPropertyByChar c objMap = case Map.lookup c objMap of
-  Nothing -> []
-  Just z -> [z]
+-- findPropertyByChar :: Char -> Map.Map Char PropertyVL -> [PropertyVL]
+-- findPropertyByChar c objMap = case Map.lookup c objMap of
+--   Nothing -> []
+--   Just z -> [z]
 
-propIcon :: PropertyVL -> Char
-propIcon _ = '#'
+-- propIcon :: PropertyVL -> Char
+-- propIcon _ = '#'
 
--- TODO: a proper way to materialize the world
--- | Using world data and props to build
--- world objects in cells
-instance
-  ( SMat () world WorldVL
-  , SMat () (Props props) [(EssenceVL, PropertyVL)]
-  ) =>
-  SMat G ('UseWorld world props) G where
-    -- TODO: preserve prev props
-  sMat (GameEnvironment _ cellsOld propsOld triggs) _ = do
-    world@(WorldData worldData) <- sMat () $ Proxy @world
-    props <- sMat () $ Proxy @(Props props)
+-- -- TODO: a proper way to materialize the world
+-- -- | Using world data and props to build
+-- -- world objects in cells
+-- instance
+--   ( SMat () world WorldVL
+--   , SMat () (Props props) [(EssenceVL, PropertyVL)]
+--   ) =>
+--   SMat G ('UseWorld world props) G where
+--     -- TODO: preserve prev props
+--   sMat (GameEnvironment _ cellsOld propsOld triggs) _ = do
+--     world@(WorldData worldData) <- sMat () $ Proxy @world
+--     props <- sMat () $ Proxy @(Props props)
 
-    let propsMap = Map.fromList
-          [(propIcon prop, prop) | (_, prop) <- props]
+--     let propsMap = Map.fromList
+--           [(propIcon prop, prop) | (_, prop) <- props]
 
-    let cells = [ CellObject pos p |
-          (rowIndex, row) <- zip [0..] worldData,
-          (colIndex, ch)  <- zip [0..] row,
-          let pos = (rowIndex, colIndex),
-          p <- findPropertyByChar ch propsMap]
+--     let cells = [ CellObject pos p |
+--           (rowIndex, row) <- zip [0..] worldData,
+--           (colIndex, ch)  <- zip [0..] row,
+--           let pos = (rowIndex, colIndex),
+--           p <- findPropertyByChar ch propsMap]
 
-    pure $ GameEnvironment world (cellsOld <> cells) propsOld triggs
+--     pure $ GameEnvironment world (cellsOld <> cells) propsOld triggs
 
-instance
-  ( SMat () (Triggs triggs) [TriggerVL]
-  ) =>
-  -- TODO: preserve prev triggs
-  SMat G ('UseTriggers triggs) G where
-  sMat (GameEnvironment world cells props _) _ = do
-    triggs <- sMat () $ Proxy @(Triggs triggs)
-    pure $ GameEnvironment world cells props triggs
+-- instance
+--   ( SMat () (Triggs triggs) [TriggerVL]
+--   ) =>
+--   -- TODO: preserve prev triggs
+--   SMat G ('UseTriggers triggs) G where
+--   sMat (GameEnvironment world cells props _) _ = do
+--     triggs <- sMat () $ Proxy @(Triggs triggs)
+--     pure $ GameEnvironment world cells props triggs
 
 
--- TODO: rework. Placing should go to Cells
-instance
-  ( KnownNat x
-  , KnownNat y
-  , SMat () prop (EssenceVL, PropertyVL)
-  ) =>
-  SMat G ('PlaceObj x y prop) G where
-  sMat (GameEnvironment world cells props triggs) _ = do
-    (ess, prop) <- sMat () $ Proxy @prop
+-- -- TODO: rework. Placing should go to Cells
+-- instance
+--   ( KnownNat x
+--   , KnownNat y
+--   , SMat () prop (EssenceVL, PropertyVL)
+--   ) =>
+--   SMat G ('PlaceObj x y prop) G where
+--   sMat (GameEnvironment world cells props triggs) _ = do
+--     (ess, prop) <- sMat () $ Proxy @prop
 
-    posProp <- sMat () $ Proxy @(PosVal x y)
-    let prop' = addSharedProperty [] posProp prop
+--     posProp <- sMat () $ Proxy @(PosVal x y)
+--     let prop' = addSharedProperty [] posProp prop
 
-    -- TODO: verify the bounds
+--     -- TODO: verify the bounds
 
-    pure $ GameEnvironment world cells (prop' : props) triggs
+--     pure $ GameEnvironment world cells (prop' : props) triggs
 
--- Statically interpret macroses
+-- -- Statically interpret macroses
 
-instance
-  SMat G (Macroses '[]) G where
-  sMat g _ = pure g
+-- instance
+--   SMat G (Macroses '[]) G where
+--   sMat g _ = pure g
 
-instance
-  ( SMat G macro G
-  , SMat G (Macroses macroses) G
-  ) =>
-  SMat G (Macroses (macro ': macroses)) G where
-  sMat g1 _ = do
-    g2 <- sMat g1 $ Proxy @macro
-    sMat g2 $ Proxy @(Macroses macroses)
+-- instance
+--   ( SMat G macro G
+--   , SMat G (Macroses macroses) G
+--   ) =>
+--   SMat G (Macroses (macro ': macroses)) G where
+--   sMat g1 _ = do
+--     g2 <- sMat g1 $ Proxy @macro
+--     sMat g2 $ Proxy @(Macroses macroses)
 
--- Statically build the game with macroses
+-- -- Statically build the game with macroses
 
-instance
-  ( SMat G (Macroses macroses) G
-  ) =>
-  SMat () ('MGame macroses) G where
-  sMat _ _ = do
-    let emptyGame = GameEnvironment @'ValueLevel (WorldData []) [] [] []
-    sMat emptyGame $ Proxy @(Macroses macroses)
+-- instance
+--   ( SMat G (Macroses macroses) G
+--   ) =>
+--   SMat () ('MGame macroses) G where
+--   sMat _ _ = do
+--     let emptyGame = GameEnvironment @'ValueLevel (WorldData []) [] [] []
+--     sMat emptyGame $ Proxy @(Macroses macroses)
 
