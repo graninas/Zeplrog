@@ -7,7 +7,19 @@ import ZP.Assets.KnowledgeBase.Essences
 
 import GHC.TypeLits
 
+-- | HP value: current and max
+type HPVal hp = PropVal
+  (EssRoot EHP)
+  (PairValue (IntValue hp) (IntValue hp))
 
-type HPVal hp = PropVal (EssStaticRoot EHP) (IntValue hp)
+-- | Strength random val
+type StrengthRandomVal from to = PropVal
+  (EssRoot EStrength)
+  (RandomIntValue from to)
 
-type IconVal icon = PropVal (EssStaticRoot EIcon) (StringValue icon)
+-- | Icon value (tmp mechanism)
+type IconVal icon = PropVal (EssRoot EIcon) (StringValue icon)
+
+
+-- | Derived world position value.
+type DerivedWorldPosVal = PropVal (EssRoot EPos) DerivedWorldPos

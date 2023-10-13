@@ -10,9 +10,11 @@ import qualified ZP.Domain.Static.Model as SMod
 import ZP.Domain.Dynamic.Model.Common
 import ZP.Domain.Dynamic.Model.Script
 
-
+-- | Dynamic property Id
 newtype PropertyId = PropertyId Int
+  deriving (Show, Eq, Ord)
 
+-- | Property owning
 data PropertyOwning
   = OwnProperty Property
   -- ^ aggregates child props (lifetime of children
@@ -20,26 +22,27 @@ data PropertyOwning
   | SharedProperty PropertyRef
   -- ^ referes to a independent prop
 
+-- | Reference to another independent property
 data PropertyRef
   = DynamicPropertyRef PropertyId
-  | StaticPropertyRef SMod.StaticPropertyRootVL
+  | StaticPropertyRef SMod.StaticPropertyId
 
+-- | Bag of properties or a single property
 data PropertyBag
   = SingleProperty PropertyOwning
   | PropertyDict (TVar (Map.Map Category PropertyOwning))
 
+-- | Dynamic property
 data Property
   = Property
-    { pEssence      :: Essence
-    , pPropertyId   :: PropertyId
-    , pOwner        :: Maybe PropertyId
+    { pPropertyId       :: PropertyId
+    , pOwner            :: Maybe PropertyId
       -- ^ Independent property that owns this prop exclusively
-    , pStaticProp   :: SMod.StaticPropertyRootVL
-    , pScriptVar    :: TVar (Maybe Script)
-    , pPropBagsVar  :: TVar (Map.Map Category PropertyBag)
+    , pStaticPropertyId :: SMod.StaticPropertyId
+    , pScriptVar        :: TVar (Maybe Script)
+    , pPropertyBagsVar  :: TVar (Map.Map Category PropertyBag)
     }
   | ValueProperty
-    { pEssence      :: Essence
-    , pStaticProp   :: SMod.StaticPropertyRootVL
-    , pPropValue    :: TVar Value
+    { pStaticPropertyId :: SMod.StaticPropertyId
+    , pValue            :: TVar Value
     }

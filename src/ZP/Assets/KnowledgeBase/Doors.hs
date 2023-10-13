@@ -10,14 +10,24 @@ import ZP.Assets.KnowledgeBase.Common
 import Prelude (Bool(..))
 import GHC.TypeLits
 
+
+-- Intrinsics are value props a parent property has unconditionally.
+--   Intrinsics have some default value.
+--   Examples:
+--    * HP. Default value is max HP
+--    * MP (mana points). Default value is max MP.
+
+-- Pos is not intrinsic because doesn't have a default value.
+
+
 -- | General root property for everything that is open.
-type Open  = StaticProp (EssStaticRoot EOpen)
-type Close = StaticProp (EssStaticRoot EClose)
+type Open  = StaticProp (EssRoot EOpen)
+type Close = StaticProp (EssRoot EClose)
 
-type StateOpen  = StaticProp (PropStaticRoot EStateOpen Open)
-type StateClose = StaticProp (PropStaticRoot EStateClose Close)
+type StateOpen  = StaticProp (PropRoot EStateOpen Open)
+type StateClose = StaticProp (PropRoot EStateClose Close)
 
-type StatePropRefVal = PropVal (EssStaticRoot EStateRef)
+type StatePropRefVal = PropVal (EssRoot EStateRef)
   (PathValue '[ EStates, EStateClose ])
 
 type PushableScript = SimpleScript EPushableScript
@@ -34,11 +44,12 @@ type PushableScript = SimpleScript EPushableScript
       (ReplaceProp '[ EState ] '[ EStates, EStateOpen ])
    ]
 
--- | Template for all doors (with pos prop)
-type Door = PropDict (EssStaticRoot EDoor)
+
+-- | Abstract door. Should not be directely materialized.
+type AbstractDoor = PropDict (EssRoot AbstractDoor)
   '[ PropKeyVal EIcon (OwnProp (IconVal "+"))   -- TODO: open and close door with own icons
-   , PropKeyVal EHP (OwnProp (HPVal 100))
-   , PropKeyVal EPos (SharedProp (PosVal 2 3))
+   , PropKeyVal EHP   (OwnProp (HPVal 50))
+   , PropKeyVal EPos  (OwnProp DerivedWorldPos)
 
     -- | Possible states
    , PropKeyBag EStates
@@ -51,16 +62,18 @@ type Door = PropDict (EssStaticRoot EDoor)
 
     -- | Abilities to react to effects
    , PropKeyBag EAbilities
-      '[ SharedProp (PropScript (EssStaticRoot EPushable)
+      '[ SharedProp (PropScript (EssRoot EPushable)
                     PushableScript)
        ]
    ]
 
 
--- | Template for all doors (no pos prop)
-type Door2 = PropDict (EssStaticRoot EDoor)
-  '[ PropKeyVal EIcon (OwnProp (IconVal "+"))   -- TODO: open and close door with own icons
-   , PropKeyVal EHP (OwnProp (HPVal 100))
+
+-- | Specific door at the specific location.
+type SpecificDoor = PropDict (PropRoot ESpecificDoor AbstractDoor)
+  '[ PropKeyVal EIcon (OwnProp (IconVal "?"))   -- TODO: open and close door with own icons
+   , PropKeyVal EHP   (OwnProp (HPVal 100))
+   , PropKeyVal EPos  (OwnProp (PosVal 2 3))
 
     -- | Possible states
    , PropKeyBag EStates
@@ -73,9 +86,15 @@ type Door2 = PropDict (EssStaticRoot EDoor)
 
     -- | Abilities to react to effects
    , PropKeyBag EAbilities
-      '[ SharedProp (PropScript (EssStaticRoot EPushable)
+      '[ SharedProp (PropScript (EssRoot EPushable)
                     PushableScript)
        ]
+   ]
+
+-- | Template for all doors having no predefined location.
+--   Derived from AbstractDoor.
+type GenericDoor = DerivedProperty EDoor AbstractDoor
+  '[ PropKeyVal EHP   (OwnProp (HPVal 70))
    ]
 
 --

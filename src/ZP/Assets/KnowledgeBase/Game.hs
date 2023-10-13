@@ -21,13 +21,13 @@ type Surroundings = '[ Wall, EmptySpace ]
 type Zeplrog' world = MGame
   '[ UseWorld world Surroundings
    , UseTriggers Triggers
-   , PlaceObj 2 8 Door2
+   , PlaceObj 2 8 GenericDoor
    ]
 
 type Zeplrog world = GameEnvironment
   world
   '[]
-  '[ Door, Wall, EmptySpace ]
+  '[ SpecificDoor, Wall, EmptySpace ]
   Triggers
 
 

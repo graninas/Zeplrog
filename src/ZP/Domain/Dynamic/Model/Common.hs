@@ -20,5 +20,5 @@ data Value
   -- | ActingObjectValue ActingObject
   -- | ActivePropertyValue Description ActiveProperty
   | PathValue [Category]
-  | StaticPropertyRefValue SMod.StaticPropertyRootVL
+  | StaticPropertyRefValue SMod.StaticPropertyId
   deriving (Show, Eq, Ord)

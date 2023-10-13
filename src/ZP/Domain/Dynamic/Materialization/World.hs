@@ -28,7 +28,7 @@ toMap wd = Map.fromList [((i, j), val) |
                         (j, val) <- zip [0..] row]
 
 instance
-  DMat p (SMod.World 'SMod.ValueLevel) World where
+  DMat p SMod.WorldVL World where
   dMat _ p (SMod.WorldData rows) = do
     let v = toVector rows
     let m = toMap rows

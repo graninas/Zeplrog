@@ -18,7 +18,10 @@ import ZP.Domain.Static.Model.Script
 
 -- | Macros for building type-level game
 data MacroGame where
-  MGame :: [Macro] -> MacroGame
+  MGame
+    :: WorldTL
+    -> [Macro]
+    -> MacroGame
 
 -- | Specific macro commands
 data Macro where

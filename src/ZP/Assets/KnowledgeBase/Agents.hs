@@ -13,19 +13,19 @@ import GHC.TypeLits
 
 
 -- Why this is not a compound object?
-type FireWand = StaticProp (EssStaticRoot EWand)
-type IceWand  = StaticProp (EssStaticRoot EWand)
-type KillGoal = StaticProp (EssStaticRoot EGoal)
+type FireWand = StaticProp (EssRoot EWand)
+type IceWand  = StaticProp (EssRoot EWand)
+type KillGoal = StaticProp (EssRoot EGoal)
 
 
-type Observing     = StaticProp (EssStaticRoot EObserving)
-type Discovering   = StaticProp (EssStaticRoot EDiscovering)
-type SettingGoals  = StaticProp (EssStaticRoot ESettingGoals)
-type Planning      = StaticProp (EssStaticRoot EPlanning)
-type FollowingPlan = StaticProp (EssStaticRoot EFollowingPlan)
+type Observing     = StaticProp (EssRoot EObserving)
+type Discovering   = StaticProp (EssRoot EDiscovering)
+type SettingGoals  = StaticProp (EssRoot ESettingGoals)
+type Planning      = StaticProp (EssRoot EPlanning)
+type FollowingPlan = StaticProp (EssRoot EFollowingPlan)
 
 
-type ActionLoop = PropDict (EssStaticRoot EActionLoop)
+type ActionLoop = PropDict (EssRoot EActionLoop)
   '[ AddPropKV (SharedProp Observing)
    , AddPropKV (SharedProp Discovering)
    , AddPropKV (SharedProp SettingGoals)
@@ -34,13 +34,16 @@ type ActionLoop = PropDict (EssStaticRoot EActionLoop)
    ]
 
 
-type RatActor = PropDict (EssStaticRoot ERat)
+type RatActor = PropDict (EssRoot ERat)
   '[ AddPropKV (OwnProp (HPVal 20))
+   , AddPropKV (OwnProp DerivedWorldPosVal)
    , AddPropKV (SharedProp ActionLoop)
    ]
 
-type GuardActor = PropDict (EssStaticRoot EGuard)
+type GuardActor = PropDict (EssRoot EGuard)
   '[ AddPropKV (OwnProp (HPVal 100))
+   , AddPropKV (OwnProp (StrengthRandomVal 10 20))
+   , AddPropKV (OwnProp DerivedWorldPosVal)
    , AddPropKV (SharedProp ActionLoop)
    ]
 

@@ -34,14 +34,10 @@ type family IntegerType (lvl :: Level) where
 data Essence (lvl :: Level) where
   Ess :: StringType lvl -> Essence lvl
 
-instance Eq (Essence 'ValueLevel) where
-  (==) (Ess a) (Ess b) = a == b
+-- | Real Id of a property (for value-level usage only)
 
-instance Ord (Essence 'ValueLevel) where
-  compare (Ess a) (Ess b) = compare a b
-
-instance T.Show (Essence 'ValueLevel) where
-  show (Ess a) = T.show a
+newtype StaticPropertyId = StaticPropertyId Int
+  deriving (Show, Eq, Ord)
 
 -- | Value definition
 
@@ -53,6 +49,18 @@ data ValDef (lvl :: Level) where
 
   -- | Reference to a dynamic property relative to the parent prop
   PathValue     :: [Essence lvl] -> ValDef lvl
+
+  -- Special value definitions.
+
+  -- | Random int value.
+  --   Gets randomized value when materialized dynamically.
+  RandomIntValue :: IntegerType lvl -> IntegerType lvl -> ValDef lvl
+
+  -- | Derived position in the world.
+  --   Should come from the world data or object list
+  --   when materialized statically.
+  DerivedWorldPos :: ValDef lvl
+
 
 -- | Variable definition
 
@@ -73,3 +81,14 @@ type ValDefVL = ValDef 'ValueLevel
 
 type VarDefTL = VarDef 'TypeLevel
 type VarDefVL = VarDef 'ValueLevel
+
+-------- Instances ------------------
+
+instance Eq EssenceVL where
+  (==) (Ess a) (Ess b) = a == b
+
+instance Ord EssenceVL where
+  compare (Ess a) (Ess b) = compare a b
+
+instance T.Show EssenceVL where
+  show (Ess a) = T.show a

@@ -20,7 +20,7 @@ spec :: Spec
 spec = do
   describe "Static materialization tests" $ do
     it "Door materialization test" $ do
-      sEnv@(SEnv _ statPropsVar) <- makeSEnv DebugEnabled
+      sEnv@(SEnv _ _ statPropsVar _) <- makeSEnv DebugEnabled
 
       (Ess ess, door) <- sMat' sEnv () $ Proxy @KB.Door
 
@@ -37,7 +37,7 @@ spec = do
       ess `shouldBe` "object:door"
 
     it "Game materialization test (no macro)" $ do
-      sEnv@(SEnv _ statPropsVar) <- makeSEnv DebugEnabled
+      sEnv@(SEnv _ _ statPropsVar _) <- makeSEnv DebugEnabled
 
       game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
       let GameEnvironment world cells props triggs = game
@@ -51,7 +51,7 @@ spec = do
       length triggs `shouldBe` 4
 
     it "Game materialization test (with macro)" $ do
-      sEnv@(SEnv _ statPropsVar) <- makeSEnv DebugEnabled
+      sEnv@(SEnv _ _ statPropsVar _) <- makeSEnv DebugEnabled
 
       game <- sMat' sEnv () $ Proxy @(KB.Zeplrog' KB.World1)
       let GameEnvironment world cells props triggs = game

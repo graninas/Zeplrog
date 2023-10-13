@@ -15,7 +15,7 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
----------- Materialization --------------
+---------- Static property materialization --------------
 
 data SrcPropKVs propKVs
 data PropOwns propOwns
@@ -24,60 +24,67 @@ data Props props
 type ResPropKVs = [PropertyKeyValueVL]
 
 withProperty
-  :: SMat p root (EssenceVL, StaticPropertyRootVL)
+  :: SMat p root (EssenceVL, PropertyRootVL)
   => p
   -> Proxy root
   -> SMaterializer (EssenceVL, PropertyVL)
   -> SMaterializer (EssenceVL, PropertyVL)
 withProperty p rootProxy matProp = do
-  SEnv dbg propsRef <- ask
-  props1   <- readTVarIO propsRef
+  SEnv dbg statPropIdVar statPropsVar statEssencesVar <- ask
+
   (ess, _) <- sMat p rootProxy
 
-  when (DebugEnabled == dbg)
-    $ trace ("Cur stat prop: " <> show ess)
+  when (dbg == DebugEnabled)
+    $ trace ("Static property to introduce: " <> show ess)
     $ pure ()
 
-  case Map.lookup ess props1 of
-    Just prop -> pure (ess, prop)
-    Nothing -> do
-      (_, prop) <- matProp
+  esss <- readTVarIO statEssencesVar
 
-      props2 <- readTVarIO propsRef
-      let props2' = Map.insert ess prop props2
-      atomically $ writeTVar propsRef props2'
+  (msg, prop) <- case Map.lookup ess esss of
+      Just (statPropId, prop) ->
+        pure (show ess <> ": already exists: " <> show statPropId, (ess, prop))
+      Nothing -> do
+        p@(ess, prop) <- matProp
 
-      pure (ess, prop)
+        statPropId <- addStaticProperty p
+
+        pure (show ess <> ": created: " <> show statPropId, p)
+
+  when (dbg == DebugEnabled)
+    $ trace msg
+    $ pure ()
+
+  pure prop
 
 -- Statically materialize property root
 
 instance
   ( SMat p ess EssenceVL
   ) =>
-  SMat p ('EssStaticRoot @'TypeLevel ess)
-      (EssenceVL, StaticPropertyRootVL) where
+  SMat p ('EssRoot @'TypeLevel ess)
+         (EssenceVL, PropertyRootVL) where
   sMat p _ = do
     ess <- sMat p $ Proxy @ess
-    pure (ess, EssStaticRoot ess)
+    pure (ess, EssRoot ess)
 
 instance
   ( SMat p ess EssenceVL
   , SMat p prop (EssenceVL, PropertyVL)
   ) =>
-  SMat p ('PropStaticRoot @'TypeLevel ess prop)
-      (EssenceVL, StaticPropertyRootVL) where
+  SMat p ('PropRoot @'TypeLevel ess prop)
+         (EssenceVL, PropertyRootVL) where
   sMat p _ = do
     (ess, prop) <- sMat p $ Proxy @prop
-    pure (ess, PropStaticRoot ess prop)
+    pure (ess, PropRoot ess prop)
 
 -- Statically materialize property
 
 instance
-  ( SMat p root (EssenceVL, StaticPropertyRootVL)
+  ( SMat p root (EssenceVL, PropertyRootVL)
   , SMat p (SrcPropKVs propKVs) ResPropKVs
   ) =>
   SMat p ('PropDict @'TypeLevel root propKVs)
-      (EssenceVL, PropertyVL) where
+         (EssenceVL, PropertyVL) where
   sMat p _ = withProperty p (Proxy @root) $ do
     (ess, root) <- sMat p $ Proxy @root
     propKVs <- sMat p $ Proxy @(SrcPropKVs propKVs)
@@ -85,21 +92,21 @@ instance
 
 instance
   ( SMat p val ValDefVL
-  , SMat p root (EssenceVL, StaticPropertyRootVL)
+  , SMat p root (EssenceVL, PropertyRootVL)
   ) =>
   SMat p ('PropVal @'TypeLevel root val)
-      (EssenceVL, PropertyVL) where
+         (EssenceVL, PropertyVL) where
   sMat p _ = withProperty p (Proxy @root) $ do
     (ess, root) <- sMat p $ Proxy @root
     val <- sMat p $ Proxy @val
     pure (ess, PropVal root val)
 
 instance
-  ( SMat p root (EssenceVL, StaticPropertyRootVL)
+  ( SMat p root (EssenceVL, PropertyRootVL)
   , SMat p script (Script 'ValueLevel)
   ) =>
   SMat p ('PropScript @'TypeLevel root script)
-      (EssenceVL, PropertyVL) where
+         (EssenceVL, PropertyVL) where
   sMat p _ = withProperty p (Proxy @root) $ do
     (ess, root) <- sMat p $ Proxy @root
     script      <- sMat p $ Proxy @script
@@ -109,19 +116,19 @@ instance
   ( SMat p prop (EssenceVL, PropertyVL)
   ) =>
   SMat p ('StaticPropRef @'TypeLevel prop)
-      (EssenceVL, PropertyVL) where
+         (EssenceVL, PropertyVL) where
   sMat p _ = sMat p $ Proxy @prop
 
 instance
-  ( SMat p root (EssenceVL, StaticPropertyRootVL)
+  ( SMat p root (EssenceVL, PropertyRootVL)
   ) =>
   SMat p ('StaticProp @'TypeLevel root)
-      (EssenceVL, PropertyVL) where
+         (EssenceVL, PropertyVL) where
   sMat p _ = withProperty p (Proxy @root) $ do
     (ess, root) <- sMat p $ Proxy @root
     pure (ess, StaticPropRef $ StaticProp root)
 
--- Statically materialize property key values
+-- Statically materialize property key value list
 
 instance
   SMat p (SrcPropKVs '[]) ResPropKVs where
@@ -137,14 +144,14 @@ instance
     propKVs <- sMat p $ Proxy @(SrcPropKVs propKVs)
     pure $ propKV : propKVs
 
--- Statically materialize Prop Key Val
+-- Statically materialize property key value
 
 instance
   ( SMat p ess EssenceVL
   , SMat p propOwn PropertyOwningVL
   ) =>
   SMat p ('PropKeyVal @'TypeLevel ess propOwn)
-      (PropertyKeyValueVL) where
+         (PropertyKeyValueVL) where
   sMat p _ = do
     ess     <- sMat p $ Proxy @ess
     propOwn <- sMat p $ Proxy @propOwn
@@ -155,7 +162,7 @@ instance
   , SMat p (PropOwns propOwns) [PropertyOwningVL]
   ) =>
   SMat p ('PropKeyBag @'TypeLevel ess propOwns)
-      (PropertyKeyValueVL) where
+         (PropertyKeyValueVL) where
   sMat p _ = do
     ess      <- sMat p $ Proxy @ess
     propOwns <- sMat p $ Proxy @(PropOwns propOwns)
@@ -172,7 +179,7 @@ instance
   , SMat p (PropOwns propOwns) [PropertyOwningVL]
   ) =>
   SMat p (PropOwns (propOwn ': propOwns))
-      [PropertyOwningVL] where
+         [PropertyOwningVL] where
   sMat p _ = do
     propOwn  <- sMat p $ Proxy @propOwn
     propOwns <- sMat p $ Proxy @(PropOwns propOwns)
@@ -184,7 +191,7 @@ instance
   ( SMat p prop (EssenceVL, PropertyVL)
   ) =>
   SMat p ('OwnProp @'TypeLevel prop)
-      (PropertyOwningVL) where
+         (PropertyOwningVL) where
   sMat p _ = do
     (_, prop) <- sMat p $ Proxy @prop
     pure $ OwnProp prop
@@ -193,7 +200,7 @@ instance
   ( SMat p prop (EssenceVL, PropertyVL)
   ) =>
   SMat p ('SharedProp @'TypeLevel prop)
-      (PropertyOwningVL) where
+         (PropertyOwningVL) where
   sMat p _ = do
     (_, prop) <- sMat p $ Proxy @prop
     pure $ SharedProp prop

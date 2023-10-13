@@ -17,7 +17,7 @@ import qualified Data.Map.Strict as Map
 -- Materialization of effect
 
 instance
-  DMat p (SMod.Effect 'SMod.ValueLevel) Effect where
+  DMat p SMod.EffectVL Effect where
   dMat _ p prop@(SMod.Eff ess) = do
     ess' <- dMat False p ess
     pure $ Effect ess'
@@ -25,7 +25,7 @@ instance
 -- Materialization of trigger
 
 instance
-  DMat p (SMod.Trigger 'SMod.ValueLevel) EffectTrigger where
+  DMat p SMod.TriggerVL EffectTrigger where
   dMat _ p prop@(SMod.EffTrigger eff1 eff2) = do
     eff1' <- dMat False p eff1
     eff2' <- dMat False p eff2

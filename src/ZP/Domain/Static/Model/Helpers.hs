@@ -11,6 +11,10 @@ import ZP.Domain.Static.Model.Common
 import ZP.Domain.Static.Model.Property
 
 
+-- | Helpers work in the compiling phase,
+--   not in the materialization phase.
+--   (For materialization-time helpers, see Macro)
+
 type family AddPropKV a :: (PropertyKeyValue 'TypeLevel) where
   AddPropKV ('OwnProp prop)    = AddPropKV' prop ('OwnProp prop)
   AddPropKV ('SharedProp prop) = AddPropKV' prop ('SharedProp prop)
@@ -20,7 +24,7 @@ type family AddPropKV' a self :: (PropertyKeyValue 'TypeLevel) where
   AddPropKV' ('PropVal root valDef) self = AddPropKV'' root self
 
 type family AddPropKV'' a self :: (PropertyKeyValue 'TypeLevel) where
-  AddPropKV'' ('EssStaticRoot ess) self = PropKeyVal ess self
+  AddPropKV'' ('EssRoot ess) self = PropKeyVal ess self
 
 
 

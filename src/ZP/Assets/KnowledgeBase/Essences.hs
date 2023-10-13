@@ -21,6 +21,8 @@ type EGoal          = Ess @TypeLevel "system:goal"
 
 
 type EHP            = Ess @TypeLevel "intrinsics:hp"
+type EStrength      = Ess @TypeLevel "intrinsics:strength"
+
 type EInventory     = Ess @TypeLevel "category:inventory"
 type EIntrinsics    = Ess @TypeLevel "category:intrinsics"
 type EAbilities     = Ess @TypeLevel "category:abilities"
@@ -42,6 +44,8 @@ type EWall          = Ess @TypeLevel "object:wall"
 type EWand          = Ess @TypeLevel "object:wand"
 type ERat           = Ess @TypeLevel "object:rat"
 type EGuard         = Ess @TypeLevel "object:guard"
+type EAbstractDoor  = Ess @TypeLevel "object:abstract door"
+type ESpecificDoor  = Ess @TypeLevel "object:specific door"
 type EDoor          = Ess @TypeLevel "object:door"
 
 
@@ -49,4 +53,3 @@ type EPhysicalImpact = Ess @TypeLevel "effect:physical impact"
 type EPush           = Ess @TypeLevel "effect:push"
 type EShockwave      = Ess @TypeLevel "effect:shockwave"
 type EKick           = Ess @TypeLevel "effect:kick"
-

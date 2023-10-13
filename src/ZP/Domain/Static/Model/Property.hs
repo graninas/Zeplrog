@@ -15,9 +15,9 @@ import ZP.Domain.Static.Model.Script
 -- | Used to make static property hierarchies.
 -- Essence arg: own essence
 -- Property arg: parent property
-data StaticPropertyRoot (lvl :: Level) where
-  EssStaticRoot   :: Essence lvl -> StaticPropertyRoot lvl
-  PropStaticRoot  :: Essence lvl -> Property lvl -> StaticPropertyRoot lvl
+data PropertyRoot (lvl :: Level) where
+  EssRoot   :: Essence lvl -> PropertyRoot lvl
+  PropRoot  :: Essence lvl -> Property lvl -> PropertyRoot lvl
 
 -- Property owning replaces materialization from the prev version
 data PropertyOwning (lvl :: Level) where
@@ -37,7 +37,7 @@ data PropertyKeyValue (lvl :: Level) where
 data Property (lvl :: Level) where
   -- | Static prop. Referenced prop can't be dyn materialized.
   StaticProp
-    :: StaticPropertyRoot lvl
+    :: PropertyRoot lvl
     -> Property lvl
   -- | Static prop reference. The referenced prop can't be dyn materialized.
   StaticPropRef
@@ -45,19 +45,27 @@ data Property (lvl :: Level) where
     -> Property lvl
   -- | Lear prop. Value will be dyn materialized as mutable var (TVar).
   PropVal
-    :: StaticPropertyRoot lvl
+    :: PropertyRoot lvl
     -> ValDef lvl
     -> Property lvl
   -- | Compound property.
   -- Each prop in the bag is a mutable reference.
   -- Each prop can be replaced by some other prop in the dyn model.
   PropDict
-    :: StaticPropertyRoot lvl
+    :: PropertyRoot lvl
+    -> [PropertyKeyValue lvl]
+    -> Property lvl
+  -- | Derived property.
+  --    Will take the shape of the parent, with certain props replaced.
+  --    (Yes, it's OOP, dude!)
+  DerivedProperty
+    :: Essence lvl
+    -> Property lvl
     -> [PropertyKeyValue lvl]
     -> Property lvl
   -- | Property script.
   PropScript
-    :: StaticPropertyRoot lvl
+    :: PropertyRoot lvl
     -> Script lvl
     -> Property lvl
 
@@ -67,11 +75,12 @@ data Property (lvl :: Level) where
 type PropertyTL = Property 'TypeLevel
 type PropertyVL = Property 'ValueLevel
 
-type StaticPropertyRootTL = StaticPropertyRoot 'TypeLevel
-type StaticPropertyRootVL = StaticPropertyRoot 'ValueLevel
+type PropertyRootTL = PropertyRoot 'TypeLevel
+type PropertyRootVL = PropertyRoot 'ValueLevel
 
 type PropertyKeyValueTL = PropertyKeyValue 'TypeLevel
 type PropertyKeyValueVL = PropertyKeyValue 'ValueLevel
 
 type PropertyOwningTL = PropertyOwning 'TypeLevel
 type PropertyOwningVL = PropertyOwning 'ValueLevel
+

@@ -12,10 +12,10 @@ import GHC.TypeLits
 
 -- Templates for static objects on the map (without pos prop)
 
-type Wall = PropDict (EssStaticRoot EWall)
+type Wall = PropDict (EssRoot EWall)
   '[ PropKeyVal EIcon (OwnProp (IconVal "#"))
    ]
 
-type EmptySpace = PropDict (EssStaticRoot EEmptySpace)
+type EmptySpace = PropDict (EssRoot EEmptySpace)
   '[ PropKeyVal EIcon (OwnProp (IconVal "."))
    ]

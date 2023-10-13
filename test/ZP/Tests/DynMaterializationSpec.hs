@@ -61,7 +61,7 @@ spec = do
 
 
     it "Full materialization: game (with macro)" $ do
-      (sEnv@(SEnv _ statPropsVar), dEnv) <- makeEnvs DebugEnabled
+      (sEnv@(SEnv _ statPropsVar _), dEnv) <- makeEnvs DebugEnabled
 
       Game world cells props triggs <- fullMat dEnv ()
         $ Proxy @(KB.Zeplrog' KB.World1)

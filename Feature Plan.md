@@ -11,6 +11,7 @@
            ]
       ```
 - [ ] (Mechanics) World type-level description & objects position integration
+- [ ] (Subsystem) Graphical representation and tiles
 - [ ] (Mechanics) Multi-layer world
 - [ ] (Feature) Multiple items in a world cell
 - [ ] (Mechanics) AI: Goals setting & decision making

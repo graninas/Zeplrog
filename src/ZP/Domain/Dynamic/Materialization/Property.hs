@@ -16,30 +16,11 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
-getNextPropertyId :: DMaterializer PropertyId
-getNextPropertyId = do
-  DEnv _ propIdVar _ _ <- ask
-  do
-      PropertyId pId <- readTVar propIdVar
-      writeTVar propIdVar $ PropertyId $ pId + 1
-      pure $ PropertyId pId
-
-getEssence :: SMod.StaticPropertyRootVL -> SMod.EssenceVL
-getEssence (SMod.EssStaticRoot ess) = ess
-getEssence (SMod.PropStaticRoot ess _) = ess
-
-getRoot :: SMod.PropertyVL -> SMod.StaticPropertyRootVL
-getRoot (SMod.StaticProp root) = root
-getRoot (SMod.StaticPropRef prop) = getRoot prop
-getRoot (SMod.PropVal root _) = root
-getRoot (SMod.PropDict root _) = root
-getRoot (SMod.PropScript root _) = root
-
 withShared
   :: Bool
   -> payload
-  -> SMod.StaticPropertyRoot 'SMod.ValueLevel
-  -> SMod.Property 'SMod.ValueLevel
+  -> SMod.PropertyRootVL
+  -> SMod.PropertyVL
   -> DMaterializer (Essence, Property)
   -> DMaterializer (Essence, Property)
 withShared False p root _    matProp = matProp
@@ -60,8 +41,8 @@ withShared True  p root prop matProp = do
 -- Materialize property
 
 instance
-  DMat p (SMod.Property 'SMod.ValueLevel)
-      (Essence, Property) where
+  DMat p SMod.PropertyVL
+         (Essence, Property) where
   dMat shared p prop@(SMod.PropDict root propKVs)
     = withShared shared p root prop $ do
       let staticProp = StaticPropertyRef root
@@ -91,7 +72,7 @@ instance
     let SMod.StaticProp root = prop
     let statEss = getEssence root
 
-    DEnv (SEnv _ statPropsVar) propIdVar objIdVar _ <- ask
+    DEnv (SEnv _ _ statPropsVar) propIdVar objIdVar _ <- ask
     unless (Map.member statEss statProps)
       $ error $ "Static property not found: " <> show statEss
 
@@ -114,8 +95,8 @@ instance
           scriptVar propBagsVar)
 
 instance
-  DMat p (SMod.PropertyOwning 'SMod.ValueLevel)
-    (Essence, PropertyOwning) where
+  DMat p SMod.PropertyOwningVL
+         (Essence, PropertyOwning) where
   dMat _ p (SMod.OwnProp prop) = do
     (ess', prop') <- dMat False p prop
     pure (ess', OwnProperty prop')
@@ -124,8 +105,8 @@ instance
     pure (ess', SharedProperty $ DynamicPropertyRef ess')
 
 instance
-  DMat p (SMod.PropertyKeyValue 'SMod.ValueLevel)
-      (Essence, PropertyBag) where
+  DMat p SMod.PropertyKeyValueVL
+         (Essence, PropertyBag) where
   dMat _ p (SMod.PropKeyBag ess ownings) = do
     ess'     <- dMat False p ess
     ownings' <- mapM (dMat False p) ownings

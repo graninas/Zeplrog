@@ -5,6 +5,7 @@ import ZP.Prelude
 
 import ZP.System.Debug
 import ZP.Domain.Static.Materialization.Materializer
+import qualified ZP.Domain.Static.Model as SMod
 import qualified ZP.Domain.Static.Materialization as SMat
 import ZP.Domain.Dynamic.Model
 
@@ -13,14 +14,15 @@ import qualified Data.Map.Strict as Map
 
 ---------- Dynamic materializer interface ------------------
 
--- TODO: make Materializer thread-safe (STM instead of IO)
+-- TODO: make Materializer thread-safe.
+--  Currently, TVars do not do anything useful.
 
 type DynamicProperties = Map.Map PropertyId Property
 
 data DEnv = DEnv
   SEnv
-  (TVar PropertyId)  -- ^ PropId counter
-  (TVar ObjectId)    -- ^ ObjectId counter
+  (TVar PropertyId)         -- ^ PropId counter
+  (TVar ObjectId)           -- ^ ObjectId counter
   (TVar DynamicProperties)  -- ^ List of all dynamic props
 
 type DMaterializer a = ReaderT DEnv IO a
@@ -52,7 +54,7 @@ makeDEnv :: SEnv -> IO DEnv
 makeDEnv sEnv = DEnv
   <$> pure sEnv
   <*> newTVarIO (PropertyId 0)
-  <*> newTVarIO 0
+  <*> newTVarIO (ObjectId 0)
   <*> newTVarIO Map.empty
 
 makeEnvs :: DebugMode -> IO (SEnv, DEnv)
@@ -60,3 +62,29 @@ makeEnvs dbg = do
   sEnv <- makeSEnv dbg
   dEnv <- makeDEnv sEnv
   pure (sEnv, dEnv)
+
+---------- Utils -----------------
+
+getNextPropertyId'
+  :: TVar PropertyId
+  -> DMaterializer PropertyId
+getNextPropertyId' propIdVar = atomically $ do
+  PropertyId pId <- readTVar propIdVar
+  writeTVar propIdVar $ PropertyId $ pId + 1
+  pure $ PropertyId pId
+
+getNextPropertyId :: DMaterializer PropertyId
+getNextPropertyId = do
+  DEnv _ propIdVar _ _ <- ask
+  getNextPropertyId' propIdVar
+
+getEssence :: SMod.PropertyRootVL -> SMod.EssenceVL
+getEssence (SMod.EssRoot ess) = ess
+getEssence (SMod.PropRoot ess _) = ess
+
+getRoot :: SMod.PropertyVL -> SMod.PropertyRootVL
+getRoot (SMod.StaticProp root) = root
+getRoot (SMod.StaticPropRef prop) = getRoot prop
+getRoot (SMod.PropVal root _) = root
+getRoot (SMod.PropDict root _) = root
+getRoot (SMod.PropScript root _) = root

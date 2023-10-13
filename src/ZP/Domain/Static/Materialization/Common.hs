@@ -94,10 +94,22 @@ instance
   ( SMat p (Essences essPath) [EssenceVL]
   ) =>
   SMat p ('PathValue @'TypeLevel essPath)
-      ValDefVL where
+         ValDefVL where
   sMat p _ = do
     path <- sMat p $ Proxy @(Essences essPath)
     pure $ PathValue path
+
+-- special values
+
+instance
+  ( KnownNat from
+  , KnownNat to
+  ) =>
+  SMat p ('RandomIntValue @'TypeLevel from to)
+         ValDefVL where
+  sMat p _ = pure $ RandomIntValue
+    (fromIntegral $ natVal $ Proxy @from)
+    (fromIntegral $ natVal $ Proxy @to)
 
 -- Statically materialize Essence path
 
@@ -116,7 +128,7 @@ instance
   , SMat p (Essences essPath) [EssenceVL]
   ) =>
   SMat p (Essences (ess ': essPath))
-      [EssenceVL] where
+         [EssenceVL] where
   sMat p _ = do
     ess     <- sMat p $ Proxy @ess
     essPath <- sMat p $ Proxy @(Essences essPath)

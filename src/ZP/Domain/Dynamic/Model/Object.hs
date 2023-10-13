@@ -8,10 +8,12 @@ import ZP.Domain.Dynamic.Model.Property
 import qualified Data.Map as Map
 
 
--- | Objects are active properties with extra game info.
+-- Objects are active properties with extra game info.
 
-type ObjectId = Int
+-- | Object ID
+newtype ObjectId = ObjectId Int
 
+-- | Active object. Always based on some top-level property.
 data Object = Obj
   { objectId   :: ObjectId
   -- ^ Object ID
