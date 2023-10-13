@@ -34,6 +34,8 @@ type family IntegerType (lvl :: Level) where
 data Essence (lvl :: Level) where
   Ess :: StringType lvl -> Essence lvl
 
+type EssencePath (lvl :: Level) = [Essence lvl]
+
 -- | Real Id of a property (for value-level usage only)
 
 newtype StaticPropertyId = StaticPropertyId Int
@@ -81,6 +83,9 @@ type ValDefVL = ValDef 'ValueLevel
 
 type VarDefTL = VarDef 'TypeLevel
 type VarDefVL = VarDef 'ValueLevel
+
+type EssencePathTL = EssencePath 'TypeLevel
+type EssencePathVL = EssencePath 'ValueLevel
 
 -------- Instances ------------------
 

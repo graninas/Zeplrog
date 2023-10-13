@@ -19,17 +19,21 @@ import qualified Data.Vector as V
 
 -- Materialization of World
 
-toVector :: [String] -> Vector (Vector Char)
-toVector = V.fromList . map V.fromList
+worldDataToVector :: [String] -> Vector (Vector Char)
+worldDataToVector = V.fromList . map V.fromList
 
-toMap :: [String] -> Map.Map (Int, Int) Char
-toMap wd = Map.fromList [((i, j), val) |
-                        (i, row) <- zip [0..] wd,
-                        (j, val) <- zip [0..] row]
+worldDataToList :: [String] -> [ ((Int, Int), Char) ]
+worldDataToList wd = [ ((i, j), val)
+                     | (i, row) <- zip [0..] wd
+                     , (j, val) <- zip [0..] row
+                     ]
+
+worldDimensions :: [String] -> (Int, Int)
+worldDimensions [] = (0, 0)
+worldDimensions rs@(r:_) = (length rs, length r)
 
 instance
   DMat p SMod.WorldVL World where
   dMat _ p (SMod.WorldData rows) = do
-    let v = toVector rows
-    let m = toMap rows
-    pure $ World v m
+    let dims = worldDimensions rows
+    pure $ World dims $ worldDataToVector rows

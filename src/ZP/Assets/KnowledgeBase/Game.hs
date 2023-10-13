@@ -26,10 +26,13 @@ type Zeplrog' world = Zeplrog world     -- tmp, no macro
 
 type Zeplrog world = GameEnvironment
   world
+  PathToIcon
+
   '[ SpecificDoor
    , Wall
    , EmptySpace
    ]
+
   '[ WorldObj 2 8 GenericDoor
    , WorldObj 3 9 Wall
    ]

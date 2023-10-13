@@ -8,6 +8,9 @@ import ZP.Domain.Hardcode.KnowledgeBase
 
 import GHC.TypeLits
 
+
+type PathToIcon = '[ EIcon ]
+
 -- | HP value: current and max
 type HPVal hp = PropVal
   (EssRoot EHP)

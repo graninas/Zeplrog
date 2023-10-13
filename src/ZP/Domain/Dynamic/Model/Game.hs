@@ -20,17 +20,18 @@ data Game = Game
   -- ^ Game world with acting objects
 
   , gPropertyIdCounter :: TVar Int
-  , gObjectIdCounter :: TVar Int
+  , gObjectIdCounter   :: TVar Int
 
-  , gStaticProps :: Map.Map SMod.EssenceVL SMod.PropertyVL
+  , gStaticProperties :: Map.Map StaticPropertyId (EssenceVL, PropertyVL)
+  , gStaticEssences   :: Map.Map EssenceVL (StaticPropertyId, PropertyVL)
   -- ^ List of all template static properties
 
-  , gProps :: TVar (Map.Map PropertyId Property)
+  , gObjects :: TVar (Map.Map ObjectId Object)
+  -- ^ World objects
+
+  -- , gProperties :: TVar (Map.Map PropertyId Property)
   -- ^ List of all dynamic properties
 
-  , gActiveObjects :: TVar (Map.Map ObjectId Object)
-  -- ^ Active objects
-
   -- TODO: rework triggers (not working now)
-  , gEffTriggers :: [EffectTrigger]
+  -- , gEffTriggers :: [EffectTrigger]
   }

@@ -58,6 +58,8 @@ data Property (lvl :: Level) where
   -- | Derived property.
   --    Will take the shape of the parent, with certain props (of the 1st level) replaced.
   --    (Yes, it's OOP, dude!)
+  --    After static materialization, becomes PropDict.
+  --    No value-type static or dynamic props correspond to it.
   DerivedProperty
     :: Essence lvl
     -> Property lvl

@@ -6,6 +6,7 @@ import ZP.Prelude
 
 import ZP.System.Debug
 import ZP.Domain.Static.Model
+import ZP.Domain.Static.Query
 
 import GHC.TypeLits
 import Data.Proxy
@@ -48,23 +49,6 @@ makeSEnv dbg = SEnv
   <*> newTVarIO Map.empty
 
 ----- Utils ---------------
-
-
-getEssence :: PropertyRootVL -> EssenceVL
-getEssence (EssRoot ess) = ess
-getEssence (PropRoot ess _) = ess
-
-getEssenceFromKV :: PropertyKeyValueVL -> EssenceVL
-getEssenceFromKV (PropKeyBag ess _) = ess
-getEssenceFromKV (PropKeyVal ess _) = ess
-
-getRoot :: PropertyVL -> PropertyRootVL
-getRoot (StaticProp root) = root
-getRoot (StaticPropRef prop) = getRoot prop
-getRoot (PropVal root _) = root
-getRoot (PropDict root _) = root
-getRoot (PropScript root _) = root
-
 
 getNextStaticPropertyId'
   :: TVar StaticPropertyId

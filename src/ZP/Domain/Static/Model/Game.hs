@@ -16,8 +16,8 @@ import ZP.Domain.Static.Model.World
 
 -- | Objects in the world.
 -- No static type-level version.
-data WorldObject (lvl :: Level) where
-  WorldObj
+data Object (lvl :: Level) where
+  Obj
     :: IntegerType lvl
     -> IntegerType lvl
     -> Property lvl
@@ -28,10 +28,12 @@ data Game (lvl :: Level) where
   GameEnvironment
     :: World lvl
     -- ^ Template world with objs to spawn
+    -> EssencePath lvl
+    -- ^ Config: path to the icon prop
     -> [ Property lvl ]
     -- ^ Available static props to spawn objs from the world
-    -> [ WorldObject lvl ]
-    -- ^ World objects with pos to spawn
+    -> [ Object lvl ]
+    -- ^ Objects with pos to spawn
     -- -> [ Trigger lvl ]
     -> Game lvl
 
@@ -40,6 +42,6 @@ data Game (lvl :: Level) where
 type GameTL = Game 'TypeLevel
 type GameVL = Game 'ValueLevel
 
-type WorldObjectTL = WorldObject 'TypeLevel
-type WorldObjectVL = WorldObject 'ValueLevel
+type ObjectTL = Object 'TypeLevel
+type ObjectVL = Object 'ValueLevel
 

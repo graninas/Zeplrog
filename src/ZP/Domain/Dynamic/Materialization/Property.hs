@@ -21,8 +21,8 @@ withShared
   -> payload
   -> SMod.PropertyRootVL
   -> SMod.PropertyVL
-  -> DMaterializer (Essence, Property)
-  -> DMaterializer (Essence, Property)
+  -> DMaterializer PropertyId
+  -> DMaterializer PropertyId
 withShared False p root _    matProp = matProp
 withShared True  p root prop matProp = do
   ess <- dMat False p root
@@ -41,8 +41,7 @@ withShared True  p root prop matProp = do
 -- Materialize property
 
 instance
-  DMat p SMod.PropertyVL
-         (Essence, Property) where
+  DMat p SMod.PropertyVL Property where
   dMat shared p prop@(SMod.PropDict root propKVs)
     = withShared shared p root prop $ do
       let staticProp = StaticPropertyRef root
@@ -69,30 +68,30 @@ instance
     error "stat prop not implemented"
 
   dMat _ p (SMod.StaticPropRef prop) = do
-    let SMod.StaticProp root = prop
-    let statEss = getEssence root
+    error "static prop ref not implemented"
+    -- let SMod.StaticProp root = prop
+    -- let statEss = getEssence root
 
-    DEnv (SEnv _ _ statPropsVar) propIdVar objIdVar _ <- ask
-    unless (Map.member statEss statProps)
-      $ error $ "Static property not found: " <> show statEss
+    -- DEnv (SEnv _ _ statPropsVar) propIdVar objIdVar _ <- ask
+    -- unless (Map.member statEss statProps)
+    --   $ error $ "Static property not found: " <> show statEss
 
-    ess <- dMat False p statEss
-    let staticProp = StaticPropertyRef root
-    valVar <- newTVarIO $ StaticPropertyRefValue root
-    pure (ess, ValueProperty ess staticProp valVar)
+    -- ess <- dMat False p statEss
+    -- let staticProp = StaticPropertyRef root
+    -- valVar <- newTVarIO $ StaticPropertyRefValue root
+    -- pure (ess, ValueProperty ess staticProp valVar)
 
-  dMat _ p (SMod.PropScript root script) = do
-      let staticProp = StaticPropertyRef root
-      ess         <- dMat False p root
+  dMat _ p (SMod.PropScript root script) = spawnProperty $ do
+      statPropId  <- getStaticPropertyId root
       propBagsVar <- newTVarIO Map.empty
       scriptVar   <- newTVarIO $ Just $ Script script
       propId      <- getNextPropertyId
-      pure (ess,
-        Property ess
-          propId
-          (error "owner not implemented")
-          staticProp
-          scriptVar propBagsVar)
+      pure $ Property
+        propId
+        (error "owner not implemented")
+        statPropId
+        scriptVar
+        propBagsVar
 
 instance
   DMat p SMod.PropertyOwningVL

@@ -17,7 +17,7 @@ import qualified Data.Map.Strict as Map
 
 
 data Triggs ts
-data WorldObjs ts
+data Objs ts
 
 -- Statically materialize triggers
 
@@ -37,7 +37,7 @@ instance
     pure $ trig : triggs
 
 
--- Statically materialize world object
+-- Statically materialize object
 
 instance
   ( KnownNat x
@@ -52,34 +52,35 @@ instance
     let y = fromIntegral $ natVal $ Proxy @y
     pure $ WorldObj x y prop
 
--- Statically materialize world objects
+-- Statically materialize objects
 
 instance
-  SMat p (WorldObjs '[]) [WorldObjectVL] where
+  SMat p (Objs '[]) [WorldObjectVL] where
   sMat p _ = pure []
 
 instance
-  ( SMat p worldObj WorldObjectVL
-  , SMat p (WorldObjs worldObjs) [WorldObjectVL]
+  ( SMat p obj WorldObjectVL
+  , SMat p (Objs objs) [WorldObjectVL]
   ) =>
-  SMat p (WorldObjs (worldObj ': worldObjs))
+  SMat p (Objs (obj ': objs))
          [WorldObjectVL] where
   sMat p _ = do
-    worldObj  <- sMat p $ Proxy @worldObj
-    worldObjs <- sMat p $ Proxy @(WorldObjs worldObjs)
-    pure $ worldObj : worldObjs
+    obj  <- sMat p $ Proxy @obj
+    objs <- sMat p $ Proxy @(Objs objs)
+    pure $ obj : objs
 
 -- Statically materialize game env
 
 instance
   ( SMat p world WorldVL
-  , SMat p (WorldObjs worldObjs) [WorldObjectVL]
+  , SMat p (Objs objs) [WorldObjectVL]
   , SMat p (Props props) [PropertyVL]
   ) =>
-  SMat p ('GameEnvironment @TypeLevel world props worldObjs)
+  SMat p ('GameEnvironment @TypeLevel world pathToIcon props objs)
          GameVL where
   sMat p _ = do
-    world     <- sMat p $ Proxy @world
-    worldObjs <- sMat p $ Proxy @(WorldObjs worldObjs)
-    props     <- sMat p $ Proxy @(Props props)
-    pure $ GameEnvironment world props worldObjs
+    world      <- sMat p $ Proxy @world
+    pathToIcon <- sMat p $ Proxy @(Essences pathToIcon)
+    objs       <- sMat p $ Proxy @(Objs objs)
+    props      <- sMat p $ Proxy @(Props props)
+    pure $ GameEnvironment world pathToIcon props objs

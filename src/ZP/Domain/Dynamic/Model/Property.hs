@@ -17,7 +17,7 @@ newtype PropertyId = PropertyId Int
 -- | Property owning
 data PropertyOwning
   = OwnProperty Property
-  -- ^ aggregates child props (lifetime of children
+  -- ^ Aggregates child props (lifetime of children
   --   doesn't exceed parent prop)
   | SharedProperty PropertyRef
   -- ^ referes to a independent prop
@@ -43,6 +43,7 @@ data Property
     , pPropertyBagsVar  :: TVar (Map.Map Category PropertyBag)
     }
   | ValueProperty
-    { pStaticPropertyId :: SMod.StaticPropertyId
+    { pPropertyId       :: PropertyId
+    , pStaticPropertyId :: SMod.StaticPropertyId
     , pValue            :: TVar Value
     }
