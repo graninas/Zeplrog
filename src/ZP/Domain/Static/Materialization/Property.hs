@@ -82,12 +82,23 @@ instance
 
 instance
   ( SMat p (SrcPropKVs propKVs) ResPropKVs
+  , SMat p root (EssenceVL, PropertyRootVL)
   ) =>
   SMat p ('PropDict @'TypeLevel root propKVs)
          PropertyVL where
   sMat p _ = withProperty p (Proxy @root) $ \root -> do
     propKVs <- sMat p $ Proxy @(SrcPropKVs propKVs)
     pure $ PropDict root propKVs
+
+-- | Merges props with preference of the first keys.
+-- Does not merge internal props.
+mergePropKVs :: [PropertyKeyValueVL] -> [PropertyKeyValueVL] -> [PropertyKeyValueVL]
+mergePropKVs kvs1 kvs2 = let
+  pKVs1 = Map.fromList [ (getEssenceFromKV k, k) | k <- kvs1]
+  pKVs2 = Map.fromList [ (getEssenceFromKV k, k) | k <- kvs2]
+  pKVs3 = Map.union pKVs1 pKVs2
+  in Map.elems pKVs3
+
 
 instance
   ( SMat p ess EssenceVL
@@ -110,10 +121,10 @@ instance
 
         statPropId <- getNextStaticPropertyId
 
-        propKVs <- sMat p $ Proxy @(SrcPropKVs propKVs)
-        let propKVs' = Map.union propKVs abstractPropKVs
+        propKVs :: [PropertyKeyValueVL] <- sMat p $ Proxy @(SrcPropKVs propKVs)
+        let propKVs' = mergePropKVs propKVs abstractPropKVs
 
-        let prop = PropDict (PropRoot abstractProp) propKVs'
+        let prop = PropDict (PropRoot ess abstractProp) propKVs'
         addStaticProperty (statPropId, ess, prop)
         traceDebug $ show ess <> ": new property is derived: " <> show statPropId
 
@@ -123,6 +134,7 @@ instance
 
 instance
   ( SMat p val ValDefVL
+  , SMat p root (EssenceVL, PropertyRootVL)
   ) =>
   SMat p ('PropVal @'TypeLevel root val)
          PropertyVL where
@@ -132,6 +144,7 @@ instance
 
 instance
   ( SMat p script ScriptVL
+  , SMat p root (EssenceVL, PropertyRootVL)
   ) =>
   SMat p ('PropScript @'TypeLevel root script)
          PropertyVL where
@@ -147,10 +160,12 @@ instance
   sMat p _ = sMat p $ Proxy @prop
 
 instance
+  ( SMat p root (EssenceVL, PropertyRootVL)
+  ) =>
   SMat p ('StaticProp @'TypeLevel root)
          PropertyVL where
   sMat p _ = withProperty p (Proxy @root) $ \root -> do
-    StaticPropRef $ StaticProp root
+    pure $ StaticPropRef $ StaticProp root
 
 -- Statically materialize property key value list
 

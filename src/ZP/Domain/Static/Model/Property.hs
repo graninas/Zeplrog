@@ -56,7 +56,7 @@ data Property (lvl :: Level) where
     -> [PropertyKeyValue lvl]
     -> Property lvl
   -- | Derived property.
-  --    Will take the shape of the parent, with certain props replaced.
+  --    Will take the shape of the parent, with certain props (of the 1st level) replaced.
   --    (Yes, it's OOP, dude!)
   DerivedProperty
     :: Essence lvl

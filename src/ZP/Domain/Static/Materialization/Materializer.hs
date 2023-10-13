@@ -54,6 +54,10 @@ getEssence :: PropertyRootVL -> EssenceVL
 getEssence (EssRoot ess) = ess
 getEssence (PropRoot ess _) = ess
 
+getEssenceFromKV :: PropertyKeyValueVL -> EssenceVL
+getEssenceFromKV (PropKeyBag ess _) = ess
+getEssenceFromKV (PropKeyVal ess _) = ess
+
 getRoot :: PropertyVL -> PropertyRootVL
 getRoot (StaticProp root) = root
 getRoot (StaticPropRef prop) = getRoot prop
