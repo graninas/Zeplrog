@@ -39,7 +39,7 @@ type DMaterializer a = ReaderT DEnv IO a
 type Shared = Bool
 
 -- | Materialization type class.
-class DMat payload a b | a -> b where
+class DMat payload a b | payload a -> b where
   dMat :: Shared -> payload -> a -> DMaterializer b
 
 runDMaterializer :: DEnv -> DMaterializer a -> IO a
@@ -134,6 +134,14 @@ spawnProperty propMat = do
       <> show pId
 
   pure prop
+
+spawnObject :: Property -> DMaterializer Object
+spawnObject prop = do
+  objIdVar <- asks deObjectIdVar
+  atomically $ do
+    ObjectId objId <- readTVar objIdVar
+    writeTVar objIdVar $ ObjectId $ objId + 1
+    pure $ Object (ObjectId objId) prop
 
 withSMaterializer
   :: SMaterializer a

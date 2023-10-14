@@ -36,14 +36,14 @@ type ActionLoop = PropDict (EssRoot EActionLoop)
 
 type RatActor = PropDict (EssRoot ERat)
   '[ AddPropKV (OwnProp (HPVal 20))
-   , AddPropKV (OwnProp DerivedWorldPosVal)
+   , AddPropKV (OwnProp DerivedPosVal)
    , AddPropKV (SharedProp ActionLoop)
    ]
 
 type GuardActor = PropDict (EssRoot EGuard)
   '[ AddPropKV (OwnProp (HPVal 100))
    , AddPropKV (OwnProp (StrengthRandomVal 10 20))
-   , AddPropKV (OwnProp DerivedWorldPosVal)
+   , AddPropKV (OwnProp DerivedPosVal)
    , AddPropKV (SharedProp ActionLoop)
    ]
 

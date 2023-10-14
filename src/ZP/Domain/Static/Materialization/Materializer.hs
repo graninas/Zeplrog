@@ -31,7 +31,7 @@ data SEnv = SEnv
 type SMaterializer a = ReaderT SEnv IO a
 
 -- | Materialization type class.
-class SMat payload a b | a -> b where
+class SMat payload a b | payload a -> b where
   sMat :: payload -> Proxy a -> SMaterializer b
 
 runSMaterializer :: SEnv -> SMaterializer a -> IO a

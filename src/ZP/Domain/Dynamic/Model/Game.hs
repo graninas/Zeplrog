@@ -19,8 +19,8 @@ data Game = Game
   { gWorld :: World
   -- ^ Game world with acting objects
 
-  , gPropertyIdCounter :: TVar Int
-  , gObjectIdCounter   :: TVar Int
+  , gPropertyIdCounter :: TVar PropertyId
+  , gObjectIdCounter   :: TVar ObjectId
 
   , gStaticProperties :: Map.Map SMod.StaticPropertyId (SMod.EssenceVL, SMod.PropertyVL)
   , gStaticEssences   :: Map.Map SMod.EssenceVL (SMod.StaticPropertyId, SMod.PropertyVL)

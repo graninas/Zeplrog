@@ -14,7 +14,7 @@ import qualified Data.Map as Map
 newtype ObjectId = ObjectId Int
 
 -- | Active object. Always based on some top-level property.
-data Object = Obj
+data Object = Object
   { objectId   :: ObjectId
   -- ^ Object ID
   , objectProp :: Property

@@ -9,7 +9,8 @@ import ZP.Domain.Hardcode.KnowledgeBase
 import GHC.TypeLits
 
 
-type PathToIcon = '[ EIcon ]
+type PathToIcon = IconPath '[ EIcon ]
+type PathToPos  = PosPath  '[ EPos ]
 
 -- | HP value: current and max
 type HPVal hp = PropVal
@@ -21,9 +22,3 @@ type StrengthRandomVal from to = PropVal
   (EssRoot EStrength)
   (RandomIntValue from to)
 
--- | Icon value (tmp mechanism)
-type IconVal icon = PropVal (EssRoot EIcon) (StringValue icon)
-
-
--- | Derived world position value.
-type DerivedWorldPosVal = PropVal (EssRoot EPos) DerivedWorldPos

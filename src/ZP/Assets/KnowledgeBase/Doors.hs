@@ -49,7 +49,7 @@ type PushableScript = SimpleScript EPushableScript
 type AbstractDoor = PropDict (EssRoot EAbstractDoor)
   '[ PropKeyVal EIcon (OwnProp (IconVal "+"))   -- TODO: open and close door with own icons
    , PropKeyVal EHP   (OwnProp (HPVal 50))
-   , PropKeyVal EPos  (OwnProp DerivedWorldPosVal)
+   , PropKeyVal EPos  (OwnProp DerivedPosVal)
 
     -- | Possible states
    , PropKeyBag EStates
@@ -76,7 +76,7 @@ type SpecificDoor = PropDict (PropRoot ESpecificDoor AbstractDoor)
 
 -- | Template for all doors having no predefined location.
 --   Derived from AbstractDoor.
-type GenericDoor = DerivedProperty EDoor AbstractDoor
+type GenericDoor = DerivedProp EDoor AbstractDoor
   '[ PropKeyVal EHP (OwnProp (HPVal 70))
    ]
 

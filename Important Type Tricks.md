@@ -61,3 +61,15 @@ instance
     pure $ prop : props
 
 ```
+
+**Newtype approach on the type level**
+
+Newtype safety works on the type level.
+
+```haskell
+data IconEssencePath (lvl :: Level) where
+  IconPath :: EssencePath lvl -> IconEssencePath lvl
+
+data PosEssencePath (lvl :: Level) where
+  PosPath :: EssencePath lvl -> PosEssencePath lvl
+```

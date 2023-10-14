@@ -10,26 +10,25 @@ import qualified Text.Show as T
 import ZP.Domain.Static.Model.Common
 import ZP.Domain.Static.Model.Property
 import ZP.Domain.Static.Model.Effect
+import ZP.Domain.Static.Model.Object
 import ZP.Domain.Static.Model.World
 
 ------ Game and environment -----
 
--- | Objects in the world.
--- No static type-level version.
-data Object (lvl :: Level) where
-  Obj
-    :: IntegerType lvl
-    -> IntegerType lvl
-    -> Property lvl
-    -> Object lvl
+data IconEssencePath (lvl :: Level) where
+  IconPath :: EssencePath lvl -> IconEssencePath lvl
 
+data PosEssencePath (lvl :: Level) where
+  PosPath :: EssencePath lvl -> PosEssencePath lvl
 
 data Game (lvl :: Level) where
   GameEnvironment
     :: World lvl
     -- ^ Template world with objs to spawn
-    -> EssencePath lvl
+    -> IconEssencePath lvl
     -- ^ Config: path to the icon prop
+    -> PosEssencePath lvl
+    -- ^ Config: path to the pos prop
     -> [ Property lvl ]
     -- ^ Available static props to spawn objs from the world
     -> [ Object lvl ]
@@ -41,7 +40,3 @@ data Game (lvl :: Level) where
 
 type GameTL = Game 'TypeLevel
 type GameVL = Game 'ValueLevel
-
-type ObjectTL = Object 'TypeLevel
-type ObjectVL = Object 'ValueLevel
-

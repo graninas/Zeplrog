@@ -6,6 +6,8 @@ import ZP.Prelude
 
 import qualified ZP.Domain.Static.Model as SMod
 import qualified ZP.Domain.Static.Materialization as SMat
+import ZP.Domain.Static.Materialization ()
+import ZP.Domain.Static.Materialization.Materializer
 import qualified ZP.Domain.Static.Query as SQuery
 import ZP.Domain.Dynamic.Model
 import ZP.Domain.Dynamic.Materialization.Materializer
@@ -23,27 +25,36 @@ import Data.Maybe
 
 prepareProp
   :: Map.Map String SMod.PropertyVL
+  -> [SMod.EssenceVL]
   -> ((Int, Int), Char)
   -> SMod.PropertyVL
-prepareProp statProps ((x, y), ch) =
+prepareProp pathToPos statProps ((x, y), ch) =
   case Map.lookup [ch] statProps of
-    Nothing -> error $ "Static property not found for symbol: " <> [ch]
+    Nothing -> error $ "Static property not found for symbol: "
+                    <> show ch
     Just statProp ->
+      error "not implemented!! put x y into prop"
       -- TODO   ------------------------------- !!!
       statProp
 
-
-spawnObject :: TVar ObjectId -> Property -> DMaterializer Object
-spawnObject objIdVar prop = atomically $ do
-  objId <- readTVar objIdVar
-  writeTVar objIdVar $ objId + 1
-  pure $ Object objId prop
-
-
 instance
+  ( DMat p SMod.WorldVL World
+  , DMat p SMod.PropertyVL Property
+  , DMat [SMod.EssenceVL] SMod.ObjectVL Object
+  ) =>
   DMat p SMod.GameVL Game where
-  dMat _ p (SMod.GameEnvironment statWorld pathToIcon statProps statObjs) = do
+  dMat _ p (SMod.GameEnvironment
+              statWorld
+              (SMod.IconPath pathToIcon)
+              (SMod.PosPath pathToPos)
+              statProps
+              statObjs) = do
     let SMod.WorldData statWD = statWorld
+
+
+    error "TODO: derived propertiessss!!!"
+
+
 
     -- N.B., repeated props will be droped.
     let iconsToStatPropsMap = Map.fromList
@@ -56,18 +67,17 @@ instance
     let cells = worldDataToList statWD
 
     let preparedStatProps =
-          [ prepareProp iconsToStatPropsMap cell
+          [ prepareProp pathToPos iconsToStatPropsMap cell
           | cell <- cells
           ]
 
     world <- dMat False p statWorld
 
-    DEnv sEnv propIdVar objIdVar _ <- ask
-    let SMat.SEnv _ _ statPropsVar statEsssVar = sEnv
-
     propsFromWorld <- mapM (dMat False p) preparedStatProps
-    objsFromWorld  <- mapM (spawnObject objIdVar) propsFromWorld
-    objs           <- mapM (dMat False p) statObjs
+    objsFromWorld  <- mapM spawnObject propsFromWorld
+    objs           <- mapM (dMat False pathToPos) statObjs
+
+    -- TODO: verify that all objects are in the world's bounds
 
     let allObjs1 = foldr (\obj m ->
           Map.insert (objectId obj) obj m)
@@ -81,11 +91,17 @@ instance
 
     allObjsVar <- newTVarIO allObjs2
 
+    objIdVar      <- asks deObjectIdVar
+    propIdVar     <- asks dePropertyIdVar
+    statPropsVar  <- asks $ seStaticPropertiesVar . deSEnv
+    statEsssVar   <- asks $ seStaticEssencesVar . deSEnv
+    statProps     <- readTVarIO statPropsVar
+    statEsss      <- readTVarIO statEsssVar
+
     pure $ Game
       world
       propIdVar
       objIdVar
-      statPropsVar
-      statEsssVar
+      statProps
+      statEsss
       allObjsVar
-

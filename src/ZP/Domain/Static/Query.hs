@@ -45,8 +45,8 @@ queryStringValue (ess:[]) (PropVal root valDef) = let
         then getStringValue valDef
         else Nothing
 queryStringValue _ (PropVal _ _) = Nothing
-queryStringValue _ (DerivedProperty _ _ _) =
-  error "queryStringValue not implemented for DerivedProperty"
+queryStringValue _ (DerivedProp _ _ _) =
+  error "queryStringValue not implemented for DerivedProp"
 queryStringValue _ (PropScript _ _) = Nothing
 queryStringValue (ess:esss) (PropDict root kvs) = let
   ess' = getEssence root

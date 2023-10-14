@@ -106,7 +106,7 @@ instance
   , SMat p abstractProp PropertyVL
   , SMat p (SrcPropKVs propKVs) ResPropKVs
   ) =>
-  SMat p ('DerivedProperty @'TypeLevel ess abstractProp propKVs)
+  SMat p ('DerivedProp @'TypeLevel ess abstractProp propKVs)
          PropertyVL where
   sMat p _ = do
     ess <- sMat p $ Proxy @ess

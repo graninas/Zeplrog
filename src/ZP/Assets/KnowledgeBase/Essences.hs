@@ -16,7 +16,6 @@ type EIdling        = Ess @TypeLevel "action:idling"
 type ENoAction      = Ess @TypeLevel "action:no action"
 
 type EActionLoop    = Ess @TypeLevel "system:action loop"
-type EIcon          = Ess @TypeLevel "system:icon"
 type EGoal          = Ess @TypeLevel "system:goal"
 
 

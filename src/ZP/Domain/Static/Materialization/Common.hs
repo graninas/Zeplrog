@@ -111,6 +111,11 @@ instance
     (fromIntegral $ natVal $ Proxy @from)
     (fromIntegral $ natVal $ Proxy @to)
 
+instance
+  SMat (Int, Int) ('DerivedWorldPos @'TypeLevel)
+       ValDefVL where
+  sMat (x, y) _ = pure $ PairValue (IntValue x) (IntValue y)
+
 -- Statically materialize Essence path
 
 instance

@@ -60,7 +60,7 @@ data Property (lvl :: Level) where
   --    (Yes, it's OOP, dude!)
   --    After static materialization, becomes PropDict.
   --    No value-type static or dynamic props correspond to it.
-  DerivedProperty
+  DerivedProp
     :: Essence lvl
     -> Property lvl
     -> [PropertyKeyValue lvl]

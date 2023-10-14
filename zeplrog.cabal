@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: becbfb3303526341a00db897e30f11d93f35b99bb20bfc2cdbe2e5f55a355212
+-- hash: 23b018322491793b09b60e0c5fae96db196b96e8499b1a68af2038bdb17ace5a
 
 name:           zeplrog
 version:        0.0.0.1
@@ -38,6 +38,7 @@ library
       ZP.Domain.Dynamic.Materialization.Effect
       ZP.Domain.Dynamic.Materialization.Game
       ZP.Domain.Dynamic.Materialization.Materializer
+      ZP.Domain.Dynamic.Materialization.Object
       ZP.Domain.Dynamic.Materialization.Property
       ZP.Domain.Dynamic.Materialization.Script
       ZP.Domain.Dynamic.Materialization.World
@@ -58,6 +59,7 @@ library
       ZP.Domain.Static.Materialization.Game
       ZP.Domain.Static.Materialization.Macro
       ZP.Domain.Static.Materialization.Materializer
+      ZP.Domain.Static.Materialization.Object
       ZP.Domain.Static.Materialization.Property
       ZP.Domain.Static.Materialization.Script
       ZP.Domain.Static.Materialization.World
@@ -66,6 +68,7 @@ library
       ZP.Domain.Static.Model.Effect
       ZP.Domain.Static.Model.Game
       ZP.Domain.Static.Model.Helpers
+      ZP.Domain.Static.Model.Object
       ZP.Domain.Static.Model.Property
       ZP.Domain.Static.Model.Script
       ZP.Domain.Static.Model.World
@@ -155,6 +158,7 @@ executable zeplrog
       ZP.Domain.Dynamic.Materialization.Effect
       ZP.Domain.Dynamic.Materialization.Game
       ZP.Domain.Dynamic.Materialization.Materializer
+      ZP.Domain.Dynamic.Materialization.Object
       ZP.Domain.Dynamic.Materialization.Property
       ZP.Domain.Dynamic.Materialization.Script
       ZP.Domain.Dynamic.Materialization.World
@@ -175,6 +179,7 @@ executable zeplrog
       ZP.Domain.Static.Materialization.Game
       ZP.Domain.Static.Materialization.Macro
       ZP.Domain.Static.Materialization.Materializer
+      ZP.Domain.Static.Materialization.Object
       ZP.Domain.Static.Materialization.Property
       ZP.Domain.Static.Materialization.Script
       ZP.Domain.Static.Materialization.World
@@ -183,6 +188,7 @@ executable zeplrog
       ZP.Domain.Static.Model.Effect
       ZP.Domain.Static.Model.Game
       ZP.Domain.Static.Model.Helpers
+      ZP.Domain.Static.Model.Object
       ZP.Domain.Static.Model.Property
       ZP.Domain.Static.Model.Script
       ZP.Domain.Static.Model.World

@@ -27,6 +27,7 @@ type Zeplrog' world = Zeplrog world     -- tmp, no macro
 type Zeplrog world = GameEnvironment
   world
   PathToIcon
+  PathToPos
 
   '[ SpecificDoor
    , Wall
