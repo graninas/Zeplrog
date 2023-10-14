@@ -64,8 +64,8 @@ instance
     let iconsToStatPropsMap = Map.fromList
           [ (fromJust mbIcon, statProp)
           | statProp <- statProps
-          , let mbIcon = SQuery.queryStringValue pathToIcon statProp
-          , isJust mbIcon
+          , let mbIcon = SQuery.queryStringValueRelative pathToIcon statProp
+          , isJust (trace ("\n\n" <> show mbIcon) mbIcon)
           ]
 
     -- World cells to traverse and search for icons.

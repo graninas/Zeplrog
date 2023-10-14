@@ -21,27 +21,58 @@ import qualified Data.Map.Strict as Map
 type TestIconOwning = OwnProp (KB.IconVal "+")
 type TestPropKeyVal = PropKeyVal KB.EIcon TestIconOwning
 
+type TestProp = PropDict (EssRoot KB.EIntrinsics)
+  '[ TestPropKeyVal
+   ]
+
+
+type Wall = PropDict (EssRoot KB.EWall)
+  '[ PropKeyVal KB.EIcon (OwnProp (KB.IconVal "#"))
+   ]
+
 spec :: Spec
 spec = do
   describe "Query spec" $ do
     it "Query string value for own prop" $ do
-      sEnv <- makeSEnv DebugEnabled
+      sEnv <- makeSEnv DebugDisabled
 
       owning <- sMat' sEnv () $ Proxy @TestIconOwning
       path   <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
 
-      let mbRes = queryStringForOwning path owning
+      let mbRes = queryStringValueForOwning path owning
       case mbRes of
-        Nothing -> error "String value not found"
-        Just _  -> pure ()
+        Nothing  -> error "String value not found"
+        Just val -> val `shouldBe` "+"
 
     it "Query string value for prop key val" $ do
-      sEnv <- makeSEnv DebugEnabled
+      sEnv <- makeSEnv DebugDisabled
 
       kv   <- sMat' sEnv () $ Proxy @TestPropKeyVal
       path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
 
-      let mbRes = queryStringForKeyVals path [kv]
+      let mbRes = queryStringValueForKeyVals path [kv]
       case mbRes of
         Nothing -> error "String value not found"
-        Just _  -> pure ()
+        Just val -> val `shouldBe` "+"
+
+    it "Query string value for prop not relative" $ do
+      sEnv <- makeSEnv DebugDisabled
+
+      prop <- sMat' sEnv () $ Proxy @TestProp
+      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIntrinsics, KB.EIcon])
+
+      let mbRes = queryStringValue path prop
+      case mbRes of
+        Nothing -> error "String value not found"
+        Just val -> val `shouldBe` "+"
+
+    it "Query string value for prop relative" $ do
+      sEnv <- makeSEnv DebugDisabled
+
+      prop <- sMat' sEnv () $ Proxy @TestProp
+      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
+
+      let mbRes = queryStringValueRelative path prop
+      case mbRes of
+        Nothing -> error "String value not found"
+        Just val -> val `shouldBe` "+"

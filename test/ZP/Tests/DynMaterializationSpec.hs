@@ -20,7 +20,7 @@ spec = do
   describe "Dyn materialization tests" $ do
 
     it "Full materialization: door" $ do
-      (sEnv, dEnv) <- makeEnvs DebugEnabled
+      (sEnv, dEnv) <- makeEnvs DebugDisabled
 
       doorStat <- sMat' sEnv () $ Proxy @KB.SpecificDoor
       door     <- dMat' dEnv () doorStat
@@ -30,7 +30,7 @@ spec = do
 
       Map.size props `shouldBe` 8
 
-    xit "Full materialization: game" $ do
+    it "Full materialization: game" $ do
       (sEnv, dEnv) <- makeEnvs DebugEnabled
 
       game <- fullMat dEnv () $ Proxy @(KB.Zeplrog KB.World1)

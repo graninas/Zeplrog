@@ -22,15 +22,16 @@ type Zeplrog world = GameEnvironment
   PathToPos
 
   -- Static props for the instantiation from the world data
-  '[ SpecificDoor
+  '[ EmptySpace
+   , SpecificDoor
    , Wall
-   , EmptySpace
    ]
 
+  '[]
   -- Objects (static props placed into the world separately)
-  '[ Obj 2 8 GenericDoor
-   , Obj 3 9 Wall
-   ]
+  -- '[ Obj 2 8 GenericDoor
+  --  , Obj 3 9 Wall
+  --  ]
 
 
 

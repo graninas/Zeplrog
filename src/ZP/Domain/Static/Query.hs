@@ -35,9 +35,9 @@ getStringValue _ = Nothing
 -- TODO: move to the Query language.
 queryStringValue :: EssencePathVL -> PropertyVL -> Maybe String
 queryStringValue [] _ = Nothing
-queryStringValue (ess:esss) (StaticProp _) =
+queryStringValue _ (StaticProp _) =
   error "queryStringValue not implemented for StaticProp"
-queryStringValue (ess:esss) (StaticPropRef _) =
+queryStringValue _ (StaticPropRef _) =
   error "queryStringValue not implemented for StaticPropRef"
 queryStringValue (ess:[]) (PropVal root valDef) = let
   ess' = getEssence root
@@ -51,44 +51,64 @@ queryStringValue _ (PropScript _ _) = Nothing
 queryStringValue (ess:esss) (PropDict root kvs) = let
   ess' = getEssence root
   in case ess == ess' of
-        True -> queryStringForKeyVals esss kvs
+        True -> queryStringValueForKeyVals esss kvs
         False -> Nothing
 
 -- Hardcoded function.
+-- Queries a value of string for this property.
+-- The path doesn't contain the essence of this property.
 -- TODO: move to the Query language.
-queryStringForKeyVals
+queryStringValueRelative :: EssencePathVL -> PropertyVL -> Maybe String
+queryStringValueRelative [] _ = Nothing
+queryStringValueRelative _ (StaticProp _) =
+  error "queryStringValueRelative not implemented for StaticProp"
+queryStringValueRelative _ (StaticPropRef _) =
+  error "queryStringValueRelative not implemented for StaticPropRef"
+queryStringValueRelative [] (PropVal root valDef) =
+  getStringValue valDef
+queryStringValueRelative esss (PropVal _ _) =
+  error $ "queryStringValueRelative: path is not empty: " <> show esss
+queryStringValueRelative _ (DerivedProp _ _ _) =
+  error "queryStringValueRelative not implemented for DerivedProp"
+queryStringValueRelative _ (PropScript _ _) = Nothing
+queryStringValueRelative esss (PropDict root kvs) =
+  queryStringValueForKeyVals esss kvs
+
+-- Hardcoded function.
+-- TODO: move to the Query language.
+queryStringValueForKeyVals
   :: EssencePathVL
   -> [PropertyKeyValueVL]
   -> Maybe String
-queryStringForKeyVals [] _ = Nothing
-queryStringForKeyVals _ [] = Nothing
-queryStringForKeyVals (ess:esss) (PropKeyVal ess' owning : kvs)
-  | ess == ess' = queryStringForOwning esss owning
-  | otherwise = queryStringForKeyVals (ess:esss) kvs
-queryStringForKeyVals (ess:esss) (PropKeyBag ess' ownings : kvs)
-  | ess == ess' = queryStringForOwnings esss ownings
-  | otherwise = queryStringForKeyVals (ess:esss) kvs
+queryStringValueForKeyVals [] _ = Nothing
+queryStringValueForKeyVals _ [] = Nothing
+queryStringValueForKeyVals path@(ess:_) (PropKeyVal ess' owning : kvs)
+  | ess == ess' = queryStringValueForOwning path owning
+  | otherwise = queryStringValueForKeyVals path kvs
+queryStringValueForKeyVals path@(ess:_) (PropKeyBag ess' ownings : kvs)
+  | ess == ess' = queryStringValueForOwnings path ownings
+  | otherwise = queryStringValueForKeyVals path kvs
 
 -- Hardcoded function.
 -- TODO: move to the Query language.
-queryStringForOwning
+queryStringValueForOwning
   :: EssencePathVL
   -> PropertyOwningVL
   -> Maybe String
-queryStringForOwning esss (OwnProp prop) =
+queryStringValueForOwning esss (OwnProp prop) =
   queryStringValue esss prop
-queryStringForOwning esss (SharedProp prop) =
+queryStringValueForOwning esss (SharedProp prop) =
   queryStringValue esss prop
 
 -- Hardcoded function.
 -- TODO: move to the Query language.
-queryStringForOwnings
+queryStringValueForOwnings
   :: EssencePathVL
   -> [PropertyOwningVL]
   -> Maybe String
-queryStringForOwnings [] _ = Nothing
-queryStringForOwnings _ [] = Nothing
-queryStringForOwnings esss (owning : ownings) =
-  case queryStringForOwning esss owning of
-    Nothing  -> queryStringForOwnings esss ownings
+queryStringValueForOwnings [] _ = Nothing
+queryStringValueForOwnings _ [] = Nothing
+queryStringValueForOwnings esss (owning : ownings) =
+  case queryStringValueForOwning esss owning of
+    Nothing  -> queryStringValueForOwnings esss ownings
     Just str -> Just str

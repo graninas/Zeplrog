@@ -79,16 +79,6 @@ instance
       propId          <- getNextPropertyId
 
       pure $ RefProperty propId $ StaticPropertyRef statPropId
-
-    -- DEnv (SEnv _ _ statPropsVar) propIdVar objIdVar _ <- ask
-    -- unless (Map.member statEss statProps)
-    --   $ error $ "Static property not found: " <> show statEss
-
-    -- ess <- dMat False () statEss
-    -- let staticProp = StaticPropertyRef root
-    -- valVar <- newTVarIO $ StaticPropertyRefValue root
-    -- pure (ess, ValueProperty ess staticProp valVar)
-
   dMat _ () (SMod.PropScript root script) =
     spawnProperty $ withShared True root $ do
       (statPropId, _) <- withSMaterializer $ getStaticPropertyByRoot root
