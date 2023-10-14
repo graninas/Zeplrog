@@ -21,20 +21,22 @@ import qualified Data.Map.Strict as Map
 -- Call spawnProperty to finalize creation of the prop.
 withShared
   :: Bool
-  -> SMod.PropertyRootVL
+  -> SMod.PropertyGroupVL
   -> DMaterializer Property
   -> DMaterializer (Essence, Property)
-withShared shared root matProp = do
-  esssVar <- asks deEssencesVar
-  esss    <- readTVarIO esssVar
-  ess     <- dMat False () root
-  case (shared, Map.lookup ess esss) of
+withShared shared group matProp = do
+  sharedVar   <- asks deSharedPropertiesVar
+  sharedProps <- readTVarIO sharedVar
+  (ess, sId) <- dMat False () group
+  case (shared, Map.lookup sId sharedProps) of
     (True, Nothing) -> do
       prop <- matProp
+      atomically $ writeTVar sharedVar
+                 $ Map.insert sId (ess, prop) sharedProps
       pure (ess, prop)
-    (True,  Just (_, found)) -> pure (ess, found)
-    (False, Just (pId, found)) -> error
-      $ "Not shared dynamic property already exists: "
+    (True,  Just (_, prop)) -> pure (ess, prop)
+    (False, Just (pId, _)) -> error
+      $ "Not shared dynamic property found in shared props: "
         <> show ess <> ", pId: " <> show pId
     (False, Nothing) -> do
       prop <- matProp
@@ -46,49 +48,51 @@ withShared shared root matProp = do
 
 instance
   DMat () SMod.PropertyVL Property where
-  dMat shared () (SMod.PropDict root propKVs) =
-    spawnProperty $ withShared shared root $ do
-      (statPropId, _) <- withSMaterializer $ getStaticPropertyByRoot root
-      propId          <- getNextPropertyId
-      props           <- mapM (dMat False ()) propKVs
-      scriptVar       <- newTVarIO Nothing
-      propBagsVar     <- newTVarIO $ Map.fromList props
+  dMat shared () (SMod.PropDict group propKVs) =
+    spawnProperty $ withShared shared group $ do
+      let (_, sId) = SQuery.getComboPropertyId group
+      propId      <- getNextPropertyId
+      props       <- mapM (dMat False ()) propKVs
+      scriptVar   <- newTVarIO Nothing
+      propBagsVar <- newTVarIO $ Map.fromList props
       pure $ Property
         propId
         (error "owner not implemented")         -- TODO: owner
-        statPropId
+        sId
         scriptVar
         propBagsVar
 
-  dMat shared () (SMod.PropVal root valDef) =
-    spawnProperty $ withShared shared root $ do
-      (statPropId, _) <- withSMaterializer $ getStaticPropertyByRoot root
-      propId          <- getNextPropertyId
-      val             <- dMat False () valDef
-      valVar          <- newTVarIO val
-      pure $ ValueProperty propId statPropId valVar
+  dMat shared () (SMod.PropVal group valDef) =
+    spawnProperty $ withShared shared group $ do
+      let (_, sId) = SQuery.getComboPropertyId group
+      propId <- getNextPropertyId
+      val    <- dMat False () valDef
+      valVar <- newTVarIO val
+      pure $ ValueProperty propId sId valVar
 
-  dMat _ () (SMod.StaticProp root) = do
-    error "stat prop not implemented"
+  dMat _ () (SMod.StaticProp group) = do
+    let (_, sId) = SQuery.getComboPropertyId group
+    spawnProperty $ withShared True group $ do
+      propId <- getNextPropertyId
+      pure $ RefProperty propId $ StaticPropertyRef sId
 
-  dMat shared () (SMod.StaticPropRef prop) = do
-    let root = SQuery.getRoot prop
-    spawnProperty $ withShared shared root $ do
+  dMat _ () (SMod.StaticPropRef prop) = do
+    let group    = SQuery.getGroup prop
+    let (_, sId) = SQuery.getComboPropertyId group
+    spawnProperty $ withShared True group $ do
+      propId <- getNextPropertyId
+      pure $ RefProperty propId $ StaticPropertyRef sId
 
-      (statPropId, _) <- withSMaterializer $ getStaticPropertyByRoot root
-      propId          <- getNextPropertyId
-
-      pure $ RefProperty propId $ StaticPropertyRef statPropId
-  dMat _ () (SMod.PropScript root script) =
-    spawnProperty $ withShared True root $ do
-      (statPropId, _) <- withSMaterializer $ getStaticPropertyByRoot root
+  dMat _ () (SMod.PropScript group script) =
+    spawnProperty $ withShared True group $ do
+      let (_, sId) = SQuery.getComboPropertyId group
       propBagsVar <- newTVarIO Map.empty
       scriptVar   <- newTVarIO $ Just $ Script script
       propId      <- getNextPropertyId
       pure $ Property
         propId
         (error "owner not implemented")
-        statPropId
+        sId
         scriptVar
         propBagsVar
 

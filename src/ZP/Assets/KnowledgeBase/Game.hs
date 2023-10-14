@@ -27,11 +27,10 @@ type Zeplrog world = GameEnvironment
    , Wall
    ]
 
-  '[]
   -- Objects (static props placed into the world separately)
-  -- '[ Obj 2 8 GenericDoor
-  --  , Obj 3 9 Wall
-  --  ]
+  '[ Obj 2 8 GenericDoor
+   , Obj 3 9 Wall
+   ]
 
 
 

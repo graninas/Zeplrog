@@ -7,25 +7,24 @@ import ZP.Domain.Static.Model
 import ZP.Domain.Hardcode.KnowledgeBase
 import ZP.Assets.KnowledgeBase.Essences
 import ZP.Assets.KnowledgeBase.Common
-import ZP.Domain.Static.Model.Helpers
 
 import GHC.TypeLits
 
 
 -- Why this is not a compound object?
-type FireWand = StaticProp (EssRoot EWand)
-type IceWand  = StaticProp (EssRoot EWand)
-type KillGoal = StaticProp (EssRoot EGoal)
+type FireWand = StaticProp (Group EWand)
+type IceWand  = StaticProp (Group EWand)
+type KillGoal = StaticProp (Group EGoal)
 
 
-type Observing     = StaticProp (EssRoot EObserving)
-type Discovering   = StaticProp (EssRoot EDiscovering)
-type SettingGoals  = StaticProp (EssRoot ESettingGoals)
-type Planning      = StaticProp (EssRoot EPlanning)
-type FollowingPlan = StaticProp (EssRoot EFollowingPlan)
+type Observing     = StaticProp (Group EObserving)
+type Discovering   = StaticProp (Group EDiscovering)
+type SettingGoals  = StaticProp (Group ESettingGoals)
+type Planning      = StaticProp (Group EPlanning)
+type FollowingPlan = StaticProp (Group EFollowingPlan)
 
 
-type ActionLoop = PropDict (EssRoot EActionLoop)
+type ActionLoop = PropDict (Group EActionLoop)
   '[ AddPropKV (SharedProp Observing)
    , AddPropKV (SharedProp Discovering)
    , AddPropKV (SharedProp SettingGoals)
@@ -34,13 +33,13 @@ type ActionLoop = PropDict (EssRoot EActionLoop)
    ]
 
 
-type RatActor = PropDict (EssRoot ERat)
+type RatActor = PropDict (Group ERat)
   '[ AddPropKV (OwnProp (HPVal 20))
    , AddPropKV (OwnProp DerivedPosVal)
    , AddPropKV (SharedProp ActionLoop)
    ]
 
-type GuardActor = PropDict (EssRoot EGuard)
+type GuardActor = PropDict (Group EGuard)
   '[ AddPropKV (OwnProp (HPVal 100))
    , AddPropKV (OwnProp (StrengthRandomVal 10 20))
    , AddPropKV (OwnProp DerivedPosVal)

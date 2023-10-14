@@ -21,12 +21,12 @@ import qualified Data.Map.Strict as Map
 type TestIconOwning = OwnProp (KB.IconVal "+")
 type TestPropKeyVal = PropKeyVal KB.EIcon TestIconOwning
 
-type TestProp = PropDict (EssRoot KB.EIntrinsics)
+type TestProp = PropDict (Group KB.EIntrinsics)
   '[ TestPropKeyVal
    ]
 
 
-type Wall = PropDict (EssRoot KB.EWall)
+type Wall = PropDict (Group KB.EWall)
   '[ PropKeyVal KB.EIcon (OwnProp (KB.IconVal "#"))
    ]
 

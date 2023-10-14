@@ -19,18 +19,21 @@ import qualified Data.Map.Strict as Map
 --  Currently, TVars do not do anything useful.
 
 type DynamicProperties = Map.Map PropertyId (Essence, Property)
-type DynamicEssences   = Map.Map Essence (PropertyId, Property)
+type SharedProperties  = Map.Map SMod.StaticPropertyId (Essence, Property)
+type DynamicEssences   = Map.Map Essence [(PropertyId, Property)]
 
 data DEnv = DEnv
   { deSEnv :: SEnv
     -- ^ Static environment
-  , dePropertyIdVar :: TVar PropertyId
+  , dePropertyIdVar       :: TVar PropertyId
     -- ^ PropId counter
-  , deObjectIdVar   :: TVar ObjectId
+  , deObjectIdVar         :: TVar ObjectId
     -- ^ ObjectId counter
-  , dePropertiesVar :: TVar DynamicProperties
+  , dePropertiesVar       :: TVar DynamicProperties
     -- ^ List of all dynamic props
-  , deEssencesVar   :: TVar DynamicEssences
+  , deSharedPropertiesVar :: TVar SharedProperties
+    -- ^ List of shared props
+  , deEssencesVar         :: TVar DynamicEssences
     -- ^ List of all dynamic props
   }
 
@@ -64,6 +67,7 @@ makeDEnv sEnv = DEnv
   <$> pure sEnv
   <*> newTVarIO (PropertyId 0)
   <*> newTVarIO (ObjectId 0)
+  <*> newTVarIO Map.empty
   <*> newTVarIO Map.empty
   <*> newTVarIO Map.empty
 
@@ -114,17 +118,22 @@ spawnProperty propMat = do
   (ess, prop) <- propMat
   let propId = pPropertyId prop
 
-  propsVar <- asks dePropertiesVar
-  esssVar  <- asks deEssencesVar
+  propsVar  <- asks dePropertiesVar
+  esssVar   <- asks deEssencesVar
 
   pId <- atomically $ do
-    props <- readTVar propsVar
-    esss  <- readTVar esssVar
+    props  <- readTVar propsVar
+    esss   <- readTVar esssVar
 
-    let props' = Map.insert propId (ess, prop) props
-    let esss'  = Map.insert ess (propId, prop) esss
+    let props'  = Map.insert propId (ess, prop) props
     writeTVar propsVar props'
-    writeTVar esssVar esss'
+
+    case Map.lookup ess esss of
+      Nothing -> writeTVar esssVar
+        $ Map.insert ess [(propId, prop)] esss
+      Just ps -> writeTVar esssVar
+        $ Map.insert ess ((propId, prop) : ps) esss
+
 
   dTraceDebug $ do
     pure $ "Dyn property created: "

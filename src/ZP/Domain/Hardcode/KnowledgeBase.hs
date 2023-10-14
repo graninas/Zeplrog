@@ -15,17 +15,17 @@ type EGenericPos = Ess @TypeLevel "intrinsics:generic pos"
 type EPos        = Ess @TypeLevel "intrinsics:pos"
 
 -- | Generic grouping prop for world position value.
-type GenericPos = StaticProp (EssRoot EGenericPos)
+type GenericPos = StaticProp (Group EGenericPos)
 
 -- | World position value.
 type PosVal x y = PropVal
-  (PropRoot EPos GenericPos)
+  (GroupRoot EPos GenericPos)
   (PairValue (IntValue x) (IntValue y))
 
 -- | Derived world position value.
 type DerivedPosVal = PropVal
-  (PropRoot EPos GenericPos)
+  (GroupRoot EPos GenericPos)
   DerivedWorldPos
 
 -- | Icon value (tmp mechanism).
-type IconVal icon = PropVal (EssRoot EIcon) (StringValue icon)
+type IconVal icon = PropVal (Group EIcon) (StringValue icon)

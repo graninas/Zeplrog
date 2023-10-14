@@ -19,7 +19,7 @@ import qualified Data.Map.Strict as Map
 --  Currently, TVars do not do anything useful.
 
 type StaticProperties = Map.Map StaticPropertyId (EssenceVL, PropertyVL)
-type StaticEssences   = Map.Map EssenceVL (StaticPropertyId, PropertyVL)
+type StaticEssences   = Map.Map EssenceVL [(StaticPropertyId, PropertyVL)]
 
 data SEnv = SEnv
   { seDebugMode           :: DebugMode
@@ -71,18 +71,6 @@ getStaticProperty statPropId = do
       $ "Static property " <> show statPropId <> " not found."
     Just prop -> pure prop
 
-getStaticPropertyByRoot
-  :: PropertyRootVL
-  -> SMaterializer (StaticPropertyId, PropertyVL)
-getStaticPropertyByRoot root = do
-  let ess = getEssence root
-  statEssVar <- asks seStaticEssencesVar
-  statEsss   <- readTVarIO statEssVar
-  case Map.lookup ess statEsss of
-    Nothing   -> error
-      $ "Static property " <> show ess <> " not found."
-    Just prop -> pure prop
-
 getNextStaticPropertyId'
   :: TVar StaticPropertyId
   -> SMaterializer StaticPropertyId
@@ -106,8 +94,15 @@ addStaticProperty (statPropId, ess, prop) = do
   atomically $ do
     props <- readTVar statPropsVar
     esss  <- readTVar statEssencesVar
-    writeTVar statPropsVar    $ Map.insert statPropId (ess, prop) props
-    writeTVar statEssencesVar $ Map.insert ess (statPropId, prop) esss
+
+    writeTVar statPropsVar
+      $ Map.insert statPropId (ess, prop) props
+
+    case Map.lookup ess esss of
+      Nothing -> writeTVar statEssencesVar
+        $ Map.insert ess [(statPropId, prop)] esss
+      Just ps -> writeTVar statEssencesVar
+        $ Map.insert ess ((statPropId, prop) : ps) esss
 
 
 instantiateDerivedValue

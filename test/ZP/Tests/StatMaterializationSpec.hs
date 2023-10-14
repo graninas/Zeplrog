@@ -32,16 +32,16 @@ spec = do
       -- print $ "Stat essences: " <> show (Map.keys statEsss)
 
       case door of
-        PropDict root props -> do
-          let Ess ess = getEssence root
+        PropDict group props -> do
+          let (ess, sId) = getComboPropertyId group
           length props `shouldBe` 6
-          length statProps `shouldBe` 12
-          ess `shouldBe` "object:specific door"
-          Map.member (Ess ess) statEsss `shouldBe` True
+          length statProps `shouldBe` 15
+          ess `shouldBe` Ess "object:specific door"
+          Map.member ess statEsss `shouldBe` True
         _ -> error "invalid materialization result"
 
     it "Game materialization test 1" $ do
-      sEnv <- makeSEnv DebugDisabled
+      sEnv <- makeSEnv DebugEnabled
 
       game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
       let GameEnvironment _ _ _ props objs = game
@@ -52,22 +52,6 @@ spec = do
       -- print $ "Stat props: " <> show (Map.keys statProps)
       -- print $ "Stat essences: " <> show (Map.keys statEsss)
 
-      length statProps `shouldBe` 15
-      length props `shouldBe` 3
-      length objs `shouldBe` 2
-
-    it "Game materialization test 2" $ do
-      sEnv <- makeSEnv DebugDisabled
-
-      game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
-      let GameEnvironment _ _ _ props objs = game
-
-      statProps <- readTVarIO $ seStaticPropertiesVar sEnv
-      statEsss  <- readTVarIO $ seStaticEssencesVar sEnv
-
-      -- print $ "Stat props: " <> show (Map.keys statProps)
-      -- print $ "Stat essences: " <> show (Map.keys statEsss)
-
-      length statProps `shouldBe` 15
+      length statProps `shouldBe` 23
       length props `shouldBe` 3
       length objs `shouldBe` 2

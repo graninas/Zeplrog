@@ -14,11 +14,11 @@ type PathToPos  = PosPath  '[ EPos ]
 
 -- | HP value: current and max
 type HPVal hp = PropVal
-  (EssRoot EHP)
+  (Group EHP)
   (PairValue (IntValue hp) (IntValue hp))
 
 -- | Strength random val
 type StrengthRandomVal from to = PropVal
-  (EssRoot EStrength)
+  (Group EStrength)
   (RandomIntValue from to)
 

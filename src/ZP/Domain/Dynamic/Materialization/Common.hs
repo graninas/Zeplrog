@@ -14,16 +14,20 @@ import System.Random
 import qualified Data.Map.Strict as Map
 
 
--- Materialize root and essence
+-- Materialize group and essence
 
 instance
   DMat () SMod.EssenceVL Essence where
   dMat _ () (SMod.Ess ess) = pure ess
 
 instance
-  DMat () SMod.PropertyRootVL Essence where
-  dMat _ () (SMod.EssRoot ess)    = dMat False () ess
-  dMat _ () (SMod.PropRoot ess _) = dMat False () ess   -- TODO: property itself - ???
+  DMat () SMod.PropertyGroupVL (Essence, SMod.StaticPropertyId) where
+  dMat _ () (SMod.GroupId statEss sId) = do
+    ess <- dMat False () statEss
+    pure (ess, sId)
+  dMat _ () (SMod.GroupRootId statEss sId _) = do
+    ess <- dMat False () statEss
+    pure (ess, sId)
 
 -- Materialize value
 

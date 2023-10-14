@@ -21,13 +21,13 @@ import GHC.TypeLits
 
 
 -- | General root property for everything that is open.
-type Open  = StaticProp (EssRoot EOpen)
-type Close = StaticProp (EssRoot EClose)
+type Open  = StaticProp (Group EOpen)
+type Close = StaticProp (Group EClose)
 
-type StateOpen  = StaticProp (PropRoot EStateOpen Open)
-type StateClose = StaticProp (PropRoot EStateClose Close)
+type StateOpen  = StaticProp (GroupRoot EStateOpen Open)
+type StateClose = StaticProp (GroupRoot EStateClose Close)
 
-type StatePropRefVal = PropVal (EssRoot EStateRef)
+type StatePropRefVal = PropVal (Group EStateRef)
   (PathValue '[ EStates, EStateClose ])
 
 type PushableScript = SimpleScript EPushableScript
@@ -46,7 +46,7 @@ type PushableScript = SimpleScript EPushableScript
 
 
 -- | Abstract door. Should not be directely materialized.
-type AbstractDoor = PropDict (EssRoot EAbstractDoor)
+type AbstractDoor = AbstractProp (Group EAbstractDoor)
   '[ PropKeyVal EIcon (OwnProp (IconVal "+"))   -- TODO: open and close door with own icons
    , PropKeyVal EHP   (OwnProp (HPVal 50))
    , PropKeyVal EPos  (OwnProp DerivedPosVal)
@@ -62,7 +62,7 @@ type AbstractDoor = PropDict (EssRoot EAbstractDoor)
 
     -- | Abilities to react to effects
    , PropKeyBag EAbilities
-      '[ SharedProp (PropScript (EssRoot EPushable)
+      '[ SharedProp (PropScript (Group EPushable)
                     PushableScript)
        ]
    ]

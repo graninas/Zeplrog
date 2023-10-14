@@ -23,7 +23,7 @@ data Game = Game
   , gObjectIdCounter   :: TVar ObjectId
 
   , gStaticProperties :: Map.Map SMod.StaticPropertyId (SMod.EssenceVL, SMod.PropertyVL)
-  , gStaticEssences   :: Map.Map SMod.EssenceVL (SMod.StaticPropertyId, SMod.PropertyVL)
+  , gStaticEssences   :: Map.Map SMod.EssenceVL [(SMod.StaticPropertyId, SMod.PropertyVL)]
   -- ^ List of all template static properties
 
   , gObjects :: TVar (Map.Map ObjectId Object)

@@ -53,7 +53,7 @@ import ZP.Domain.Static.Model.Script
 --     -> Property lvl
 --   -- | Property script.
 --   PropScript
---     :: PropertyRoot lvl
+--     :: PropertyGroup lvl
 --     -> Script lvl
 --     -> Property lvl
 
