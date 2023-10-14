@@ -91,6 +91,10 @@ instance
   sMat () _ = pure $ BoolValue False
 
 instance
+  SMat () ('DerivedWorldPos @'TypeLevel) ValDefVL where
+  sMat () _ = pure DerivedWorldPos
+
+instance
   ( SMat () (Essences essPath) [EssenceVL]
   ) =>
   SMat () ('PathValue @'TypeLevel essPath)

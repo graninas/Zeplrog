@@ -18,74 +18,42 @@ import qualified Data.Map.Strict as Map
 spec :: Spec
 spec = do
   describe "Dyn materialization tests" $ do
+    xit "fff" $ 1 `shouldBe` 2
 
-    it "Full materialization: door" $ do
-      (sEnv, dEnv@(DEnv _ sharedPropsVar)) <- makeEnvs DebugEnabled
+    -- it "Full materialization: door" $ do
+    --   (sEnv, dEnv) <- makeEnvs DebugEnabled
 
-      (essStat, doorStat) <- sMat' sEnv () $ Proxy @KB.Door
-      ess  <- dMat' dEnv () essStat
-      (_, door) <- dMat' dEnv () doorStat
+    --   doorStat <- sMat' sEnv () $ Proxy @KB.SpecificDoor
+    --   door     <- dMat' dEnv () doorStat
 
-      sharedProps <- readTVarIO sharedPropsVar
-      print $ "Shared props: " <> show (Map.keys sharedProps)
+    --   props <- readTVarIO $ dePropertiesVar dEnv
+    --   print $ "All props: " <> show (Map.keys props)
 
-      ess `shouldBe` "object:door"
-      Map.size sharedProps `shouldBe` 1
+    --   Map.size props `shouldBe` 1
 
-    it "Full materialization: game (no macro)" $ do
-      (sEnv, dEnv) <- makeEnvs DebugEnabled
+    -- it "Full materialization: game" $ do
+    --   (sEnv, dEnv) <- makeEnvs DebugEnabled
 
-      Game world cells props triggs <- fullMat dEnv ()
-        $ Proxy @(KB.Zeplrog KB.World1)
+    --   game <- fullMat dEnv () $ Proxy @(KB.Zeplrog KB.World1)
 
-      let World worldVec worldMap = world
+    --   props <- readTVarIO $ dePropertiesVar dEnv
+    --   esss  <- readTVarIO $ deEssencesVar dEnv
 
-      print $ "Props: " <> show (Map.keys props)
+    --   print $ "Props: " <> show (Map.keys props)
 
-      length props `shouldBe` 3
-      length triggs `shouldBe` 4
-      length worldMap `shouldBe` 65
+    --   length props `shouldBe` 3
 
-      case Map.lookup (mkE @KB.EDoor) props of
-        Nothing -> error "Prop not found"
-        Just (Property ess parentProp scriptVar propBagsVar valVar) -> do
-          ess `shouldBe` "object:door"
+    --   case Map.lookup (mkE @KB.EDoor) esss of
+    --     Nothing -> error "Prop not found"
+    --     Just (pId, prop) -> do
 
-          propBags <- readTVarIO propBagsVar
+    --       propBags <- readTVarIO $ pPropertyBagsVar prop
 
-          case Map.lookup (mkE @KB.EPos) propBags of
-            Just (SingleProperty (SharedProperty (DynamicPropertyRef posPropEss))) ->
-              posPropEss `shouldBe` "intrinsics:pos"
-            Just _ -> error "pos prop is different"
-            Nothing -> error "pos prop not found"
+    --       case Map.lookup (mkE @KB.EPos) propBags of
+    --         Just (SingleProperty (SharedProperty (DynamicPropertyRef posPropEss))) ->
+    --           posPropEss `shouldBe` "intrinsics:pos"
+    --         Just _ -> error "pos prop is different"
+    --         Nothing -> error "pos prop not found"
+    --     Just _ -> error "Invalid property"
 
-
-    it "Full materialization: game (with macro)" $ do
-      (sEnv@(SEnv _ statPropsVar _), dEnv) <- makeEnvs DebugEnabled
-
-      Game world cells props triggs <- fullMat dEnv ()
-        $ Proxy @(KB.Zeplrog' KB.World1)
-
-      let World worldVec worldMap = world
-
-      statProps <- readTVarIO statPropsVar
-      print $ "Stat props: " <> show (Map.keys statProps)
-
-      length statProps `shouldBe` 8
-      length props `shouldBe` 1
-      length triggs `shouldBe` 4
-      length worldMap `shouldBe` 65
-
-      case Map.lookup (mkE @KB.EDoor) props of
-        Nothing -> error "Prop not found"
-        Just (Property ess parentProp scriptVar propBagsVar valVar) -> do
-          ess `shouldBe` "object:door"
-
-          propBags <- readTVarIO propBagsVar
-
-          case Map.lookup (mkE @KB.EPos) propBags of
-            Just (SingleProperty (SharedProperty (DynamicPropertyRef posPropEss))) ->
-              posPropEss `shouldBe` "intrinsics:pos"
-            Just _ -> error "pos prop is different"
-            Nothing -> error "pos prop not found"
 

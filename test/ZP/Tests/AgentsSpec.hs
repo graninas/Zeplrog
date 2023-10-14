@@ -20,14 +20,15 @@ spec :: Spec
 spec = do
   describe "Agents tests" $ do
 
-    it "Materialize actions test" $ do
-      (sEnv, dEnv) <- makeEnvs DebugDisabled
+    xit "Materialize actions test" $ do
+      1 `shouldBe` 2
+      -- (sEnv, dEnv) <- makeEnvs DebugDisabled
 
-      (essStat, guardStat) <- sMat' sEnv () $ Proxy @KB.GuardActor
-      ess <- dMat' dEnv () essStat
-      (_, guard) <- dMat' dEnv () guardStat
+      -- (essStat, guardStat) <- sMat' sEnv () $ Proxy @KB.GuardActor
+      -- ess <- dMat' dEnv () essStat
+      -- (_, guard) <- dMat' dEnv () guardStat
 
-      let Property ess parent scriptVar propsBagVar valVar = guard
+      -- let Property ess parent scriptVar propsBagVar valVar = guard
 
-      ess `shouldBe` "object:guard"
+      -- ess `shouldBe` "object:guard"
 

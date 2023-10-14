@@ -71,12 +71,13 @@ instance
 
 instance
   ( SMat () ess EssenceVL
-  , SMat () prop (EssenceVL, PropertyVL)
+  , SMat () prop PropertyVL
   ) =>
   SMat () ('PropRoot @'TypeLevel ess prop)
          (EssenceVL, PropertyRootVL) where
   sMat () _ = do
-    (ess, prop) <- sMat () $ Proxy @prop
+    ess  <- sMat () $ Proxy @ess
+    prop <- sMat () $ Proxy @prop
     pure (ess, PropRoot ess prop)
 
 -- Statically materialize property

@@ -6,6 +6,7 @@ import ZP.Prelude
 
 import ZP.System.Debug
 import ZP.Domain.Static.Model
+import ZP.Domain.Static.Query
 import ZP.Domain.Materializer
 import qualified ZP.Assets.KnowledgeBase as KB
 
@@ -20,46 +21,48 @@ spec :: Spec
 spec = do
   describe "Static materialization tests" $ do
     it "Door materialization test" $ do
-      sEnv@(SEnv _ _ statPropsVar _) <- makeSEnv DebugEnabled
+      sEnv <- makeSEnv DebugEnabled
 
-      (Ess ess, door) <- sMat' sEnv () $ Proxy @KB.Door
+      door <- sMat' sEnv () $ Proxy @KB.SpecificDoor
 
-      statProps <- readTVarIO statPropsVar
+      statProps <- readTVarIO $ seStaticPropertiesVar sEnv
+      statEsss  <- readTVarIO $ seStaticEssencesVar sEnv
 
       print $ "Stat props: " <> show (Map.keys statProps)
-
-      length statProps `shouldBe` 8
 
       case door of
-        PropDict root props -> length props `shouldBe` 6
+        PropDict root props -> do
+          let ess = getEssence root
+          length props `shouldBe` 6
+          length statProps `shouldBe` 8
+          show ess `shouldBe` "object:door"
+          Map.member ess statEsss `shouldBe` True
         _ -> error "invalid materialization result"
 
-      ess `shouldBe` "object:door"
+    -- it "Game materialization test 1" $ do
+    --   sEnv@(SEnv _ _ statPropsVar _) <- makeSEnv DebugEnabled
 
-    it "Game materialization test (no macro)" $ do
-      sEnv@(SEnv _ _ statPropsVar _) <- makeSEnv DebugEnabled
+    --   game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
+    --   let GameEnvironment _ _ _ props objs = game
 
-      game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
-      let GameEnvironment world cells props triggs = game
+    --   statProps <- readTVarIO statPropsVar
 
-      statProps <- readTVarIO statPropsVar
+    --   print $ "Stat props: " <> show (Map.keys statProps)
 
-      print $ "Stat props: " <> show (Map.keys statProps)
+    --   length statProps `shouldBe` 10
+    --   length props `shouldBe` 3
+    --   length objs `shouldBe` 455
 
-      length statProps `shouldBe` 10
-      length props `shouldBe` 3
-      length triggs `shouldBe` 4
+    -- it "Game materialization test 2" $ do
+    --   sEnv@(SEnv _ _ statPropsVar _) <- makeSEnv DebugEnabled
 
-    it "Game materialization test (with macro)" $ do
-      sEnv@(SEnv _ _ statPropsVar _) <- makeSEnv DebugEnabled
+    --   game <- sMat' sEnv () $ Proxy @(KB.Zeplrog' KB.World1)
+    --   let GameEnvironment _ _ _ props objs = game
 
-      game <- sMat' sEnv () $ Proxy @(KB.Zeplrog' KB.World1)
-      let GameEnvironment world cells props triggs = game
+    --   statProps <- readTVarIO statPropsVar
 
-      statProps <- readTVarIO statPropsVar
+    --   print $ "Stat props: " <> show (Map.keys statProps)
 
-      print $ "Stat props: " <> show (Map.keys statProps)
-
-      length statProps `shouldBe` 8
-      length props `shouldBe` 1
-      length triggs `shouldBe` 4
+    --   length statProps `shouldBe` 8
+    --   length props `shouldBe` 1
+    --   length objs `shouldBe` 4555

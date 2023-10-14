@@ -72,6 +72,7 @@ type AbstractDoor = PropDict (EssRoot EAbstractDoor)
 type SpecificDoor = DerivedProp ESpecificDoor AbstractDoor
   '[ PropKeyVal EIcon (OwnProp (IconVal "?"))   -- TODO: open and close door with own icons
    , PropKeyVal EHP   (OwnProp (HPVal 100))
+   , PropKeyVal EPos  (OwnProp (PosVal 2 3))
    ]
 
 -- | Template for all doors having no predefined location.
