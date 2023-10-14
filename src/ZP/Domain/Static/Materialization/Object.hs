@@ -24,12 +24,12 @@ data Objs ts
 instance
   ( KnownNat x
   , KnownNat y
-  , SMat p prop PropertyVL
+  , SMat () prop PropertyVL
   ) =>
-  SMat p ('Obj @TypeLevel x y prop)
+  SMat () ('Obj @TypeLevel x y prop)
          ObjectVL where
-  sMat p _ = do
-    prop <- sMat p $ Proxy @prop
+  sMat () _ = do
+    prop <- sMat () $ Proxy @prop
     let x = fromIntegral $ natVal $ Proxy @x
     let y = fromIntegral $ natVal $ Proxy @y
     pure $ Obj x y prop
@@ -37,16 +37,16 @@ instance
 -- Statically materialize objects
 
 instance
-  SMat p (Objs '[]) [ObjectVL] where
-  sMat p _ = pure []
+  SMat () (Objs '[]) [ObjectVL] where
+  sMat () _ = pure []
 
 instance
-  ( SMat p obj ObjectVL
-  , SMat p (Objs objs) [ObjectVL]
+  ( SMat () obj ObjectVL
+  , SMat () (Objs objs) [ObjectVL]
   ) =>
-  SMat p (Objs (obj ': objs))
+  SMat () (Objs (obj ': objs))
          [ObjectVL] where
-  sMat p _ = do
-    obj  <- sMat p $ Proxy @obj
-    objs <- sMat p $ Proxy @(Objs objs)
+  sMat () _ = do
+    obj  <- sMat () $ Proxy @obj
+    objs <- sMat () $ Proxy @(Objs objs)
     pure $ obj : objs

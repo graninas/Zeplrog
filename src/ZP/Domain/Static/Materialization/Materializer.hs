@@ -34,14 +34,23 @@ type SMaterializer a = ReaderT SEnv IO a
 class SMat payload a b | payload a -> b where
   sMat :: payload -> Proxy a -> SMaterializer b
 
+-- | Special payload to make specific instances when materializing props.
+data Instantiate
+  = InstantiateValue
+      [EssenceVL]        -- ^ Possible path to this value
+      ValDefVL           -- ^ Value to instantiate
+
+-- | Run materializer with an environment.
 runSMaterializer :: SEnv -> SMaterializer a -> IO a
 runSMaterializer sEnv m = do
   when (seDebugMode sEnv == DebugEnabled) $ trace "\n" $ pure ()
   runReaderT m sEnv
 
+-- | Materialize a type.
 sMat' :: SMat payload a b => SEnv -> payload -> Proxy a -> IO b
 sMat' sEnv p proxy = runSMaterializer sEnv $ sMat p proxy
 
+-- | Create the environment.
 makeSEnv :: DebugMode -> IO SEnv
 makeSEnv dbg = SEnv
   <$> pure dbg
@@ -99,6 +108,14 @@ addStaticProperty (statPropId, ess, prop) = do
     esss  <- readTVar statEssencesVar
     writeTVar statPropsVar    $ Map.insert statPropId (ess, prop) props
     writeTVar statEssencesVar $ Map.insert ess (statPropId, prop) esss
+
+
+instantiateDerivedValue
+  :: [EssenceVL]
+  -> PropertyVL
+  -> PropertyVL
+instantiateDerivedValue path statProp = error "not implemented"
+
 
 
 sTraceDebug :: String -> SMaterializer ()

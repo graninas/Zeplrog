@@ -20,14 +20,13 @@ import qualified Data.Map.Strict as Map
 -- Call spawnProperty to finalize creation of the prop.
 withShared
   :: Bool
-  -> payload
   -> SMod.PropertyRootVL
   -> DMaterializer Property
   -> DMaterializer (Essence, Property)
-withShared shared p root matProp = do
+withShared shared root matProp = do
   esssVar <- asks deEssencesVar
   esss    <- readTVarIO esssVar
-  ess     <- dMat False p root
+  ess     <- dMat False () root
   case (shared, Map.lookup ess esss) of
     (True, Nothing) -> do
       prop <- matProp
@@ -45,12 +44,12 @@ withShared shared p root matProp = do
 -- Materialize property
 
 instance
-  DMat p SMod.PropertyVL Property where
-  dMat shared p (SMod.PropDict root propKVs) =
-    spawnProperty $ withShared shared p root $ do
+  DMat () SMod.PropertyVL Property where
+  dMat shared () (SMod.PropDict root propKVs) =
+    spawnProperty $ withShared shared root $ do
       (statPropId, _) <- withSMaterializer $ getStaticPropertyByRoot root
       propId          <- getNextPropertyId
-      props           <- mapM (dMat False p) propKVs
+      props           <- mapM (dMat False ()) propKVs
       scriptVar       <- newTVarIO Nothing
       propBagsVar     <- newTVarIO $ Map.fromList props
       pure $ Property
@@ -60,18 +59,18 @@ instance
         scriptVar
         propBagsVar
 
-  dMat shared p (SMod.PropVal root valDef) =
-    spawnProperty $ withShared shared p root $ do
+  dMat shared () (SMod.PropVal root valDef) =
+    spawnProperty $ withShared shared root $ do
       (statPropId, _) <- withSMaterializer $ getStaticPropertyByRoot root
       propId          <- getNextPropertyId
-      val             <- dMat False p valDef
+      val             <- dMat False () valDef
       valVar          <- newTVarIO val
       pure $ ValueProperty propId statPropId valVar
 
-  dMat _ p (SMod.StaticProp root) = do
+  dMat _ () (SMod.StaticProp root) = do
     error "stat prop not implemented"
 
-  dMat _ p (SMod.StaticPropRef prop) = do
+  dMat _ () (SMod.StaticPropRef prop) = do
     error "static prop ref not implemented"
     -- let SMod.StaticProp root = prop
     -- let statEss = getEssence root
@@ -80,13 +79,13 @@ instance
     -- unless (Map.member statEss statProps)
     --   $ error $ "Static property not found: " <> show statEss
 
-    -- ess <- dMat False p statEss
+    -- ess <- dMat False () statEss
     -- let staticProp = StaticPropertyRef root
     -- valVar <- newTVarIO $ StaticPropertyRefValue root
     -- pure (ess, ValueProperty ess staticProp valVar)
 
-  dMat _ p (SMod.PropScript root script) =
-    spawnProperty $ withShared True p root $ do
+  dMat _ () (SMod.PropScript root script) =
+    spawnProperty $ withShared True root $ do
       (statPropId, _) <- withSMaterializer $ getStaticPropertyByRoot root
       propBagsVar <- newTVarIO Map.empty
       scriptVar   <- newTVarIO $ Just $ Script script
@@ -99,26 +98,40 @@ instance
         propBagsVar
 
 instance
-  DMat p SMod.PropertyOwningVL (Category, PropertyOwning) where
-  dMat _ p (SMod.OwnProp statProp) = do
-    prop     <- dMat False p statProp
+  DMat () SMod.PropertyOwningVL (Category, PropertyOwning) where
+  dMat _ () (SMod.OwnProp statProp) = do
+    prop     <- dMat False () statProp
     category <- getPropertyEssence $ pPropertyId prop
     pure (category, OwnProperty prop)
-  dMat _ p (SMod.SharedProp statProp) = do
-    prop <- dMat True p statProp
+  dMat _ () (SMod.SharedProp statProp) = do
+    prop <- dMat True () statProp
     category <- getPropertyEssence $ pPropertyId prop
     pure (category
          , SharedProperty $ DynamicPropertyRef $ pPropertyId prop)
 
 instance
-  DMat p SMod.PropertyKeyValueVL (Category, PropertyBag) where
-  dMat _ p (SMod.PropKeyBag statEss statOwnings) = do
-    parentCategory <- dMat False p statEss
-    ownings        <- mapM (dMat False p) statOwnings
+  DMat () SMod.PropertyKeyValueVL (Category, PropertyBag) where
+  dMat _ () (SMod.PropKeyBag statEss statOwnings) = do
+    parentCategory <- dMat False () statEss
+    ownings        <- mapM (dMat False ()) statOwnings
     owningsVar     <- newTVarIO $ Map.fromList ownings
     pure (parentCategory, PropertyDict owningsVar)
-  dMat _ p (SMod.PropKeyVal statEss statOwning) = do
-    parentCategory <- dMat False p statEss
-    (_, owning)    <- dMat False p statOwning
+  dMat _ () (SMod.PropKeyVal statEss statOwning) = do
+    parentCategory <- dMat False () statEss
+    (_, owning)    <- dMat False () statOwning
     pure (parentCategory, SingleProperty owning)
+
+--------- Special instantiation ------------------------
+
+instance
+  DMat () (Instantiate, SMod.PropertyVL) Property where
+  dMat _ () (InstantiateValue path valDef, statProp) = do
+    val  <- dMat False () valDef
+    -- Assuming that statProp contains a `derive` value.
+    let statProp' = instantiateDerivedValue path statProp
+
+    dMat False () statProp'
+
+
+
 

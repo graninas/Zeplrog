@@ -22,30 +22,30 @@ data Triggs ts
 -- Statically materialize triggers
 
 instance
-  SMat p (Triggs '[]) [TriggerVL] where
-  sMat p _ = pure []
+  SMat () (Triggs '[]) [TriggerVL] where
+  sMat () _ = pure []
 
 instance
-  ( SMat p trig TriggerVL
-  , SMat p (Triggs triggs) [TriggerVL]
+  ( SMat () trig TriggerVL
+  , SMat () (Triggs triggs) [TriggerVL]
   ) =>
-  SMat p (Triggs (trig ': triggs))
+  SMat () (Triggs (trig ': triggs))
          [TriggerVL] where
-  sMat p _ = do
-    trig  <- sMat p $ Proxy @trig
-    triggs <- sMat p $ Proxy @(Triggs triggs)
+  sMat () _ = do
+    trig  <- sMat () $ Proxy @trig
+    triggs <- sMat () $ Proxy @(Triggs triggs)
     pure $ trig : triggs
 
 -- Statically materialize game env
 
 instance
-  ( SMat p world WorldVL
-  , SMat p (Objs objs) [ObjectVL]
-  , SMat p (Props props) [PropertyVL]
-  , SMat p (Essences pathToIcon) [EssenceVL]
-  , SMat p (Essences pathToPos) [EssenceVL]
+  ( SMat () world WorldVL
+  , SMat () (Objs objs) [ObjectVL]
+  , SMat () (Props props) [PropertyVL]
+  , SMat () (Essences pathToIcon) [EssenceVL]
+  , SMat () (Essences pathToPos) [EssenceVL]
   ) =>
-  SMat p ('GameEnvironment @TypeLevel
+  SMat () ('GameEnvironment @TypeLevel
             world
             ('IconPath @TypeLevel pathToIcon)
             ('PosPath  @TypeLevel pathToPos)
@@ -53,12 +53,12 @@ instance
             objs
           )
          GameVL where
-  sMat p _ = do
-    world      <- sMat p $ Proxy @world
-    pathToIcon <- sMat p $ Proxy @(Essences pathToIcon)
-    pathToPos  <- sMat p $ Proxy @(Essences pathToPos)
-    objs       <- sMat p $ Proxy @(Objs objs)
-    props      <- sMat p $ Proxy @(Props props)
+  sMat () _ = do
+    world      <- sMat () $ Proxy @world
+    pathToIcon <- sMat () $ Proxy @(Essences pathToIcon)
+    pathToPos  <- sMat () $ Proxy @(Essences pathToPos)
+    objs       <- sMat () $ Proxy @(Objs objs)
+    props      <- sMat () $ Proxy @(Props props)
     pure $ GameEnvironment
       world
       (IconPath pathToIcon)

@@ -12,6 +12,7 @@ import qualified Data.Map as Map
 
 -- | Object ID
 newtype ObjectId = ObjectId Int
+  deriving (Show, Eq, Ord)
 
 -- | Active object. Always based on some top-level property.
 data Object = Object

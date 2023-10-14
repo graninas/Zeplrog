@@ -35,19 +35,23 @@ data PropertyKeyValue (lvl :: Level) where
 
 -- | Static property that must be stat and dyn materialized.
 data Property (lvl :: Level) where
+
   -- | Static prop. Referenced prop can't be dyn materialized.
   StaticProp
     :: PropertyRoot lvl
     -> Property lvl
+
   -- | Static prop reference. The referenced prop can't be dyn materialized.
   StaticPropRef
     :: Property lvl
     -> Property lvl
+
   -- | Lear prop. Value will be dyn materialized as mutable var (TVar).
   PropVal
     :: PropertyRoot lvl
     -> ValDef lvl
     -> Property lvl
+
   -- | Compound property.
   -- Each prop in the bag is a mutable reference.
   -- Each prop can be replaced by some other prop in the dyn model.
@@ -55,6 +59,16 @@ data Property (lvl :: Level) where
     :: PropertyRoot lvl
     -> [PropertyKeyValue lvl]
     -> Property lvl
+
+  -- TODO:
+  -- -- | Abstract property (identical to PropDict).
+  -- --   Provides the shape for the derived properties.
+  -- --   Should not be dynamically materialized.
+  -- AbstractProp
+  --   :: PropertyRoot lvl
+  --   -> [PropertyKeyValue lvl]
+  --   -> Property lvl
+
   -- | Derived property.
   --    Will take the shape of the parent, with certain props (of the 1st level) replaced.
   --    (Yes, it's OOP, dude!)
@@ -65,6 +79,7 @@ data Property (lvl :: Level) where
     -> Property lvl
     -> [PropertyKeyValue lvl]
     -> Property lvl
+
   -- | Property script.
   PropScript
     :: PropertyRoot lvl

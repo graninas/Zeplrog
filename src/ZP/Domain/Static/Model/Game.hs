@@ -40,3 +40,10 @@ data Game (lvl :: Level) where
 
 type GameTL = Game 'TypeLevel
 type GameVL = Game 'ValueLevel
+
+type IconEssencePathTL = IconEssencePath 'TypeLevel
+type IconEssencePathVL = IconEssencePath 'ValueLevel
+
+type PosEssencePathTL = PosEssencePath 'TypeLevel
+type PosEssencePathVL = PosEssencePath 'ValueLevel
+

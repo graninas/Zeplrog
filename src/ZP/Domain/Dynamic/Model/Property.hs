@@ -19,7 +19,7 @@ data PropertyOwning
   = OwnProperty Property
   -- ^ Aggregates child props (lifetime of children
   --   doesn't exceed parent prop)
-  | SharedProperty PropertyRef
+  | SharedProperty PropertyRef        -- TODO: should be dynamic prop only
   -- ^ referes to a independent prop
 
 -- | Reference to another independent property

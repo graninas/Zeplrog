@@ -59,10 +59,16 @@ data ValDef (lvl :: Level) where
   RandomIntValue :: IntegerType lvl -> IntegerType lvl -> ValDef lvl
 
   -- | Derived position in the world.
-  --   Should come from the world data or object list
-  --   when materialized statically.
-  DerivedWorldPos :: ValDef lvl
+  --   Equivalent to abstract function.
 
+  --   For abstract static property, indicates that the derived property
+  --     should contain this value.
+
+  --   For a concrete static property, indicates that the value
+  --     should be instantiated at dynamic materialization.
+
+  --   Should not be present in a dynamic property.
+  DerivedWorldPos :: ValDef lvl
 
 -- | Variable definition
 

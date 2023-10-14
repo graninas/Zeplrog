@@ -21,36 +21,36 @@ data Essences essPath
 instance
   ( KnownSymbol str
   ) =>
-  SMat p str String where
-  sMat p _ = pure $ symbolVal $ Proxy @str
+  SMat () str String where
+  sMat () _ = pure $ symbolVal $ Proxy @str
 
 instance
   ( KnownSymbol varName
   ) =>
-  SMat p ('IntVar @'TypeLevel varName) VarDefVL where
-  sMat p _ = do
+  SMat () ('IntVar @'TypeLevel varName) VarDefVL where
+  sMat () _ = do
     let varName = symbolVal $ Proxy @varName
     pure $ IntVar varName
 
 instance
   ( KnownSymbol varName
   ) =>
-  SMat p ('BoolVar @'TypeLevel varName) VarDefVL where
-  sMat p _ = do
+  SMat () ('BoolVar @'TypeLevel varName) VarDefVL where
+  sMat () _ = do
     let varName = symbolVal $ Proxy @varName
     pure $ BoolVar varName
 
 instance
   ( KnownSymbol varName
-  , SMat p varDef1 VarDefVL
-  , SMat p varDef2 VarDefVL
+  , SMat () varDef1 VarDefVL
+  , SMat () varDef2 VarDefVL
   ) =>
-  SMat p ('PairVar @'TypeLevel varName varDef1 varDef2)
+  SMat () ('PairVar @'TypeLevel varName varDef1 varDef2)
       VarDefVL where
-  sMat p _ = do
+  sMat () _ = do
     let varName = symbolVal $ Proxy @varName
-    varDef1 <- sMat p $ Proxy @varDef1
-    varDef2 <- sMat p $ Proxy @varDef2
+    varDef1 <- sMat () $ Proxy @varDef1
+    varDef2 <- sMat () $ Proxy @varDef2
     pure $ PairVar varName varDef1 varDef2
 
 -- Statically materialize value
@@ -58,45 +58,45 @@ instance
 instance
   ( KnownNat intVal
   ) =>
-  SMat p ('IntValue @'TypeLevel intVal)
+  SMat () ('IntValue @'TypeLevel intVal)
       ValDefVL where
-  sMat p _ = pure
+  sMat () _ = pure
       $ IntValue
       $ fromIntegral
       $ natVal
       $ Proxy @intVal
 
 instance
-  ( SMat p val1 ValDefVL
-  , SMat p val2 ValDefVL
+  ( SMat () val1 ValDefVL
+  , SMat () val2 ValDefVL
   ) =>
-  SMat p ('PairValue @'TypeLevel val1 val2) ValDefVL where
-  sMat p _ = do
-    val1 <- sMat p $ Proxy @val1
-    val2 <- sMat p $ Proxy @val2
+  SMat () ('PairValue @'TypeLevel val1 val2) ValDefVL where
+  sMat () _ = do
+    val1 <- sMat () $ Proxy @val1
+    val2 <- sMat () $ Proxy @val2
     pure $ PairValue val1 val2
 
 instance
-  SMat p ('BoolValue @'TypeLevel 'True) ValDefVL where
-  sMat p _ = pure $ BoolValue True
+  SMat () ('BoolValue @'TypeLevel 'True) ValDefVL where
+  sMat () _ = pure $ BoolValue True
 
 instance
   ( KnownSymbol str
   ) =>
-  SMat p ('StringValue @'TypeLevel str) ValDefVL where
-  sMat p _ = pure $ StringValue $ symbolVal $ Proxy @str
+  SMat () ('StringValue @'TypeLevel str) ValDefVL where
+  sMat () _ = pure $ StringValue $ symbolVal $ Proxy @str
 
 instance
-  SMat p ('BoolValue @'TypeLevel 'False) ValDefVL where
-  sMat p _ = pure $ BoolValue False
+  SMat () ('BoolValue @'TypeLevel 'False) ValDefVL where
+  sMat () _ = pure $ BoolValue False
 
 instance
-  ( SMat p (Essences essPath) [EssenceVL]
+  ( SMat () (Essences essPath) [EssenceVL]
   ) =>
-  SMat p ('PathValue @'TypeLevel essPath)
+  SMat () ('PathValue @'TypeLevel essPath)
          ValDefVL where
-  sMat p _ = do
-    path <- sMat p $ Proxy @(Essences essPath)
+  sMat () _ = do
+    path <- sMat () $ Proxy @(Essences essPath)
     pure $ PathValue path
 
 -- special values
@@ -105,36 +105,39 @@ instance
   ( KnownNat from
   , KnownNat to
   ) =>
-  SMat p ('RandomIntValue @'TypeLevel from to)
+  SMat () ('RandomIntValue @'TypeLevel from to)
          ValDefVL where
-  sMat p _ = pure $ RandomIntValue
+  sMat () _ = pure $ RandomIntValue
     (fromIntegral $ natVal $ Proxy @from)
     (fromIntegral $ natVal $ Proxy @to)
 
 instance
-  SMat (Int, Int) ('DerivedWorldPos @'TypeLevel)
+  SMat Instantiate ('DerivedWorldPos @'TypeLevel)
        ValDefVL where
-  sMat (x, y) _ = pure $ PairValue (IntValue x) (IntValue y)
+  sMat (InstantiateValue _ (PairValue (IntValue x) (IntValue y))) _ =
+    pure $ PairValue (IntValue x) (IntValue y)
+  sMat (InstantiateValue path _) _ =
+    error $ "Values instantiation mismatch: " <> show path
 
 -- Statically materialize Essence path
 
 instance
   ( KnownSymbol symb
   ) =>
-  SMat p ('Ess @'TypeLevel symb) EssenceVL where
-  sMat p _ = pure $ Ess $ symbolVal (Proxy @symb)
+  SMat () ('Ess @'TypeLevel symb) EssenceVL where
+  sMat () _ = pure $ Ess $ symbolVal (Proxy @symb)
 
 instance
-  SMat p (Essences '[]) [EssenceVL] where
-  sMat p _ = pure []
+  SMat () (Essences '[]) [EssenceVL] where
+  sMat () _ = pure []
 
 instance
-  ( SMat p ess EssenceVL
-  , SMat p (Essences essPath) [EssenceVL]
+  ( SMat () ess EssenceVL
+  , SMat () (Essences essPath) [EssenceVL]
   ) =>
-  SMat p (Essences (ess ': essPath))
+  SMat () (Essences (ess ': essPath))
          [EssenceVL] where
-  sMat p _ = do
-    ess     <- sMat p $ Proxy @ess
-    essPath <- sMat p $ Proxy @(Essences essPath)
+  sMat () _ = do
+    ess     <- sMat () $ Proxy @ess
+    essPath <- sMat () $ Proxy @(Essences essPath)
     pure $ ess : essPath

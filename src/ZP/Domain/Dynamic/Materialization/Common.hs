@@ -17,30 +17,30 @@ import qualified Data.Map.Strict as Map
 -- Materialize root and essence
 
 instance
-  DMat p SMod.EssenceVL Essence where
-  dMat _ p (SMod.Ess ess) = pure ess
+  DMat () SMod.EssenceVL Essence where
+  dMat _ () (SMod.Ess ess) = pure ess
 
 instance
-  DMat p SMod.PropertyRootVL Essence where
-  dMat _ p (SMod.EssRoot ess)    = dMat False p ess
-  dMat _ p (SMod.PropRoot ess _) = dMat False p ess   -- TODO: property itself - ???
+  DMat () SMod.PropertyRootVL Essence where
+  dMat _ () (SMod.EssRoot ess)    = dMat False () ess
+  dMat _ () (SMod.PropRoot ess _) = dMat False () ess   -- TODO: property itself - ???
 
 -- Materialize value
 
 instance
-  DMat p SMod.ValDefVL Value where
-  dMat _ p (SMod.IntValue val)  = pure $ IntValue val
-  dMat _ p (SMod.BoolValue val) = pure $ BoolValue val
-  dMat _ p (SMod.StringValue val) = pure $ StringValue val
-  dMat _ p (SMod.PairValue val1 val2) = do
-    val1' <- dMat False p val1
-    val2' <- dMat False p val2
+  DMat () SMod.ValDefVL Value where
+  dMat _ () (SMod.IntValue val)  = pure $ IntValue val
+  dMat _ () (SMod.BoolValue val) = pure $ BoolValue val
+  dMat _ () (SMod.StringValue val) = pure $ StringValue val
+  dMat _ () (SMod.PairValue val1 val2) = do
+    val1' <- dMat False () val1
+    val2' <- dMat False () val2
     pure $ PairValue (val1', val2')
-  dMat _ p (SMod.PathValue essPath) = do
-    essPath' <- mapM (dMat False p) essPath
+  dMat _ () (SMod.PathValue essPath) = do
+    essPath' <- mapM (dMat False ()) essPath
     -- TODO: should we ensure that the referenced property already exists?
     pure $ PathValue essPath'
-  dMat _ p (SMod.RandomIntValue from to) = do
+  dMat _ () (SMod.RandomIntValue from to) = do
     val <- randomRIO (from, to)
     pure $ IntValue val
 

@@ -20,25 +20,25 @@ data Rowss ps
 -- TODO: FIXME: bare String type
 
 instance
-  SMat p (Rowss '[]) [String] where
-  sMat p _ = pure []
+  SMat () (Rowss '[]) [String] where
+  sMat () _ = pure []
 
 instance
   ( KnownSymbol row
-  , SMat p (Rowss rows) [String]
+  , SMat () (Rowss rows) [String]
   ) =>
-  SMat p (Rowss (row ': rows)) [String] where
-  sMat p _ = do
+  SMat () (Rowss (row ': rows)) [String] where
+  sMat () _ = do
     let row = symbolVal $ Proxy @row
-    rows <- sMat p $ Proxy @(Rowss rows)
+    rows <- sMat () $ Proxy @(Rowss rows)
     pure $ row : rows
 
 -- Statically materialize world
 
 instance
-  ( SMat p (Rowss rows) [String]
+  ( SMat () (Rowss rows) [String]
   ) =>
-  SMat p ('WorldData @TypeLevel rows) WorldVL where
-  sMat p _ = do
-    rows <- sMat p $ Proxy @(Rowss rows)
+  SMat () ('WorldData @TypeLevel rows) WorldVL where
+  sMat () _ = do
+    rows <- sMat () $ Proxy @(Rowss rows)
     pure $ WorldData rows

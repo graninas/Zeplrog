@@ -33,7 +33,7 @@ worldDimensions [] = (0, 0)
 worldDimensions rs@(r:_) = (length rs, length r)
 
 instance
-  DMat p SMod.WorldVL World where
-  dMat _ p (SMod.WorldData rows) = do
+  DMat () SMod.WorldVL World where
+  dMat _ () (SMod.WorldData rows) = do
     let dims = worldDimensions rows
     pure $ World dims $ worldDataToVector rows

@@ -20,41 +20,40 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 import Data.Maybe
 
+-- TODO: static materialization of abstract props
 
 -- Materialization of Game
 
 prepareProp
-  :: Map.Map String SMod.PropertyVL
-  -> [SMod.EssenceVL]
+  :: SMod.PosEssencePathVL
+  -> Map.Map String SMod.PropertyVL
   -> ((Int, Int), Char)
-  -> SMod.PropertyVL
-prepareProp pathToPos statProps ((x, y), ch) =
+  -> (SMat.Instantiate, SMod.PropertyVL)
+prepareProp (SMod.PosPath pathToPos) statProps ((x, y), ch) = do
   case Map.lookup [ch] statProps of
     Nothing -> error $ "Static property not found for symbol: "
                     <> show ch
     Just statProp ->
-      error "not implemented!! put x y into prop"
-      -- TODO   ------------------------------- !!!
-      statProp
+      ( SMat.InstantiateValue pathToPos
+          $ SMod.PairValue
+            (SMod.IntValue x)
+            (SMod.IntValue y)
+      , statProp)
 
 instance
-  ( DMat p SMod.WorldVL World
-  , DMat p SMod.PropertyVL Property
-  , DMat [SMod.EssenceVL] SMod.ObjectVL Object
+  ( DMat () SMod.WorldVL World
+  , DMat () SMod.PropertyVL Property
+  , DMat SMod.PosEssencePathVL SMod.ObjectVL Object
+  , DMat () (SMat.Instantiate, SMod.PropertyVL) Property
   ) =>
-  DMat p SMod.GameVL Game where
-  dMat _ p (SMod.GameEnvironment
+  DMat () SMod.GameVL Game where
+  dMat _ () (SMod.GameEnvironment
               statWorld
               (SMod.IconPath pathToIcon)
-              (SMod.PosPath pathToPos)
+              pathToPos
               statProps
               statObjs) = do
     let SMod.WorldData statWD = statWorld
-
-
-    error "TODO: derived propertiessss!!!"
-
-
 
     -- N.B., repeated props will be droped.
     let iconsToStatPropsMap = Map.fromList
@@ -64,16 +63,17 @@ instance
           , isJust mbIcon
           ]
 
+    -- World cells to traverse and search for icons.
     let cells = worldDataToList statWD
 
+    -- Static properties that correspond to icons.
+    -- Positions are not embedded into the props.
     let preparedStatProps =
-          [ prepareProp pathToPos iconsToStatPropsMap cell
-          | cell <- cells
-          ]
+          map (prepareProp pathToPos iconsToStatPropsMap) cells
 
-    world <- dMat False p statWorld
+    world <- dMat False () statWorld
 
-    propsFromWorld <- mapM (dMat False p) preparedStatProps
+    propsFromWorld <- mapM (dMat False ()) preparedStatProps
     objsFromWorld  <- mapM spawnObject propsFromWorld
     objs           <- mapM (dMat False pathToPos) statObjs
 
