@@ -21,7 +21,7 @@ data Object (lvl :: Level) where
     :: IntegerType lvl
     -> IntegerType lvl
     -> Property lvl
-    -> WorldObject lvl
+    -> Object lvl
 
 
 data Game (lvl :: Level) where

@@ -33,8 +33,8 @@ type Zeplrog world = GameEnvironment
    , EmptySpace
    ]
 
-  '[ WorldObj 2 8 GenericDoor
-   , WorldObj 3 9 Wall
+  '[ Obj 2 8 GenericDoor
+   , Obj 3 9 Wall
    ]
 
 

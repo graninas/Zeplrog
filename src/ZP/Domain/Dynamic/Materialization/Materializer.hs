@@ -6,6 +6,7 @@ import ZP.Prelude
 import ZP.System.Debug
 import ZP.Domain.Static.Materialization.Materializer
 import qualified ZP.Domain.Static.Model as SMod
+import qualified ZP.Domain.Static.Query as SQuery
 import qualified ZP.Domain.Static.Materialization as SMat
 import ZP.Domain.Dynamic.Model
 
@@ -17,13 +18,21 @@ import qualified Data.Map.Strict as Map
 -- TODO: make Materializer thread-safe.
 --  Currently, TVars do not do anything useful.
 
-type DynamicProperties = Map.Map PropertyId Property
+type DynamicProperties = Map.Map PropertyId (Essence, Property)
+type DynamicEssences   = Map.Map Essence (PropertyId, Property)
 
 data DEnv = DEnv
-  SEnv
-  (TVar PropertyId)         -- ^ PropId counter
-  (TVar ObjectId)           -- ^ ObjectId counter
-  (TVar DynamicProperties)  -- ^ List of all dynamic props
+  { deSEnv :: SEnv
+    -- ^ Static environment
+  , dePropertyIdVar :: TVar PropertyId
+    -- ^ PropId counter
+  , deObjectIdVar   :: TVar ObjectId
+    -- ^ ObjectId counter
+  , dePropertiesVar :: TVar DynamicProperties
+    -- ^ List of all dynamic props
+  , deEssencesVar   :: TVar DynamicEssences
+    -- ^ List of all dynamic props
+  }
 
 type DMaterializer a = ReaderT DEnv IO a
 
@@ -46,8 +55,8 @@ fullMat
   -> payload
   -> Proxy itTL
   -> IO res
-fullMat dEnv@(DEnv sEnv _ _ _) p proxy = do
-  itVL <- sMat' sEnv p proxy
+fullMat dEnv p proxy = do
+  itVL <- sMat' (deSEnv dEnv) p proxy
   dMat' dEnv p itVL
 
 makeDEnv :: SEnv -> IO DEnv
@@ -55,6 +64,7 @@ makeDEnv sEnv = DEnv
   <$> pure sEnv
   <*> newTVarIO (PropertyId 0)
   <*> newTVarIO (ObjectId 0)
+  <*> newTVarIO Map.empty
   <*> newTVarIO Map.empty
 
 makeEnvs :: DebugMode -> IO (SEnv, DEnv)
@@ -75,57 +85,59 @@ getNextPropertyId' propIdVar = atomically $ do
 
 getNextPropertyId :: DMaterializer PropertyId
 getNextPropertyId = do
-  DEnv _ propIdVar _ _ <- ask
+  propIdVar <- asks dePropertyIdVar
   getNextPropertyId' propIdVar
 
+getPropertyEssence :: PropertyId -> DMaterializer Essence
+getPropertyEssence propId = do
+  propsVar <- asks dePropertiesVar
+  props    <- readTVarIO propsVar
+  case Map.lookup propId props of
+    Nothing -> error
+      $ "Property essence not found for pId: " <> show propId
+    Just (ess, _) -> pure ess
 
-getStaticPropertyId
-  :: SMod.PropertyRootVL
-  -> SMod.StaticPropertyId
-getStaticPropertyId root = do
-  let ess = SMat.getEssence root
-  DEnv (SMat.SEnv _ _ _ statEssVar) _ _ _ <- ask
-
-  statEsss <- readTVarIO statEssVar
-  case Map.lookup ess statEsss of
-    Nothing -> error $ "Static property " <> show ess <> " not found."
-    Just (statPropId, _) -> pure statPropId
-
-getStaticProperty
-  :: SMod.StaticPropertyId
-  -> (SMod.EssenceVL, SMod.PropertyVL)
-getStaticProperty statPropId = do
-  DEnv (SMat.SEnv _ _ statPropsVar _) _ _ _ <- ask
-
-  statProps <- readTVarIO statPropsVar
-  case Map.lookup statPropId statProps of
-    Nothing -> error $ "Static property " <> show statPropId <> " not found."
-    Just res -> pure res
-
-traceDebug :: DMaterializer String -> DMaterializer ()
-traceDebug mMsg = do
-  DEnv (SMat.SEnv dbg _ _ _) _ _ _ <- ask
+dTraceDebug :: DMaterializer String -> DMaterializer ()
+dTraceDebug mMsg = do
+  dbg <- asks $ seDebugMode . deSEnv
   when (dbg == DebugEnabled) $ do
     msg <- mMsg
     trace msg $ pure ()
 
-spawnProperty :: DMaterializer Property -> DMaterializer Property
-spawnProperty propMat = do
-  prop <- propMat
 
-  DEnv _ _ _ propsVar <- ask
+-- | Finalizes creation of property.
+-- Registers the property in maps.
+spawnProperty
+  :: DMaterializer (Essence, Property)
+  -> DMaterializer Property
+spawnProperty propMat = do
+  (ess, prop) <- propMat
+  let propId = pPropertyId prop
+
+  propsVar <- asks dePropertiesVar
+  esssVar  <- asks deEssencesVar
 
   pId <- atomically $ do
-    let pId = pPropertyId prop
     props <- readTVar propsVar
-    writeTVar $ Map.insert pId prop
-    pure pId
+    esss  <- readTVar esssVar
 
-  traceDebug $ do
-    (statEss, _) <- getStaticProperty $ pStaticPropertyId prop
+    let props' = Map.insert propId (ess, prop) props
+    let esss'  = Map.insert ess (propId, prop) esss
+    writeTVar propsVar props'
+    writeTVar esssVar esss'
+
+  dTraceDebug $ do
     pure $ "Dyn property created: "
+      <> " "
+      <> show ess
+      <> ", pId: "
       <> show pId
-      <> " for static property: "
-      <> show statEss
 
   pure prop
+
+withSMaterializer
+  :: SMaterializer a
+  -> DMaterializer a
+withSMaterializer sMaterializer = do
+  sEnv <- asks deSEnv
+  liftIO $ runSMaterializer sEnv sMaterializer

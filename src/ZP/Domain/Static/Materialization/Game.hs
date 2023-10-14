@@ -44,26 +44,26 @@ instance
   , KnownNat y
   , SMat p prop PropertyVL
   ) =>
-  SMat p ('WorldObj @TypeLevel x y prop)
-         WorldObjectVL where
+  SMat p ('Obj @TypeLevel x y prop)
+         ObjectVL where
   sMat p _ = do
     prop <- sMat p $ Proxy @prop
     let x = fromIntegral $ natVal $ Proxy @x
     let y = fromIntegral $ natVal $ Proxy @y
-    pure $ WorldObj x y prop
+    pure $ Obj x y prop
 
 -- Statically materialize objects
 
 instance
-  SMat p (Objs '[]) [WorldObjectVL] where
+  SMat p (Objs '[]) [ObjectVL] where
   sMat p _ = pure []
 
 instance
-  ( SMat p obj WorldObjectVL
-  , SMat p (Objs objs) [WorldObjectVL]
+  ( SMat p obj ObjectVL
+  , SMat p (Objs objs) [ObjectVL]
   ) =>
   SMat p (Objs (obj ': objs))
-         [WorldObjectVL] where
+         [ObjectVL] where
   sMat p _ = do
     obj  <- sMat p $ Proxy @obj
     objs <- sMat p $ Proxy @(Objs objs)
@@ -73,8 +73,9 @@ instance
 
 instance
   ( SMat p world WorldVL
-  , SMat p (Objs objs) [WorldObjectVL]
+  , SMat p (Objs objs) [ObjectVL]
   , SMat p (Props props) [PropertyVL]
+  , SMat p (Essences pathToIcon) [EssenceVL]
   ) =>
   SMat p ('GameEnvironment @TypeLevel world pathToIcon props objs)
          GameVL where

@@ -6,6 +6,7 @@ import ZP.Prelude
 
 import ZP.System.Debug
 import ZP.Domain.Static.Model
+import ZP.Domain.Static.Query
 import ZP.Domain.Static.Materialization.Materializer
 import ZP.Domain.Static.Materialization.Common
 import ZP.Domain.Static.Materialization.Script
@@ -39,13 +40,13 @@ withProperty p rootProxy matPropF = do
 
   (ess, root) <- sMat p rootProxy
 
-  traceDebug $ "Static property to introduce: " <> show ess
+  sTraceDebug $ "Static property to introduce: " <> show ess
 
   esss <- readTVarIO statEssencesVar
 
   case Map.lookup ess esss of
     Just (statPropId, prop) -> do
-      traceDebug $ show ess <> ": already exists: " <> show statPropId
+      sTraceDebug $ show ess <> ": already exists: " <> show statPropId
       pure prop
     Nothing -> do
       statPropId <- getNextStaticPropertyId
@@ -53,7 +54,7 @@ withProperty p rootProxy matPropF = do
 
       addStaticProperty (statPropId, ess, prop)
 
-      traceDebug $ show ess <> ": created: " <> show statPropId
+      sTraceDebug $ show ess <> ": created: " <> show statPropId
 
       pure prop
 
@@ -110,14 +111,14 @@ instance
   sMat p _ = do
     ess <- sMat p $ Proxy @ess
 
-    traceDebug $ "Deriving property: " <> show ess
+    sTraceDebug $ "Deriving property: " <> show ess
 
     abstractProp <- sMat p $ Proxy @abstractProp
 
     case abstractProp of
       PropDict root abstractPropKVs -> do
         let abstractPropEss = getEssence root
-        traceDebug $ "Abstract property to derive: " <> show abstractPropEss
+        sTraceDebug $ "Abstract property to derive: " <> show abstractPropEss
 
         statPropId <- getNextStaticPropertyId
 
@@ -126,7 +127,7 @@ instance
 
         let prop = PropDict (PropRoot ess abstractProp) propKVs'
         addStaticProperty (statPropId, ess, prop)
-        traceDebug $ show ess <> ": new property is derived: " <> show statPropId
+        sTraceDebug $ show ess <> ": new property is derived: " <> show statPropId
 
         pure prop
 

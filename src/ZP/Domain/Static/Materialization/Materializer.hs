@@ -22,10 +22,11 @@ type StaticProperties = Map.Map StaticPropertyId (EssenceVL, PropertyVL)
 type StaticEssences   = Map.Map EssenceVL (StaticPropertyId, PropertyVL)
 
 data SEnv = SEnv
-  DebugMode
-  (TVar StaticPropertyId)
-  (TVar StaticProperties)
-  (TVar StaticEssences)
+  { seDebugMode           :: DebugMode
+  , seStaticPropertyIdVar :: TVar StaticPropertyId
+  , seStaticPropertiesVar :: TVar StaticProperties
+  , seStaticEssencesVar   :: TVar StaticEssences
+  }
 
 type SMaterializer a = ReaderT SEnv IO a
 
@@ -34,8 +35,8 @@ class SMat payload a b | a -> b where
   sMat :: payload -> Proxy a -> SMaterializer b
 
 runSMaterializer :: SEnv -> SMaterializer a -> IO a
-runSMaterializer sEnv@(SEnv dbg _ _ _) m = do
-  when (dbg == DebugEnabled) $ trace "\n" $ pure ()
+runSMaterializer sEnv m = do
+  when (seDebugMode sEnv == DebugEnabled) $ trace "\n" $ pure ()
   runReaderT m sEnv
 
 sMat' :: SMat payload a b => SEnv -> payload -> Proxy a -> IO b
@@ -50,6 +51,29 @@ makeSEnv dbg = SEnv
 
 ----- Utils ---------------
 
+getStaticProperty
+  :: StaticPropertyId
+  -> SMaterializer (EssenceVL, PropertyVL)
+getStaticProperty statPropId = do
+  statPropsVar <- asks seStaticPropertiesVar
+  statProps    <- readTVarIO statPropsVar
+  case Map.lookup statPropId statProps of
+    Nothing -> error
+      $ "Static property " <> show statPropId <> " not found."
+    Just prop -> pure prop
+
+getStaticPropertyByRoot
+  :: PropertyRootVL
+  -> SMaterializer (StaticPropertyId, PropertyVL)
+getStaticPropertyByRoot root = do
+  let ess = getEssence root
+  statEssVar <- asks seStaticEssencesVar
+  statEsss   <- readTVarIO statEssVar
+  case Map.lookup ess statEsss of
+    Nothing   -> error
+      $ "Static property " <> show ess <> " not found."
+    Just prop -> pure prop
+
 getNextStaticPropertyId'
   :: TVar StaticPropertyId
   -> SMaterializer StaticPropertyId
@@ -60,14 +84,16 @@ getNextStaticPropertyId' statPropIdVar = atomically $ do
 
 getNextStaticPropertyId :: SMaterializer StaticPropertyId
 getNextStaticPropertyId = do
-  SEnv _ statPropIdVar _ _ <- ask
+  statPropIdVar <- asks seStaticPropertyIdVar
   getNextStaticPropertyId' statPropIdVar
+
 
 addStaticProperty
   :: (StaticPropertyId, EssenceVL, PropertyVL)
   -> SMaterializer ()
 addStaticProperty (statPropId, ess, prop) = do
-  SEnv _ _ statPropsVar statEssencesVar <- ask
+  statPropsVar    <- asks seStaticPropertiesVar
+  statEssencesVar <- asks seStaticEssencesVar
   atomically $ do
     props <- readTVar statPropsVar
     esss  <- readTVar statEssencesVar
@@ -75,9 +101,9 @@ addStaticProperty (statPropId, ess, prop) = do
     writeTVar statEssencesVar $ Map.insert ess (statPropId, prop) esss
 
 
-traceDebug :: String -> SMaterializer ()
-traceDebug msg = do
-  SEnv dbg _ _ _ <- ask
+sTraceDebug :: String -> SMaterializer ()
+sTraceDebug msg = do
+  dbg <- asks seDebugMode
   when (dbg == DebugEnabled) $ trace msg $ pure ()
 
 
