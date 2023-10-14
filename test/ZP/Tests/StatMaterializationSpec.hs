@@ -28,41 +28,46 @@ spec = do
       statProps <- readTVarIO $ seStaticPropertiesVar sEnv
       statEsss  <- readTVarIO $ seStaticEssencesVar sEnv
 
-      print $ "Stat props: " <> show (Map.keys statProps)
+      -- print $ "Stat props: " <> show (Map.keys statProps)
+      -- print $ "Stat essences: " <> show (Map.keys statEsss)
 
       case door of
         PropDict root props -> do
-          let ess = getEssence root
+          let Ess ess = getEssence root
           length props `shouldBe` 6
-          length statProps `shouldBe` 8
-          show ess `shouldBe` "object:door"
-          Map.member ess statEsss `shouldBe` True
+          length statProps `shouldBe` 12
+          ess `shouldBe` "object:specific door"
+          Map.member (Ess ess) statEsss `shouldBe` True
         _ -> error "invalid materialization result"
 
-    -- it "Game materialization test 1" $ do
-    --   sEnv@(SEnv _ _ statPropsVar _) <- makeSEnv DebugEnabled
+    it "Game materialization test 1" $ do
+      sEnv <- makeSEnv DebugEnabled
 
-    --   game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
-    --   let GameEnvironment _ _ _ props objs = game
+      game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
+      let GameEnvironment _ _ _ props objs = game
 
-    --   statProps <- readTVarIO statPropsVar
+      statProps <- readTVarIO $ seStaticPropertiesVar sEnv
+      statEsss  <- readTVarIO $ seStaticEssencesVar sEnv
 
-    --   print $ "Stat props: " <> show (Map.keys statProps)
+      -- print $ "Stat props: " <> show (Map.keys statProps)
+      -- print $ "Stat essences: " <> show (Map.keys statEsss)
 
-    --   length statProps `shouldBe` 10
-    --   length props `shouldBe` 3
-    --   length objs `shouldBe` 455
+      length statProps `shouldBe` 15
+      length props `shouldBe` 3
+      length objs `shouldBe` 2
 
-    -- it "Game materialization test 2" $ do
-    --   sEnv@(SEnv _ _ statPropsVar _) <- makeSEnv DebugEnabled
+    it "Game materialization test 2" $ do
+      sEnv <- makeSEnv DebugEnabled
 
-    --   game <- sMat' sEnv () $ Proxy @(KB.Zeplrog' KB.World1)
-    --   let GameEnvironment _ _ _ props objs = game
+      game <- sMat' sEnv () $ Proxy @(KB.Zeplrog' KB.World1)
+      let GameEnvironment _ _ _ props objs = game
 
-    --   statProps <- readTVarIO statPropsVar
+      statProps <- readTVarIO $ seStaticPropertiesVar sEnv
+      statEsss  <- readTVarIO $ seStaticEssencesVar sEnv
 
-    --   print $ "Stat props: " <> show (Map.keys statProps)
+      -- print $ "Stat props: " <> show (Map.keys statProps)
+      -- print $ "Stat essences: " <> show (Map.keys statEsss)
 
-    --   length statProps `shouldBe` 8
-    --   length props `shouldBe` 1
-    --   length objs `shouldBe` 4555
+      length statProps `shouldBe` 15
+      length props `shouldBe` 3
+      length objs `shouldBe` 2
