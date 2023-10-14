@@ -21,7 +21,7 @@ spec :: Spec
 spec = do
   describe "Static materialization tests" $ do
     it "Door materialization test" $ do
-      sEnv <- makeSEnv DebugEnabled
+      sEnv <- makeSEnv DebugDisabled
 
       door <- sMat' sEnv () $ Proxy @KB.SpecificDoor
 
@@ -41,7 +41,7 @@ spec = do
         _ -> error "invalid materialization result"
 
     it "Game materialization test 1" $ do
-      sEnv <- makeSEnv DebugEnabled
+      sEnv <- makeSEnv DebugDisabled
 
       game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
       let GameEnvironment _ _ _ props objs = game
@@ -57,9 +57,9 @@ spec = do
       length objs `shouldBe` 2
 
     it "Game materialization test 2" $ do
-      sEnv <- makeSEnv DebugEnabled
+      sEnv <- makeSEnv DebugDisabled
 
-      game <- sMat' sEnv () $ Proxy @(KB.Zeplrog' KB.World1)
+      game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
       let GameEnvironment _ _ _ props objs = game
 
       statProps <- readTVarIO $ seStaticPropertiesVar sEnv

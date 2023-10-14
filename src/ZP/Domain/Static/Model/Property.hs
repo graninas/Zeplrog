@@ -36,12 +36,14 @@ data PropertyKeyValue (lvl :: Level) where
 -- | Static property that must be stat and dyn materialized.
 data Property (lvl :: Level) where
 
-  -- | Static prop. Referenced prop can't be dyn materialized.
+  -- | Static prop. The referenced prop can't be dyn materialized.
   StaticProp
     :: PropertyRoot lvl
     -> Property lvl
 
-  -- | Static prop reference. The referenced prop can't be dyn materialized.
+  -- | Static prop reference.
+  --   When StaticPropRef is dyn materialized,
+  --   becomes own dyn prop with a reference to the static prop.
   StaticPropRef
     :: Property lvl
     -> Property lvl

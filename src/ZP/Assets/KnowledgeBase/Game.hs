@@ -16,14 +16,6 @@ import Prelude (Bool(..))
 import GHC.TypeLits
 
 
--- type Zeplrog' world = MGame
---   '[ UseWorld world Surroundings
---    , UseTriggers Triggers
---    , PlaceObj 2 8 GenericDoor
---    ]
-
-type Zeplrog' world = Zeplrog world     -- tmp, no macro
-
 type Zeplrog world = GameEnvironment
   world
   PathToIcon

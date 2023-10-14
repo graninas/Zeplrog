@@ -51,44 +51,44 @@ queryStringValue _ (PropScript _ _) = Nothing
 queryStringValue (ess:esss) (PropDict root kvs) = let
   ess' = getEssence root
   in case ess == ess' of
-        True -> queryStringValue2 esss kvs
+        True -> queryStringForKeyVals esss kvs
         False -> Nothing
 
 -- Hardcoded function.
 -- TODO: move to the Query language.
-queryStringValue2
+queryStringForKeyVals
   :: EssencePathVL
   -> [PropertyKeyValueVL]
   -> Maybe String
-queryStringValue2 [] _ = Nothing
-queryStringValue2 _ [] = Nothing
-queryStringValue2 (ess:esss) (PropKeyVal ess' owning : kvs)
-  | ess == ess' = queryStringValue3 esss owning
-  | otherwise = queryStringValue2 (ess:esss) kvs
-queryStringValue2 (ess:esss) (PropKeyBag ess' ownings : kvs)
-  | ess == ess' = queryStringValue4 esss ownings
-  | otherwise = queryStringValue2 (ess:esss) kvs
+queryStringForKeyVals [] _ = Nothing
+queryStringForKeyVals _ [] = Nothing
+queryStringForKeyVals (ess:esss) (PropKeyVal ess' owning : kvs)
+  | ess == ess' = queryStringForOwning esss owning
+  | otherwise = queryStringForKeyVals (ess:esss) kvs
+queryStringForKeyVals (ess:esss) (PropKeyBag ess' ownings : kvs)
+  | ess == ess' = queryStringForOwnings esss ownings
+  | otherwise = queryStringForKeyVals (ess:esss) kvs
 
 -- Hardcoded function.
 -- TODO: move to the Query language.
-queryStringValue3
+queryStringForOwning
   :: EssencePathVL
   -> PropertyOwningVL
   -> Maybe String
-queryStringValue3 esss (OwnProp prop) =
+queryStringForOwning esss (OwnProp prop) =
   queryStringValue esss prop
-queryStringValue3 esss (SharedProp prop) =
+queryStringForOwning esss (SharedProp prop) =
   queryStringValue esss prop
 
 -- Hardcoded function.
 -- TODO: move to the Query language.
-queryStringValue4
+queryStringForOwnings
   :: EssencePathVL
   -> [PropertyOwningVL]
   -> Maybe String
-queryStringValue4 [] _ = Nothing
-queryStringValue4 _ [] = Nothing
-queryStringValue4 esss (owning : ownings) =
-  case queryStringValue3 esss owning of
-    Nothing  -> queryStringValue4 esss ownings
+queryStringForOwnings [] _ = Nothing
+queryStringForOwnings _ [] = Nothing
+queryStringForOwnings esss (owning : ownings) =
+  case queryStringForOwning esss owning of
+    Nothing  -> queryStringForOwnings esss ownings
     Just str -> Just str

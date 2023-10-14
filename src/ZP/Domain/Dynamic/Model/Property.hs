@@ -47,3 +47,7 @@ data Property
     , pStaticPropertyId :: SMod.StaticPropertyId
     , pValue            :: TVar Value
     }
+  | RefProperty
+    { pPropertyId  :: PropertyId
+    , pPropertyRef :: PropertyRef
+    }

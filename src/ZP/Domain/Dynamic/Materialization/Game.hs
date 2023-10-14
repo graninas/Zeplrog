@@ -33,6 +33,8 @@ prepareProp (SMod.PosPath pathToPos) statProps ((x, y), ch) = do
   case Map.lookup [ch] statProps of
     Nothing -> error $ "Static property not found for symbol: "
                     <> show ch
+                    <> "\nKnown static props: "
+                    <> show (Map.keys statProps)
     Just statProp ->
       ( SMat.InstantiateValue pathToPos
           $ SMod.PairValue
@@ -55,6 +57,9 @@ instance
               statObjs) = do
     let SMod.WorldData statWD = statWorld
 
+    print $ "How many stat props for the game: "
+      <> show (length statProps)
+
     -- N.B., repeated props will be droped.
     let iconsToStatPropsMap = Map.fromList
           [ (fromJust mbIcon, statProp)
@@ -75,7 +80,9 @@ instance
 
     propsFromWorld <- mapM (dMat False ()) preparedStatProps
     objsFromWorld  <- mapM spawnObject propsFromWorld
-    objs           <- mapM (dMat False pathToPos) statObjs
+
+    -- Spawning the list of objects with world positions.
+    objs <- mapM (dMat False pathToPos) statObjs
 
     -- TODO: verify that all objects are in the world's bounds
 

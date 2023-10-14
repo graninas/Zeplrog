@@ -43,4 +43,6 @@ instance
   dMat _ () (SMod.RandomIntValue from to) = do
     val <- randomRIO (from, to)
     pure $ IntValue val
+  dMat _ () SMod.DerivedWorldPos =
+    pure $ PairValue (IntValue 0, IntValue 0)   --- ??????
 

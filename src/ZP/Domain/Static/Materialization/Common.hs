@@ -115,14 +115,6 @@ instance
     (fromIntegral $ natVal $ Proxy @from)
     (fromIntegral $ natVal $ Proxy @to)
 
-instance
-  SMat Instantiate ('DerivedWorldPos @'TypeLevel)
-       ValDefVL where
-  sMat (InstantiateValue _ (PairValue (IntValue x) (IntValue y))) _ =
-    pure $ PairValue (IntValue x) (IntValue y)
-  sMat (InstantiateValue path _) _ =
-    error $ "Values instantiation mismatch: " <> show path
-
 -- Statically materialize Essence path
 
 instance

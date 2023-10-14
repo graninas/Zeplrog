@@ -7,6 +7,7 @@ import ZP.Prelude
 import qualified ZP.Domain.Static.Model as SMod
 import ZP.Domain.Static.Materialization ()
 import ZP.Domain.Static.Materialization.Materializer
+import qualified ZP.Domain.Static.Query as SQuery
 import ZP.Domain.Dynamic.Model
 import ZP.Domain.Dynamic.Materialization.Materializer
 import ZP.Domain.Dynamic.Materialization.Common
@@ -70,10 +71,14 @@ instance
   dMat _ () (SMod.StaticProp root) = do
     error "stat prop not implemented"
 
-  dMat _ () (SMod.StaticPropRef prop) = do
-    error "static prop ref not implemented"
-    -- let SMod.StaticProp root = prop
-    -- let statEss = getEssence root
+  dMat shared () (SMod.StaticPropRef prop) = do
+    let root = SQuery.getRoot prop
+    spawnProperty $ withShared shared root $ do
+
+      (statPropId, _) <- withSMaterializer $ getStaticPropertyByRoot root
+      propId          <- getNextPropertyId
+
+      pure $ RefProperty propId $ StaticPropertyRef statPropId
 
     -- DEnv (SEnv _ _ statPropsVar) propIdVar objIdVar _ <- ask
     -- unless (Map.member statEss statProps)
