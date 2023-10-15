@@ -10,10 +10,12 @@
            '[ Pack Openable      -- adds open/close states, state val and scripts
            ]
       ```
-- [ ] (Mechanics) World type-level description & objects position integration
+- [X] (Mechanics) World type-level description & objects position integration
 - [ ] (Subsystem) Graphical representation and tiles
 - [ ] (Mechanics) Multi-layer world
-- [ ] (Feature) Multiple items in a world cell
+- [ ] (Feature)   Multiple items in a world cell (graphically)
+- [X] (Feature)   Multiple items in a world position
 - [ ] (Mechanics) AI: Goals setting & decision making
 - [ ] (Subsystem) ASCII output
 - [ ] (Subsystem) Graphic output
+- [ ] (Feature)   A better deriving / owning / hierarchy mechanism
