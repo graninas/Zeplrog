@@ -7,6 +7,7 @@ import ZP.Domain.Hardcode.KnowledgeBase
 
 import GHC.TypeLits
 
+
 type EObserving     = Ess @TypeLevel "action:observing"
 type EDiscovering   = Ess @TypeLevel "action:discovering"
 type ESettingGoals  = Ess @TypeLevel "action:setting goals"
@@ -38,14 +39,15 @@ type EPushable      = Ess @TypeLevel "ability:pushable"
 
 type EPushableScript = Ess @TypeLevel "script:pushable"
 
-type EEmptySpace    = Ess @TypeLevel "object:empty space"
-type EWall          = Ess @TypeLevel "object:wall"
-type EWand          = Ess @TypeLevel "object:wand"
-type ERat           = Ess @TypeLevel "object:rat"
-type EGuard         = Ess @TypeLevel "object:guard"
-type EAbstractDoor  = Ess @TypeLevel "object:abstract door"
-type ESpecificDoor  = Ess @TypeLevel "object:specific door"
-type EDoor          = Ess @TypeLevel "object:door"
+type EAbstractObject = Ess @TypeLevel "object:abstract"
+type EEmptySpace     = Ess @TypeLevel "object:empty space"
+type EWall           = Ess @TypeLevel "object:wall"
+type EWand           = Ess @TypeLevel "object:wand"
+type ERat            = Ess @TypeLevel "object:rat"
+type EGuard          = Ess @TypeLevel "object:guard"
+type EAbstractDoor   = Ess @TypeLevel "object:abstract:door"
+type ESpecificDoor   = Ess @TypeLevel "object:specific door"
+type EDoor           = Ess @TypeLevel "object:door"
 
 
 type EPhysicalImpact = Ess @TypeLevel "effect:physical impact"

@@ -6,6 +6,7 @@ import ZP.Prelude
 
 import ZP.System.Debug
 import ZP.Domain.Dynamic.Model
+import ZP.Domain.Static.Model
 import qualified ZP.Assets.KnowledgeBase as KB
 
 import ZP.Domain.Materializer
@@ -14,6 +15,16 @@ import ZP.Testing.Utils
 import Test.Hspec
 import Data.Proxy
 import qualified Data.Map.Strict as Map
+
+
+
+type TestWorld1 = WorldData @TypeLevel
+  '[ "#############"
+   , "#...........#"
+   , "###.####+####"
+   , "#....X......#"   -- N.B., For 'X' symbol, there is no property with this icon.
+   , "#############"
+   ]
 
 spec :: Spec
 spec = do
@@ -33,7 +44,7 @@ spec = do
     it "Full materialization: game" $ do
       (sEnv, dEnv) <- makeEnvs DebugEnabled
 
-      game <- fullMat dEnv () $ Proxy @(KB.Zeplrog KB.World1)
+      game <- fullMat dEnv () $ Proxy @(KB.Zeplrog TestWorld1)
 
       props <- readTVarIO $ dePropertiesVar dEnv
       esss  <- readTVarIO $ deEssencesVar dEnv

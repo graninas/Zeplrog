@@ -134,6 +134,7 @@ spawnProperty propMat = do
       Just ps -> writeTVar esssVar
         $ Map.insert ess ((propId, prop) : ps) esss
 
+    pure propId
 
   dTraceDebug $ do
     pure $ "Dyn property created: "

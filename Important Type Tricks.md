@@ -73,3 +73,43 @@ data IconEssencePath (lvl :: Level) where
 data PosEssencePath (lvl :: Level) where
   PosPath :: EssencePath lvl -> PosEssencePath lvl
 ```
+
+**Type-level and value-level constructors**
+
+Type-level and value-level constructors to support a good UX
+and not invent additional data types:
+
+```haskell
+data PropertyGroup (lvl :: Level) where
+  -- | Property groups for static type-level representation.
+  Group     :: EssenceTL -> PropertyGroupTL
+  GroupRoot :: EssenceTL -> PropertyTL -> PropertyGroupTL
+
+  -- | Property groups and id for static value-level representation.
+  GroupId      :: EssenceVL -> StaticPropertyId -> PropertyGroupVL
+  GroupRootId  :: EssenceVL -> StaticPropertyId -> PropertyVL -> PropertyGroupVL
+```
+
+Alternative would be making a type family for the id type:
+
+```haskell
+data PropId where
+  PropId :: EssenceVL -> StaticPropertyId -> PropId
+
+type family PropertyIdType (lvl :: Level) where
+  PropertyIdType 'TypeLevel  = EssenceTL
+  PropertyIdType 'ValueLevel = PropId
+
+data PropertyGroup (lvl :: Level) where
+  -- | Property groups for static type-level representation.
+  Group     :: PropertyIdType lvl -> PropertyGroupTL
+  GroupRoot :: PropertyIdType lvl -> PropertyTL -> PropertyGroupTL
+```
+
+This has a bad impact on the UX of user-defined data types
+and requires more @TypeLevel specifications than usual:
+
+```haskell
+type EOpen = Ess @TypeLevel "open"
+type Open  = StaticProp @TypeLevel (Group EOpen) -- extra @TypeLevel here
+```

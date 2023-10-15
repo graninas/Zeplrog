@@ -46,16 +46,15 @@ type PushableScript = SimpleScript EPushableScript
 
 
 -- | Abstract door. Should not be directely materialized.
-type AbstractDoor = AbstractProp (Group EAbstractDoor)
+type AbstractDoor = AbstractDerivedProp EAbstractDoor AbstractObject
   '[ PropKeyVal EIcon (OwnProp (IconVal "+"))   -- TODO: open and close door with own icons
    , PropKeyVal EHP   (OwnProp (HPVal 50))
-   , PropKeyVal EPos  (OwnProp DerivedPosVal)
 
     -- | Possible states
-   , PropKeyBag EStates
-      '[ OwnProp (StaticPropRef StateOpen)
-       , OwnProp (StaticPropRef StateClose)
-       ]
+   , PropKeyBag EStates                     -- TODO: don't copy these props.
+      '[ OwnProp (StaticPropRef StateOpen)  -- Keep them static.
+       , OwnProp (StaticPropRef StateClose) -- Implement a referencing mechanism
+       ]                                    -- that respects following roots
 
     -- | Current state. Points to a close/open state
    , PropKeyVal EState (OwnProp StatePropRefVal)

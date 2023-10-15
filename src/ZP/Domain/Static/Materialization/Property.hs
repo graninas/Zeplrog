@@ -25,35 +25,24 @@ data Props props
 type ResPropKVs = [PropertyKeyValueVL]
 
 
-
-
+  -- N.B. This routine will result in some staticPropertyIds
+  --   to be dropped when a singleton property is already present.
 withSingletonProperty
   :: SMat () group PropertyGroupVL
   => Proxy group
   -> (PropertyGroupVL -> SMaterializer PropertyVL)
   -> SMaterializer PropertyVL
 withSingletonProperty groupProxy matPropF = do
-  sEnv <- ask
-
-  -- N.B. This routine will result in some staticPropertyIds
-  --   to be dropped when a singleton property is already present.
   group <- sMat () groupProxy
   let (ess, statPropId) = getComboPropertyId group
-
-  esss <- readTVarIO $ seStaticEssencesVar sEnv
-
-  case Map.lookup ess esss of
-    Just [(sId, prop)] -> do
-      sTraceDebug $ "Singleton static property found: "
-                  <> show (ess, sId)
+  mbProp <- lookupSingletonProperty ess
+  case mbProp of
+    Just prop -> do
+      sTraceDebug $ "Singleton static property found: " <> show (ess, sId)
       pure prop
-
-    Just (_:_:_) ->
-      error $ "Multiple properties for singleton prop found, ess: " <> show ess
-
-    _ -> do
+    Nothing -> do
       sTraceDebug $ "New singleton static property to introduce: "
-        <> show ess <> ", sId: " <> show statPropId
+                 <> show ess <> ", sId: " <> show statPropId
       prop <- matPropF group
       addStaticProperty (statPropId, ess, prop)
       sTraceDebug $ show ess <> ": created: " <> show statPropId
@@ -114,6 +103,7 @@ instance
     propKVs <- sMat () $ Proxy @(SrcPropKVs propKVs)
     pure $ PropDict group propKVs
 
+-- | Abstract and derived properties.
 instance
   ( SMat () (SrcPropKVs propKVs) ResPropKVs
   , SMat () group PropertyGroupVL
@@ -124,7 +114,48 @@ instance
     propKVs <- sMat () $ Proxy @(SrcPropKVs propKVs)
     pure $ AbstractProp group propKVs
 
--- | Deriving mechanism for abstract properties.
+instance
+  ( SMat () abstractProp PropertyVL
+  , SMat () (SrcPropKVs propKVs) ResPropKVs
+  ) =>
+  SMat () ('AbstractDerivedProp @'TypeLevel ess abstractProp propKVs)
+          PropertyVL where
+  sMat () _ = do
+    ess <- sMat () $ Proxy @ess
+    sTraceDebug $ "Deriving property abstractly: " <> show ess
+
+    mbSelf <- lookupSingletonProperty ess
+    case mbSelf of
+      Just self -> do
+        sTraceDebug $ "  Already exists: " <> show ess
+        pure self
+      Nothing -> do
+
+        abstractProp <- sMat () $ Proxy @abstractProp
+
+        abstractPropKVs <- case abstractProp of
+          AbstractProp group abstractPropKVs -> do
+            sTraceDebug $ "Abstract property to derive: " <> show (snd $ getComboPropertyId group)
+            pure abstractPropKVs
+          AbstractDerivedProp group abstractPropKVs -> do
+            sTraceDebug $ "Abstract property to derive: " <> show (snd $ getComboPropertyId group)
+            pure abstractPropKVs
+          _ -> error "non-abstract props are not supported for deriving abstractly."
+
+        statPropId <- getNextStaticPropertyId
+        propKVs    <- sMat () $ Proxy @(SrcPropKVs propKVs)
+
+        let propKVs' = mergePropKVs propKVs parentPropKVs
+        let prop = AbstractDerivedProp (GroupRootId ess statPropId abstractProp) propKVs'
+
+        addStaticProperty (statPropId, ess, prop)
+
+        sTraceDebug $ show ess <> ": new property is derived abstractly: "
+                  <> show statPropId
+
+        pure prop
+
+
 instance
   ( SMat () ess EssenceVL
   , SMat () abstractProp PropertyVL
@@ -134,28 +165,30 @@ instance
           PropertyVL where
   sMat () _ = do
     ess <- sMat () $ Proxy @ess
-
     sTraceDebug $ "Deriving property: " <> show ess
-
     abstractProp <- sMat () $ Proxy @abstractProp
 
-    case abstractProp of
+    abstractPropKVs <- case abstractProp of
       AbstractProp group abstractPropKVs -> do
-        let aId@(abstractPropEss, abstractPropSId) = getComboPropertyId group
-        sTraceDebug $ "Abstract property to derive: " <> show aId
+        sTraceDebug $ "Abstract property to derive: " <> show (snd $ getComboPropertyId group)
+        pure abstractPropKVs
+      AbstractDerivedProp group abstractPropKVs -> do
+        sTraceDebug $ "Abstract property to derive: " <> show (snd $ getComboPropertyId group)
+        pure abstractPropKVs
+      _ -> error "non-abstract props are not supported for deriving."
 
-        statPropId <- getNextStaticPropertyId
+    statPropId <- getNextStaticPropertyId
+    propKVs    <- sMat () $ Proxy @(SrcPropKVs propKVs)
 
-        propKVs <- sMat () $ Proxy @(SrcPropKVs propKVs)
-        let propKVs' = mergePropKVs propKVs abstractPropKVs
+    let propKVs' = mergePropKVs propKVs abstractPropKVs
+    let prop     = PropDict (GroupRootId ess statPropId abstractProp) propKVs'
 
-        let prop = PropDict (GroupRootId ess statPropId abstractProp) propKVs'
-        addStaticProperty (statPropId, ess, prop)
-        sTraceDebug $ show ess <> ": new property is derived: "
-                   <> show statPropId
-        pure prop
+    addStaticProperty (statPropId, ess, prop)
 
-      _ -> error "non-abstract props are not supported yet."
+    sTraceDebug $ show ess <> ": new property is derived: "
+               <> show statPropId
+
+    pure prop
 
 instance
   ( SMat () val ValDefVL
@@ -293,7 +326,10 @@ instance
 
 -- | Merges props with preference of the first keys.
 -- Does not merge internal props.
-mergePropKVs :: [PropertyKeyValueVL] -> [PropertyKeyValueVL] -> [PropertyKeyValueVL]
+mergePropKVs
+  :: [PropertyKeyValueVL]
+  -> [PropertyKeyValueVL]
+  -> [PropertyKeyValueVL]
 mergePropKVs kvs1 kvs2 = let
   pKVs1 = Map.fromList [ (getEssenceFromKV k, k) | k <- kvs1]
   pKVs2 = Map.fromList [ (getEssenceFromKV k, k) | k <- kvs2]

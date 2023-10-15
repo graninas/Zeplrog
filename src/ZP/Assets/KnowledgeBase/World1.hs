@@ -18,8 +18,9 @@ type World1 = WorldData @TypeLevel
   '[ "#############"
    , "#...........#"
    , "###.####+####"
-   , "#...........#"
+   , "#....X......#"
    , "#############"
    ]
 
+-- N.B., For 'X' symbol, there is no property with this icon.
 

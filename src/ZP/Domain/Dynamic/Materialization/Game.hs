@@ -28,25 +28,22 @@ prepareProp
   :: SMod.PosEssencePathVL
   -> Map.Map String SMod.PropertyVL
   -> ((Int, Int), Char)
-  -> (SMat.Instantiate, SMod.PropertyVL)
+  -> DMaterializer (Maybe SMod.PropertyVL)
 prepareProp (SMod.PosPath pathToPos) statProps ((x, y), ch) = do
   case Map.lookup [ch] statProps of
-    Nothing -> error $ "Static property not found for symbol: "
+    Nothing -> do
+      dTraceDebug (pure $ "Static property not found for symbol: "
                     <> show ch
-                    <> "\nKnown static props: "
-                    <> show (Map.keys statProps)
-    Just statProp ->
-      ( SMat.InstantiateValue pathToPos
-          $ SMod.PairValue
-            (SMod.IntValue x)
-            (SMod.IntValue y)
-      , statProp)
+                    <> ". Skipping.\nKnown static props: "
+                    <> show (Map.keys statProps))
+      pure Nothing
+    Just statProp -> pure $ Just statProp
 
 instance
   ( DMat () SMod.WorldVL World
   , DMat () SMod.PropertyVL Property
   , DMat SMod.PosEssencePathVL SMod.ObjectVL Object
-  , DMat () (SMat.Instantiate, SMod.PropertyVL) Property
+  -- , DMat () (SMat.Instantiate, SMod.PropertyVL) Property
   ) =>
   DMat () SMod.GameVL Game where
   dMat _ () (SMod.GameEnvironment
@@ -57,15 +54,12 @@ instance
               statObjs) = do
     let SMod.WorldData statWD = statWorld
 
-    print $ "How many stat props for the game: "
-      <> show (length statProps)
-
     -- N.B., repeated props will be droped.
     let iconsToStatPropsMap = Map.fromList
           [ (fromJust mbIcon, statProp)
           | statProp <- statProps
           , let mbIcon = SQuery.queryStringValueRelative pathToIcon statProp
-          , isJust (trace ("\n\n" <> show mbIcon) mbIcon)
+          , isJust mbIcon
           ]
 
     -- World cells to traverse and search for icons.
@@ -73,12 +67,12 @@ instance
 
     -- Static properties that correspond to icons.
     -- Positions are not embedded into the props.
-    let preparedStatProps =
-          map (prepareProp pathToPos iconsToStatPropsMap) cells
+    preparedStatProps <-
+      mapM (prepareProp pathToPos iconsToStatPropsMap) cells
 
     world <- dMat False () statWorld
 
-    propsFromWorld <- mapM (dMat False ()) preparedStatProps
+    propsFromWorld <- mapM (dMat False ()) $ catMaybes preparedStatProps
     objsFromWorld  <- mapM spawnObject propsFromWorld
 
     -- Spawning the list of objects with world positions.

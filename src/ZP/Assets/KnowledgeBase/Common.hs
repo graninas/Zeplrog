@@ -22,3 +22,9 @@ type StrengthRandomVal from to = PropVal
   (Group EStrength)
   (RandomIntValue from to)
 
+-- | Abstract world object.
+--   Contains the default pos property.
+--   Should not be directely materialized.
+type AbstractObject = AbstractProp (Group EAbstractObject)
+ '[ PropKeyVal EPos (OwnProp DerivedPosVal)
+  ]

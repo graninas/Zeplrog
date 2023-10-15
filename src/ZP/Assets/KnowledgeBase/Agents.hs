@@ -33,13 +33,13 @@ type ActionLoop = PropDict (Group EActionLoop)
    ]
 
 
-type RatActor = PropDict (Group ERat)
+type RatActor = DerivedProp ERat AbstractObject
   '[ AddPropKV (OwnProp (HPVal 20))
    , AddPropKV (OwnProp DerivedPosVal)
    , AddPropKV (SharedProp ActionLoop)
    ]
 
-type GuardActor = PropDict (Group EGuard)
+type GuardActor = DerivedProp EGuard AbstractObject
   '[ AddPropKV (OwnProp (HPVal 100))
    , AddPropKV (OwnProp (StrengthRandomVal 10 20))
    , AddPropKV (OwnProp DerivedPosVal)

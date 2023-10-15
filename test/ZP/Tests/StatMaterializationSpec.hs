@@ -16,6 +16,13 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
+type TestWorld1 = WorldData @TypeLevel
+  '[ "#############"
+   , "#...........#"
+   , "###.####+####"
+   , "#....X......#"   -- N.B., For 'X' symbol, there is no property with this icon.
+   , "#############"
+   ]
 
 spec :: Spec
 spec = do
@@ -41,9 +48,9 @@ spec = do
         _ -> error "invalid materialization result"
 
     it "Game materialization test 1" $ do
-      sEnv <- makeSEnv DebugEnabled
+      sEnv <- makeSEnv DebugDisabled
 
-      game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
+      game <- sMat' sEnv () $ Proxy @(KB.Zeplrog TestWorld1)
       let GameEnvironment _ _ _ props objs = game
 
       statProps <- readTVarIO $ seStaticPropertiesVar sEnv

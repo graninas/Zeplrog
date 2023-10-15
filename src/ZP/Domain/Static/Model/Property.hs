@@ -71,17 +71,31 @@ data Property (lvl :: Level) where
     -> [PropertyKeyValue lvl]
     -> Property lvl
 
+
+-- N.B. This mechanism works
+
   -- | Abstract property (identical to PropDict).
   --   Provides the shape for the derived properties.
   --   Should not be dynamically materialized.
+  --    (Yes, it's OOP, dude!)
   AbstractProp
     :: PropertyGroup lvl
     -> [PropertyKeyValue lvl]
     -> Property lvl
 
+  -- | Abstract and derived from another abstract property.
+  --    Will take the shape of the parent, with certain props
+  --    (of the 1st level) replaced.
+  --    After static materialization, becomes PropDict.
+  --    Should not be dynamically materialized.
+  AbstractDerivedProp
+    :: Essence lvl
+    -> Property lvl
+    -> [PropertyKeyValue lvl]
+    -> Property lvl
+
   -- | Derived property.
   --    Will take the shape of the parent, with certain props (of the 1st level) replaced.
-  --    (Yes, it's OOP, dude!)
   --    After static materialization, becomes PropDict.
   --    No value-type static or dynamic props correspond to it.
   DerivedProp

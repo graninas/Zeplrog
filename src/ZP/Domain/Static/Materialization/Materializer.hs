@@ -85,6 +85,17 @@ getNextStaticPropertyId = do
   getNextStaticPropertyId' statPropIdVar
 
 
+lookupSingletonProperty
+  :: EssenceVL
+  -> SMaterializer (Maybe PropertyVL)
+lookupSingletonProperty ess = do
+  staticEssencesVar <- asks seStaticEssencesVar
+  esss <- readTVarIO staticEssencesVar
+  case Map.lookup ess esss of
+    Just [(sId, prop)] -> pure $ Just prop
+    Just (_:_:_)       -> error $ "Multiple properties for singleton prop found, ess: " <> show ess
+    Nothing            -> pure Nothing
+
 addStaticProperty
   :: (StaticPropertyId, EssenceVL, PropertyVL)
   -> SMaterializer ()
