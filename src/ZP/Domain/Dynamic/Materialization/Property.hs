@@ -122,15 +122,6 @@ instance
 
 --------- Special instantiation ------------------------
 
-instance
-  DMat () (Instantiate, SMod.PropertyVL) Property where
-  dMat _ () (InstantiateValue path valDef, statProp) = do
-    val  <- dMat False () valDef
-    -- Assuming that statProp contains a `derive` value.
-    let statProp' = instantiateDerivedValue path statProp
-
-    dMat False () statProp'
-
 
 
 

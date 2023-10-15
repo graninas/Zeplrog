@@ -52,6 +52,6 @@ spec = do
       -- print $ "Stat props: " <> show (Map.keys statProps)
       -- print $ "Stat essences: " <> show (Map.keys statEsss)
 
-      length statProps `shouldBe` 23
+      length statProps `shouldBe` 26
       length props `shouldBe` 3
       length objs `shouldBe` 2

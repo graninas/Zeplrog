@@ -14,8 +14,10 @@ import GHC.TypeLits
 
 type Wall = PropDict (Group EWall)
   '[ PropKeyVal EIcon (OwnProp (IconVal "#"))
+   , PropKeyVal EPos  (OwnProp DerivedPosVal)
    ]
 
 type EmptySpace = PropDict (Group EEmptySpace)
   '[ PropKeyVal EIcon (OwnProp (IconVal "."))
+   , PropKeyVal EPos  (OwnProp DerivedPosVal)
    ]

@@ -105,14 +105,6 @@ addStaticProperty (statPropId, ess, prop) = do
         $ Map.insert ess ((statPropId, prop) : ps) esss
 
 
-instantiateDerivedValue
-  :: [EssenceVL]
-  -> PropertyVL
-  -> PropertyVL
-instantiateDerivedValue path statProp = error "not implemented"
-
-
-
 sTraceDebug :: String -> SMaterializer ()
 sTraceDebug msg = do
   dbg <- asks seDebugMode

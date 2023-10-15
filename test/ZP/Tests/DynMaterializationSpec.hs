@@ -31,7 +31,7 @@ spec = do
       Map.size props `shouldBe` 8
 
     it "Full materialization: game" $ do
-      (sEnv, dEnv) <- makeEnvs DebugEnabled
+      (sEnv, dEnv) <- makeEnvs DebugDisabled
 
       game <- fullMat dEnv () $ Proxy @(KB.Zeplrog KB.World1)
 
@@ -40,19 +40,4 @@ spec = do
 
       print $ "Props: " <> show (Map.keys props)
 
-      length props `shouldBe` 3
-
-      -- case Map.lookup (mkE @KB.EDoor) esss of
-      --   Nothing -> error "Prop not found"
-      --   Just (pId, prop) -> do
-
-      --     propBags <- readTVarIO $ pPropertyBagsVar prop
-
-      --     case Map.lookup (mkE @KB.EPos) propBags of
-      --       Just (SingleProperty (SharedProperty (DynamicPropertyRef posPropEss))) ->
-      --         posPropEss `shouldBe` "intrinsics:pos"
-      --       Just _ -> error "pos prop is different"
-      --       Nothing -> error "pos prop not found"
-      --   Just _ -> error "Invalid property"
-
-
+      length props `shouldBe` 208

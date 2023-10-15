@@ -66,7 +66,7 @@ updateValue cs'@(c:cs) val prop = do
 
     -- Parent prop contains a single property under the top category.
     (Just (SingleProperty owning), _) ->
-      updateValueForOwning cs val owning
+      updateValueForOwning cs' val owning
 
     -- Parent prop contains a dict under the top category, but the path is short.
     (Just (PropertyDict _), []) -> do
@@ -91,7 +91,7 @@ updateValueForDict cs'@(c:cs) val dictTVar = do
       error $ "Can't update value for dict, the category exists but the path is too short: " <> show cs'
 
     -- Dict contains this category and the path is good.
-    (Just owning, _) -> updateValueForOwning cs val owning
+    (Just owning, _) -> updateValueForOwning cs' val owning
 
 
 updateValueForOwning [] _ _ =
@@ -100,7 +100,6 @@ updateValueForOwning cs val (OwnProperty prop) =
   updateValue cs val prop
 updateValueForOwning cs _ (SharedProperty _) =
   error $ "Can't update value for shared property: " <> show cs
-
 
 -- addChildProperty :: [Category] -> Property -> Property -> DMaterializer ()
 -- addChildProperty [] _ _ =
