@@ -10,6 +10,9 @@ import ZP.Domain.Static.Query
 import ZP.Domain.Materializer
 import qualified ZP.Assets.KnowledgeBase as KB
 
+import ZP.TestData.World1
+import ZP.Testing.Utils
+
 import Test.Hspec
 
 import Data.Proxy
@@ -23,7 +26,7 @@ spec = do
     it "Door materialization test" $ do
       sEnv <- makeSEnv DebugDisabled
 
-      door <- sMat' sEnv () $ Proxy @KB.SpecificDoor
+      door <- sMat' sEnv () $ Proxy @SpecificDoor
 
       statProps <- readTVarIO $ seStaticPropertiesVar sEnv
       statEsss  <- readTVarIO $ seStaticEssencesVar sEnv
@@ -34,8 +37,8 @@ spec = do
       case door of
         PropDict group props -> do
           let (ess, sId) = getComboPropertyId group
-          length props `shouldBe` 6
-          length statProps `shouldBe` 15
+          length props `shouldBe` 3
+          length statProps `shouldBe` 9
           ess `shouldBe` Ess "object:specific door"
           Map.member ess statEsss `shouldBe` True
         _ -> error "invalid materialization result"
@@ -43,7 +46,7 @@ spec = do
     it "Game materialization test 1" $ do
       sEnv <- makeSEnv DebugEnabled
 
-      game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
+      game <- sMat' sEnv () $ Proxy @TestGame1
       let GameEnvironment _ _ _ props objs = game
 
       statProps <- readTVarIO $ seStaticPropertiesVar sEnv
@@ -52,6 +55,6 @@ spec = do
       -- print $ "Stat props: " <> show (Map.keys statProps)
       -- print $ "Stat essences: " <> show (Map.keys statEsss)
 
-      length statProps `shouldBe` 26
+      length statProps `shouldBe` 20
       length props `shouldBe` 3
       length objs `shouldBe` 2
