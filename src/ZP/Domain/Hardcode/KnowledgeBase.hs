@@ -9,6 +9,7 @@ import qualified Text.Show as T
 import ZP.Domain.Static.Model
 
 
+-- TODO: move to the appropriate place
 type EIcon = Ess @TypeLevel "system:icon"
 
 type EGenericPos = Ess @TypeLevel "intrinsics:generic pos"

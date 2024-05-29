@@ -57,7 +57,7 @@ data Property (lvl :: Level) where
     :: Property lvl
     -> Property lvl
 
-  -- | Lear prop. Value will be dyn materialized as mutable var (TVar).
+  -- | Leaf prop. Value will be dyn materialized as mutable var (TVar).
   PropVal
     :: PropertyGroup lvl
     -> ValDef lvl
