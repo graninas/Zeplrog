@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE UndecidableInstances #-}
-module ZP.Domain.Dynamic.Materialization.Object where
+module ZP.Domain.Dynamic.Instantiation.Object where
 
 import ZP.Prelude
 
@@ -10,10 +10,10 @@ import ZP.Domain.Static.Materialization ()
 import ZP.Domain.Static.Materialization.Materializer
 import qualified ZP.Domain.Static.Query as SQuery
 import ZP.Domain.Dynamic.Model
-import ZP.Domain.Dynamic.Materialization.Materializer
-import ZP.Domain.Dynamic.Materialization.Common
-import ZP.Domain.Dynamic.Materialization.Property
-import ZP.Domain.Dynamic.Materialization.Effect
+import ZP.Domain.Dynamic.Instantiation.Instantiator
+import ZP.Domain.Dynamic.Instantiation.Common
+import ZP.Domain.Dynamic.Instantiation.Property
+import ZP.Domain.Dynamic.Instantiation.Effect
 import qualified ZP.Domain.Hardcode.KnowledgeBase as KB
 
 import Data.Proxy

@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE UndecidableInstances #-}
-module ZP.Domain.Dynamic.Materialization.Property where
+module ZP.Domain.Dynamic.Instantiation.Property where
 
 import ZP.Prelude
 
@@ -9,9 +9,9 @@ import ZP.Domain.Static.Materialization ()
 import ZP.Domain.Static.Materialization.Materializer
 import qualified ZP.Domain.Static.Query as SQuery
 import ZP.Domain.Dynamic.Model
-import ZP.Domain.Dynamic.Materialization.Materializer
-import ZP.Domain.Dynamic.Materialization.Common
-import ZP.Domain.Dynamic.Materialization.Script
+import ZP.Domain.Dynamic.Instantiation.Instantiator
+import ZP.Domain.Dynamic.Instantiation.Common
+import ZP.Domain.Dynamic.Instantiation.Script
 
 import Data.Proxy
 import qualified Data.Map.Strict as Map

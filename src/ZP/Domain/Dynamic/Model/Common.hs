@@ -6,19 +6,19 @@ import ZP.Prelude
 
 import qualified ZP.Domain.Static.Model as SMod
 
--- TODO: use Text
+
 type Essence = String
-type Category = Essence
+type EssencePath = [Essence]
+
+type TypeTag = String
+type StringifiedValue = String
 
 data Value
-  = PairValue (Value, Value)
+  = PairValue Value Value
   | IntValue Int
   | BoolValue Bool
-  | StringValue String          -- TODO: use Text
-  -- | EssenceValue Description Essence
-  -- | ListValue [PropertyValue]
-  -- | ActingObjectValue ActingObject
-  -- | ActivePropertyValue Description ActiveProperty
-  | PathValue [Category]
+  | StringValue String
+  | TagValue SMod.TagPropertyVL Value
+  | PathValue [Essence]
   | StaticPropertyRefValue SMod.StaticPropertyId
   deriving (Show, Eq, Ord)

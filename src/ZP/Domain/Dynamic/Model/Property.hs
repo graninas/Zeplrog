@@ -9,44 +9,40 @@ import qualified Data.Map.Strict as Map
 import qualified ZP.Domain.Static.Model as SMod
 import ZP.Domain.Dynamic.Model.Common
 
+
 -- | Dynamic property Id
 newtype PropertyId = PropertyId Int
   deriving (Show, Eq, Ord)
 
 -- | Property owning
 data PropertyOwning
-  = OwnProperty Property
-  -- ^ Aggregates child props (lifetime of children
-  --   doesn't exceed parent prop)
-  | SharedProperty PropertyRef        -- TODO: should be dynamic prop only
-  -- ^ referes to a independent prop
+  = OwnVal (IORef Value)
+  -- ^ Mutable dynamic value
+  | OwnDict (IORef (Map.Map Essence Property))
+  -- ^ Multiple child props
+  | OwnProp Property
+  -- ^ Single child prop
+  | SharedProp PropertyRef
+  -- ^ Reference to an independent prop
 
 -- | Reference to another independent property
 data PropertyRef
-  = DynamicPropertyRef PropertyId
-  | StaticPropertyRef SMod.StaticPropertyId
+  = DynamicPropRef PropertyId
+  | StaticPropRef SMod.StaticPropertyId
 
--- | Bag of properties or a single property
-data PropertyBag
-  = SingleProperty PropertyOwning
-  | PropertyDict (TVar (Map.Map Category PropertyOwning))
+data DynamicScript = DynScript (IO ())
 
 -- | Dynamic property
 data Property
-  = Property
+  = TagPropRef SMod.TagPropertyVL
+  | Prop
     { pPropertyId       :: PropertyId
+      -- ^ Unique Id for a property instance
     , pOwner            :: Maybe PropertyId
       -- ^ Independent property that owns this prop exclusively
     , pStaticPropertyId :: SMod.StaticPropertyId
-    , pScriptVar        :: TVar (Maybe Script)
-    , pPropertyBagsVar  :: TVar (Map.Map Category PropertyBag)
-    }
-  | ValueProperty
-    { pPropertyId       :: PropertyId
-    , pStaticPropertyId :: SMod.StaticPropertyId
-    , pValue            :: TVar Value
-    }
-  | RefProperty
-    { pPropertyId  :: PropertyId
-    , pPropertyRef :: PropertyRef
+      -- ^ Source property for this one
+    , pFieldsRef        :: IORef (Map.Map Essence PropertyOwning)
+      -- ^ Child properties
+    , pScripts          :: Map.Map Essence DynamicScript
     }

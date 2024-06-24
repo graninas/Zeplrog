@@ -60,7 +60,7 @@ data CustomScript (lvl :: Level) where
   Script
     :: StringType lvl
     -- ^ Description
-    -- -> [ScriptOp lvl]
+    -> [ScriptOp lvl]
     -> CustomScript lvl
 
 -- Predefined var types
@@ -77,26 +77,26 @@ type StringVar (name :: Symbol) (s :: Symbol)
 type PathVar (name :: Symbol) (ss :: [EssenceTL])
   = GenericVar name (PathValue ss)
 
--- -- TODO: rest of vars
+-- TODO: rest of vars
 
 
--- -- Short definitions
+-- Short definitions
 
--- type CustomScriptTL = CustomScript 'TypeLevel
--- type CustomScriptVL = CustomScript 'ValueLevel
+type CustomScriptTL = CustomScript 'TypeLevel
+type CustomScriptVL = CustomScript 'ValueLevel
 
--- type FuncTL = Func 'TypeLevel
--- type FuncVL = Func 'ValueLevel
+type FuncTL = Func 'TypeLevel
+type FuncVL = Func 'ValueLevel
 
--- type SourceTL = Source 'TypeLevel
--- type SourceVL = Source 'ValueLevel
+type SourceTL = Source 'TypeLevel
+type SourceVL = Source 'ValueLevel
 
--- type TargetTL = Target 'TypeLevel
--- type TargetVL = Target 'ValueLevel
+type TargetTL = Target 'TypeLevel
+type TargetVL = Target 'ValueLevel
 
 type GenericVarDefTL = GenericVarDef 'TypeLevel
 type GenericVarDefVL = GenericVarDef 'ValueLevel
 
--- type ScriptOpTL = ScriptOp 'TypeLevel
--- type ScriptOpVL = ScriptOp 'ValueLevel
+type ScriptOpTL = ScriptOp 'TypeLevel
+type ScriptOpVL = ScriptOp 'ValueLevel
 

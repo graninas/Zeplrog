@@ -298,11 +298,11 @@ instance
 -- Statically materialize property owning
 
 instance
-  ( SMat () val ValDefVL
+  ( SMat () val (GenericValDefVL tag)
   ) =>
   SMat () ('OwnVal @'TypeLevel val)
           PropertyOwningVL where
-  sMat () _ = do
+  sMat _ _ = do
     val <- sMat () $ Proxy @val
     pure $ OwnVal val
 

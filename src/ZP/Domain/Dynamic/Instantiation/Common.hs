@@ -1,12 +1,12 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE UndecidableInstances #-}
-module ZP.Domain.Dynamic.Materialization.Common where
+module ZP.Domain.Dynamic.Instantiation.Common where
 
 import ZP.Prelude
 
 import qualified ZP.Domain.Static.Model as SMod
 import qualified ZP.Domain.Static.Materialization as SMat
-import ZP.Domain.Dynamic.Materialization.Materializer
+import ZP.Domain.Dynamic.Instantiation.Instantiator
 import ZP.Domain.Dynamic.Model
 
 import Data.Proxy

@@ -8,7 +8,6 @@ import qualified ZP.Domain.Static.Model as SMod
 import ZP.Domain.Dynamic.Model.Common
 import ZP.Domain.Dynamic.Model.Property
 import ZP.Domain.Dynamic.Model.Effect
-import ZP.Domain.Dynamic.Model.Script
 import ZP.Domain.Dynamic.Model.Object
 import ZP.Domain.Dynamic.Model.World
 

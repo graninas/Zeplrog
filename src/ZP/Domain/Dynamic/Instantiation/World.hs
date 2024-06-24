@@ -1,16 +1,16 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE UndecidableInstances #-}
-module ZP.Domain.Dynamic.Materialization.World where
+module ZP.Domain.Dynamic.Instantiation.World where
 
 import ZP.Prelude
 
 import qualified ZP.Domain.Static.Model as SMod
 import qualified ZP.Domain.Static.Materialization as SMat
 import ZP.Domain.Dynamic.Model
-import ZP.Domain.Dynamic.Materialization.Materializer
-import ZP.Domain.Dynamic.Materialization.Common
-import ZP.Domain.Dynamic.Materialization.Property
-import ZP.Domain.Dynamic.Materialization.Effect
+import ZP.Domain.Dynamic.Instantiation.Instantiator
+import ZP.Domain.Dynamic.Instantiation.Common
+import ZP.Domain.Dynamic.Instantiation.Property
+import ZP.Domain.Dynamic.Instantiation.Effect
 
 import Data.Proxy
 import qualified Data.Map.Strict as Map

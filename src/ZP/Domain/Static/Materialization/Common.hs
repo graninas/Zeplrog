@@ -23,6 +23,12 @@ import qualified Data.Map.Strict as Map
 -- Helper to materialize the list of essences
 data Essences essPath
 
+instance SMat () 'True Bool where
+  sMat () _ = pure True
+
+instance SMat () 'False Bool where
+  sMat () _ = pure False
+
 -- Statically materialize variable def
 
 instance
@@ -70,7 +76,7 @@ instance
 instance
   ( SMat () val (TagToType 'ValueLevel tag)
   ) =>
-  SMat (Proxy tag)
+  SMat ()
         ('GenericValue @'TypeLevel @tag val)
         (GenericValDefVL tag) where
   sMat _ _ = do
@@ -87,26 +93,26 @@ instance
       $ natVal
       $ Proxy @intVal
 
-instance
-  ( t ~ TagToType 'ValueLevel StringTag
-  , KnownSymbol s
-  ) =>
-  SMat () s t where
-  sMat () _ = pure
-      $ symbolVal
-      $ Proxy @s
+-- instance
+--   ( t ~ TagToType 'ValueLevel StringTag
+--   , KnownSymbol s
+--   ) =>
+--   SMat () s t where
+--   sMat () _ = pure
+--       $ symbolVal
+--       $ Proxy @s
 
-instance
-  ( t ~ TagToType 'ValueLevel BoolTag
-  ) =>
-  SMat () 'True t where
-  sMat () _ = pure True
+-- instance
+--   ( t ~ TagToType 'ValueLevel BoolTag
+--   ) =>
+--   SMat () 'True t where
+--   sMat () _ = pure True
 
-instance
-  ( t ~ TagToType 'ValueLevel BoolTag
-  ) =>
-  SMat () 'False t where
-  sMat () _ = pure False
+-- instance
+--   ( t ~ TagToType 'ValueLevel BoolTag
+--   ) =>
+--   SMat () 'False t where
+--   sMat () _ = pure False
 
 instance
   ( t ~ TagToType 'ValueLevel PairIntIntTag
@@ -145,6 +151,20 @@ instance
 --     tagProp <- sMat () $ Proxy @tagProp
 --     valDef  <- sMat () $ Proxy @valDef
 --     pure $ TagValue tagProp valDef
+
+-- Statically materialize constant
+
+instance
+  ( SMat () val (GenericValDefVL tag)
+  ) =>
+  SMat (Proxy tag)
+        ('GenericConst @'TypeLevel val)
+        (GenericConstDefVL tag) where
+  sMat _ _ = do
+    val <- sMat () $ Proxy @val
+    pure $ GenericConst val
+
+-- Value
 
 -- Statically materialize Essence path
 

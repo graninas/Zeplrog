@@ -25,90 +25,70 @@ import qualified Data.Map.Strict as Map
 
 data ScrOps ops
 
-instance SMat () 'True Bool where
-  sMat () _ = pure True
-
-instance SMat () 'False Bool where
-  sMat () _ = pure False
-
-instance
-  ( KnownSymbol typeName
-  , SMat () val ValDefVL
-  ) =>
-  SMat (Proxy typeTag)
-        ('GenericConst @'TypeLevel val typeName)
-        (ConstDefVL typeTag) where
-  sMat _ _ = do
-    let typeName = symbolVal $ Proxy @typeName
-    val <- sMat () $ Proxy @val
-    pure $ GenericConst val typeName
-
 -- Var materialization
 
 instance
   ( KnownSymbol varName
-  , KnownSymbol typeName
-  , SMat () defVal ValDefVL
+  , SMat () defVal (GenericValDefVL tag)
   ) =>
-  SMat (Proxy typeTag)
-        ('GenericVar @'TypeLevel varName defVal typeName)
-        (VarDefVL typeTag) where
+  SMat (Proxy tag)
+        ('GenericVar @'TypeLevel varName defVal)
+        (GenericVarDefVL tag) where
   sMat _ _ = do
     let varName = symbolVal $ Proxy @varName
-    let typeName = symbolVal $ Proxy @typeName
     val <- sMat () $ Proxy @defVal
-    pure $ GenericVar varName val typeName
+    pure $ GenericVar varName val
 
 -- Target materialization
 
 instance
-  ( varDef ~ (vd :: VarDefTL typeTag)
-  , SMat (Proxy typeTag) varDef (VarDefVL typeTag)
+  ( varDef ~ (vd :: GenericVarDefTL tag)
+  , SMat (Proxy tag) varDef (GenericVarDefVL tag)
   ) =>
   SMat () ('ToVar @'TypeLevel varDef)
-          (TargetVL typeTag) where
+          (TargetVL tag) where
   sMat () _ = do
-    varDef <- sMat (Proxy @typeTag) $ Proxy @varDef
+    varDef <- sMat (Proxy @tag) $ Proxy @varDef
     pure $ ToVar varDef
 
 instance
   ( SMat () (Essences essPath) [EssenceVL]
-  , proxy ~ (p :: Proxy typeTag)
+  , proxy ~ (p :: Proxy tag)
   ) =>
   SMat () ('ToField proxy essPath)
-          (TargetVL typeTag) where
+          (TargetVL tag) where
   sMat () _ = do
     path <- sMat () $ Proxy @(Essences essPath)
-    pure $ ToField (Proxy @typeTag) path
+    pure $ ToField (Proxy @tag) path
 
 instance
-  ( varDef ~ (vd :: VarDefTL typeTag)
-  , SMat (Proxy typeTag) varDef (VarDefVL typeTag)
+  ( varDef ~ (vd :: GenericVarDefTL tag)
+  , SMat (Proxy tag) varDef (GenericVarDefVL tag)
   ) =>
   SMat () ('FromVar @'TypeLevel varDef)
-          (SourceVL typeTag) where
+          (SourceVL tag) where
   sMat () _ = do
-    varDef <- sMat (Proxy @typeTag) $ Proxy @varDef
+    varDef <- sMat (Proxy @tag) $ Proxy @varDef
     pure $ FromVar varDef
 
 instance
   ( SMat () (Essences essPath) [EssenceVL]
-  , proxy ~ (p :: Proxy typeTag)
+  , proxy ~ (p :: Proxy tag)
   ) =>
   SMat () ('FromField proxy essPath)
-          (SourceVL typeTag) where
+          (SourceVL tag) where
   sMat () _ = do
     path <- sMat () $ Proxy @(Essences essPath)
-    pure $ FromField (Proxy @typeTag) path
+    pure $ FromField (Proxy @tag) path
 
 instance
-  ( constDef ~ (c :: ConstDefTL typeTag)
-  , SMat (Proxy typeTag) constDef (ConstDefVL typeTag)
+  ( constDef ~ (c :: GenericConstDefTL tag)
+  , SMat (Proxy tag) constDef (GenericConstDefVL tag)
   ) =>
   SMat () ('FromConst constDef)
-          (SourceVL typeTag) where
+          (SourceVL tag) where
   sMat () _ = do
-    val <- sMat (Proxy @typeTag) $ Proxy @constDef
+    val <- sMat (Proxy @tag) $ Proxy @constDef
     pure $ FromConst val
 
 instance
@@ -117,17 +97,17 @@ instance
   sMat () _ = pure NegateF
 
 instance
-  ( SMat (Proxy typeTag) varDef (VarDefVL typeTag)
+  ( SMat (Proxy tag) varDef (GenericVarDefVL tag)
   ) =>
   SMat () ('DeclareVar @'TypeLevel varDef)
          ScriptOpVL where
   sMat () _ = do
-    varDef <- sMat (Proxy @typeTag) $ Proxy @varDef
+    varDef <- sMat (Proxy @tag) $ Proxy @varDef
     pure $ DeclareVar varDef
 
 instance
-  ( SMat () source (SourceVL typeTag)
-  , SMat () target (TargetVL typeTag)
+  ( SMat () source (SourceVL tag)
+  , SMat () target (TargetVL tag)
   ) =>
   SMat () ('WriteData @'TypeLevel target source)
          ScriptOpVL where
@@ -137,9 +117,9 @@ instance
     pure $ WriteData target source
 
 instance
-  ( SMat () func   (FuncVL typeTag1 typeTag2)
-  , SMat () source (SourceVL typeTag1)
-  , SMat () target (TargetVL typeTag2)
+  ( SMat () func   (FuncVL tag1 tag2)
+  , SMat () source (SourceVL tag1)
+  , SMat () target (TargetVL tag2)
   ) =>
   SMat () ('Invoke @'TypeLevel func source target)
          ScriptOpVL where
@@ -170,7 +150,7 @@ instance
   SMat () ('Script @'TypeLevel descr ops)
          CustomScriptVL where
   sMat () _ = do
-    descr <- sMat () $ Proxy @descr
+    let descr = symbolVal $ Proxy @descr
     ops   <- sMat () $ Proxy @(ScrOps ops)
     pure $ Script descr ops
 
