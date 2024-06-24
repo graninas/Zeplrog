@@ -16,7 +16,6 @@ import ZP.Domain.Static.Materialization.Property
 import ZP.Domain.Static.Materialization.Effect
 import ZP.Domain.Static.Materialization.Game
 import ZP.Domain.Static.Materialization.World
-import ZP.Domain.Hardcode.KnowledgeBase
 import ZP.Domain.Static.Transform
 
 import GHC.TypeLits

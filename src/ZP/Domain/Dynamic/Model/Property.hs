@@ -8,7 +8,6 @@ import qualified Data.Map.Strict as Map
 
 import qualified ZP.Domain.Static.Model as SMod
 import ZP.Domain.Dynamic.Model.Common
-import ZP.Domain.Dynamic.Model.Script
 
 -- | Dynamic property Id
 newtype PropertyId = PropertyId Int

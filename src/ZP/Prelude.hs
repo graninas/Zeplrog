@@ -47,6 +47,9 @@ import Debug.Trace as X (trace)
 import qualified Control.Monad.Free.Church    as CF
 import qualified Control.Monad.Free.Class     as MF
 
+import ZP.System.TypeSelector.Granular as X
+
 -- Lift for Church encoded Free
 liftFC :: (Functor f, MF.MonadFree f m) => f a -> m a
 liftFC = CF.liftF
+

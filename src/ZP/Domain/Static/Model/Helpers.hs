@@ -16,15 +16,15 @@ import ZP.Domain.Static.Model.Property
 -- | Adds a property. Removes the need to specify Essence several times.
 -- TODO: complete all cases.
 
-type family AddPropKV a :: PropertyKeyValueTL where
-  AddPropKV ('OwnProp prop)    = AddPropKV' prop ('OwnProp prop)
-  AddPropKV ('SharedProp prop) = AddPropKV' prop ('SharedProp prop)
+-- type family AddPropKV a :: PropertyKeyValueTL where
+--   AddPropKV ('OwnProp prop)    = AddPropKV' prop ('OwnProp prop)
+--   AddPropKV ('SharedProp prop) = AddPropKV' prop ('SharedProp prop)
 
-type family AddPropKV' a self :: PropertyKeyValueTL where
-  AddPropKV' ('StaticProp group) self = AddPropKV'' group self
-  AddPropKV' ('PropVal group valDef) self = AddPropKV'' group self
+-- type family AddPropKV' a self :: PropertyKeyValueTL where
+--   AddPropKV' ('StaticProp group) self = AddPropKV'' group self
+--   AddPropKV' ('PropVal group valDef) self = AddPropKV'' group self
 
-type family AddPropKV'' a self :: PropertyKeyValueTL where
-  AddPropKV'' ('Group ess) self = PropKeyVal ess self
+-- type family AddPropKV'' a self :: PropertyKeyValueTL where
+--   AddPropKV'' ('Group ess) self = PropKeyVal ess self
 
 

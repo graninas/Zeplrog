@@ -1,5 +1,13 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
+
 module ZP.Domain.Static.Materialization.Property where
 
 import ZP.Prelude
@@ -16,67 +24,23 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
+
 ---------- Static property materialization --------------
+
+-- Turns a static type-level model into a static value-level model.
+-- The resulting model represents a concrete domain with all the entities
+-- fully described, all derivings made, and all static properties
+-- ready to be used as templates for actual dynamic objects of a game.
+-- Static materialization resembles a macro mechanism in languages.
 
 data SrcPropKVs propKVs
 data PropOwns propOwns
 data Props props
+data SS scripts
 
 type ResPropKVs = [PropertyKeyValueVL]
+type RSS = [PropertyScriptVL]
 
-
-
-
-withSingletonProperty
-  :: SMat () group PropertyGroupVL
-  => Proxy group
-  -> (PropertyGroupVL -> SMaterializer PropertyVL)
-  -> SMaterializer PropertyVL
-withSingletonProperty groupProxy matPropF = do
-  sEnv <- ask
-
-  -- N.B. This routine will result in some staticPropertyIds
-  --   to be dropped when a singleton property is already present.
-  group <- sMat () groupProxy
-  let (ess, statPropId) = getComboPropertyId group
-
-  esss <- readTVarIO $ seStaticEssencesVar sEnv
-
-  case Map.lookup ess esss of
-    Just [(sId, prop)] -> do
-      sTraceDebug $ "Singleton static property found: "
-                  <> show (ess, sId)
-      pure prop
-
-    Just (_:_:_) ->
-      error $ "Multiple properties for singleton prop found, ess: " <> show ess
-
-    _ -> do
-      sTraceDebug $ "New singleton static property to introduce: "
-        <> show ess <> ", sId: " <> show statPropId
-      prop <- matPropF group
-      addStaticProperty (statPropId, ess, prop)
-      sTraceDebug $ show ess <> ": created: " <> show statPropId
-      pure prop
-
-
-withProperty
-  :: SMat () group PropertyGroupVL
-  => Proxy group
-  -> (PropertyGroupVL -> SMaterializer PropertyVL)
-  -> SMaterializer PropertyVL
-withProperty groupProxy matPropF = do
-  sEnv <- ask
-
-  group <- sMat () groupProxy
-  let (ess, statPropId) = getComboPropertyId group
-
-  esss <- readTVarIO $ seStaticEssencesVar sEnv
-  sTraceDebug $ "Static property to introduce: " <> show ess
-  prop <- matPropF group
-  addStaticProperty (statPropId, ess, prop)
-  sTraceDebug $ show ess <> ": created: " <> show statPropId
-  pure prop
 
 -- Statically materialize property group
 
@@ -102,46 +66,160 @@ instance
     prop <- sMat () $ Proxy @prop
     pure $ GroupRootId ess sId prop
 
--- Statically materialize property
+-- Statically materialize script
 
-instance
-  ( SMat () (SrcPropKVs propKVs) ResPropKVs
-  , SMat () group PropertyGroupVL
-  ) =>
-  SMat () ('PropDict @'TypeLevel group propKVs)
-          PropertyVL where
-  sMat () _ = withProperty (Proxy @group) $ \group -> do
-    propKVs <- sMat () $ Proxy @(SrcPropKVs propKVs)
-    pure $ PropDict group propKVs
-
-instance
-  ( SMat () (SrcPropKVs propKVs) ResPropKVs
-  , SMat () group PropertyGroupVL
-  ) =>
-  SMat () ('AbstractProp @'TypeLevel group propKVs)
-          PropertyVL where
-  sMat () _ = withSingletonProperty (Proxy @group) $ \group -> do
-    propKVs <- sMat () $ Proxy @(SrcPropKVs propKVs)
-    pure $ AbstractProp group propKVs
-
--- | Deriving mechanism for abstract properties.
 instance
   ( SMat () ess EssenceVL
-  , SMat () abstractProp PropertyVL
-  , SMat () (SrcPropKVs propKVs) ResPropKVs
+  , SMat () script CustomScriptVL
   ) =>
-  SMat () ('DerivedProp @'TypeLevel ess abstractProp propKVs)
+  SMat () ('PropScript ess script)
+          PropertyScriptVL where
+  sMat () _ = do
+    ess    <- sMat () $ Proxy @ess
+    script <- sMat () $ Proxy @script
+    pure $ PropScript ess script
+
+-- Statically materialize scripts list
+
+instance
+  SMat () (SS '[]) RSS where
+  sMat () _ = pure []
+
+instance
+  ( SMat () script PropertyScriptVL
+  , SMat () (SS scripts) RSS
+  ) =>
+  SMat () (SS (script ': scripts)) RSS where
+  sMat () _ = do
+    script  <- sMat () $ Proxy @script
+    scripts <- sMat () $ Proxy @(SS scripts)
+    pure $ script : scripts
+
+-- -- -- Statically materialize property -- -- --
+
+instance
+  ( SMat () tagProp TagPropertyVL
+  ) =>
+    SMat () ('TagPropRef @'TypeLevel tagProp)
           PropertyVL where
   sMat () _ = do
+    tagProp <- sMat () $ Proxy @tagProp
+    pure $ TagPropRef tagProp
+
+-- Deriving mechanism for properties.
+
+newtype APropPrepared = APropPrepared PropertyVL
+
+-- Abstract properties will turn into special PropDict properties
+--  only once to avoid multiple property preparation.
+
+-- Abstract prop materialization
+instance
+  ( SMat () group PropertyGroupVL
+  , SMat () (SrcPropKVs propKVs) ResPropKVs
+  , SMat () (SS scripts) RSS
+  ) =>
+  SMat () ('AbstractProp group propKVs scripts)
+          APropPrepared where
+  sMat () _ = do
+    sEnv <- ask
+    esss <- readIORef $ seStaticEssencesRef sEnv
+
+    -- N.B. This routine will result in some staticPropertyIds
+    --   to be dropped when a singleton property is already present.
+    group <- sMat () $ Proxy @group
+    let (ess, statPropId) = getComboPropertyId group
+
+    case Map.lookup ess esss of
+      Just [(sId, prop)] -> do
+        sTraceDebug $ "Prepared abstract property found: "
+                    <> show (ess, sId)
+        pure $ APropPrepared prop
+
+      Just (_:_:_) ->
+        error $ "Multiple prepared properties for abstract prop found, ess: " <> show ess
+
+      _ -> do
+        sTraceDebug $ "New abstract property to introduce: "
+          <> show ess <> ", sId: " <> show statPropId
+        propKVs <- sMat () $ Proxy @(SrcPropKVs propKVs)
+        scripts <- sMat () $ Proxy @(SS scripts)
+        let prop = PropDict group propKVs scripts
+        addStaticProperty (statPropId, ess, prop)
+        sTraceDebug $ show ess <> ": prepared: " <> show statPropId
+        pure $ APropPrepared prop
+
+-- Abstract derived prop materialization
+instance
+  ( SMat () ess EssenceVL
+  , SMat () abstractProp APropPrepared
+  , SMat () (SrcPropKVs propKVs) ResPropKVs
+  , SMat () (SS scripts) RSS
+  ) =>
+  SMat () ('AbstractDerivedProp ess abstractProp propKVs scripts)
+          APropPrepared where
+  sMat () _ = do
+    sEnv <- ask
+    esss <- readIORef $ seStaticEssencesRef sEnv
+
     ess <- sMat () $ Proxy @ess
 
-    sTraceDebug $ "Deriving property: " <> show ess
+    -- Checking if self is already prepared
 
-    abstractProp <- sMat () $ Proxy @abstractProp
+    case Map.lookup ess esss of
+      Just [(sId, prop)] -> do
+        sTraceDebug $ "Prepared abstract derived prop found: "
+                    <> show (ess, sId)
+        pure $ APropPrepared prop
 
-    case abstractProp of
-      AbstractProp group abstractPropKVs -> do
-        let aId@(abstractPropEss, abstractPropSId) = getComboPropertyId group
+      Just (_:_:_) ->
+        error $ "Multiple prepared properties for abstract derived prop found, ess: " <> show ess
+
+      _ -> do
+        statPropId <- getNextStaticPropertyId
+        sTraceDebug $ "New abstract derived prop to introduce: "
+          <> show ess <> ", sId: " <> show statPropId
+
+        sTraceDebug $ "Preparing parent abstract property for deriving"
+        APropPrepared aPropPrepared <- sMat () $ Proxy @abstractProp
+
+        case aPropPrepared of
+          PropDict aGroup parentAPropKVs parentAPropScripts -> do
+            let aId@(abstractPropEss, abstractPropSId) = getComboPropertyId aGroup
+            sTraceDebug $ "Parent abstract property to derive: " <> show aId
+
+            propKVs <- sMat () $ Proxy @(SrcPropKVs propKVs)
+            let propKVs' = mergePropKVs propKVs parentAPropKVs
+
+            scripts <- sMat () $ Proxy @(SS scripts)
+            let scripts' = mergeScripts scripts parentAPropScripts
+
+            let prop = PropDict (GroupId ess statPropId) propKVs scripts
+            addStaticProperty (statPropId, ess, prop)
+            sTraceDebug $ show ess <> ": prepared: " <> show statPropId
+            pure $ APropPrepared prop
+
+          _ -> error "Invalid prepared property (not PropDict)."
+
+instance
+  ( SMat () ess EssenceVL
+  , SMat () abstractProp APropPrepared
+  , SMat () (SrcPropKVs propKVs) ResPropKVs
+  , SMat () (SS scripts) RSS
+  ) =>
+  SMat () ('DerivedProp ess abstractProp propKVs scripts)
+          PropertyVL where
+  sMat () _ = do
+
+    ess <- sMat () $ Proxy @ess
+    sTraceDebug $ "Property to derive: " <> show ess
+
+    sTraceDebug $ "Preparing abstract property for deriving"
+    APropPrepared aPropPrepared <- sMat () $ Proxy @abstractProp
+
+    case aPropPrepared of
+      PropDict aGroup abstractPropKVs abstractPropScripts -> do
+        let aId@(abstractPropEss, abstractPropSId) = getComboPropertyId aGroup
         sTraceDebug $ "Abstract property to derive: " <> show aId
 
         statPropId <- getNextStaticPropertyId
@@ -149,52 +227,16 @@ instance
         propKVs <- sMat () $ Proxy @(SrcPropKVs propKVs)
         let propKVs' = mergePropKVs propKVs abstractPropKVs
 
-        let prop = PropDict (GroupRootId ess statPropId abstractProp) propKVs'
+        scripts <- sMat () $ Proxy @(SS scripts)
+        let scripts' = mergeScripts scripts abstractPropScripts
+
+        let prop = PropDict (GroupId ess statPropId) propKVs' scripts'
         addStaticProperty (statPropId, ess, prop)
         sTraceDebug $ show ess <> ": new property is derived: "
                    <> show statPropId
         pure prop
 
-      _ -> error "non-abstract props are not supported yet."
-
-instance
-  ( SMat () val ValDefVL
-  , SMat () group PropertyGroupVL
-  ) =>
-  SMat () ('PropVal @'TypeLevel group val)
-          PropertyVL where
-  sMat () _ = withProperty (Proxy @group) $ \group -> do
-    val <- sMat () $ Proxy @val
-    pure $ PropVal group val
-
-instance
-  ( SMat () script ScriptVL
-  , SMat () group PropertyGroupVL
-  ) =>
-  SMat () ('PropScript @'TypeLevel group script)
-          PropertyVL where
-  sMat () _ = withProperty (Proxy @group) $ \group -> do
-    script <- sMat () $ Proxy @script
-    pure $ PropScript group script
-
-instance
-  ( SMat () prop PropertyVL
-  ) =>
-  SMat () ('StaticPropRef @'TypeLevel prop)
-          PropertyVL where
-  sMat () _ = do
-    prop <- sMat () $ Proxy @prop
-    pure $ StaticPropRef prop
-
-instance
-  ( SMat () group PropertyGroupVL
-  ) =>
-  SMat () ('StaticProp @'TypeLevel group)
-          PropertyVL where
-  sMat () _ =
-    withSingletonProperty (Proxy @group) $ \group -> do
-    -- pure $ StaticPropRef $ StaticProp group    --  ???
-      pure $ StaticProp group
+      _ -> error "Invalid prepared property (not PropDict)."
 
 -- Statically materialize property key value list
 
@@ -227,14 +269,14 @@ instance
 
 instance
   ( SMat () ess EssenceVL
-  , SMat () (PropOwns propOwns) [PropertyOwningVL]
+  , SMat () (Props props) [PropertyVL]
   ) =>
-  SMat () ('PropKeyBag @'TypeLevel ess propOwns)
+  SMat () ('PropKeyBag @'TypeLevel ess props)
          PropertyKeyValueVL where
   sMat () _ = do
-    ess      <- sMat () $ Proxy @ess
-    propOwns <- sMat () $ Proxy @(PropOwns propOwns)
-    pure $ PropKeyBag ess propOwns
+    ess   <- sMat () $ Proxy @ess
+    props <- sMat () $ Proxy @(Props props)
+    pure $ PropKeyBag ess props
 
 -- Statically materialize property ownings
 
@@ -254,6 +296,15 @@ instance
     pure $ propOwn : propOwns
 
 -- Statically materialize property owning
+
+instance
+  ( SMat () val ValDefVL
+  ) =>
+  SMat () ('OwnVal @'TypeLevel val)
+          PropertyOwningVL where
+  sMat () _ = do
+    val <- sMat () $ Proxy @val
+    pure $ OwnVal val
 
 instance
   ( SMat () prop PropertyVL
@@ -290,13 +341,26 @@ instance
     pure $ prop : props
 
 
-
 -- | Merges props with preference of the first keys.
 -- Does not merge internal props.
-mergePropKVs :: [PropertyKeyValueVL] -> [PropertyKeyValueVL] -> [PropertyKeyValueVL]
+mergePropKVs
+  :: [PropertyKeyValueVL]
+  -> [PropertyKeyValueVL]
+  -> [PropertyKeyValueVL]
 mergePropKVs kvs1 kvs2 = let
   pKVs1 = Map.fromList [ (getEssenceFromKV k, k) | k <- kvs1]
   pKVs2 = Map.fromList [ (getEssenceFromKV k, k) | k <- kvs2]
   pKVs3 = Map.union pKVs1 pKVs2
   in Map.elems pKVs3
+
+-- | Merges scripts with preference of the first keys.
+mergeScripts
+  :: [PropertyScriptVL]
+  -> [PropertyScriptVL]
+  -> [PropertyScriptVL]
+mergeScripts ss1 ss2 = let
+  ss1' = Map.fromList [ (ess, ps) | ps@(PropScript ess _) <- ss1]
+  ss2' = Map.fromList [ (ess, ps) | ps@(PropScript ess _) <- ss2]
+  ss3' = Map.union ss1' ss2'
+  in Map.elems ss3'
 

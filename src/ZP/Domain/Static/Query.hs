@@ -1,3 +1,6 @@
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE TypeFamilies #-}
+
 module ZP.Domain.Static.Query where
 
 import ZP.Prelude
@@ -9,23 +12,24 @@ import ZP.Domain.Static.Model.World
 import ZP.Domain.Static.Model.Script
 
 
-
 getComboPropertyId :: PropertyGroupVL -> (EssenceVL, StaticPropertyId)
 getComboPropertyId (GroupId ess sId)       = (ess, sId)
 getComboPropertyId (GroupRootId ess sId _) = (ess, sId)
-getComboPropertyId _ = error "getComboPropertyId does not support type-level groups"
 
 getEssenceFromKV :: PropertyKeyValueVL -> EssenceVL
 getEssenceFromKV (PropKeyBag ess _) = ess
 getEssenceFromKV (PropKeyVal ess _) = ess
 
 getGroup :: PropertyVL -> PropertyGroupVL
-getGroup (StaticProp group) = group
-getGroup (StaticPropRef prop) = getGroup prop
-getGroup (PropVal group _) = group
-getGroup (PropDict group _) = group
-getGroup (PropScript group _) = group
+getGroup (PropDict group _ _) = group
+getGroup (TagPropRef _) = error "getGroup not implemented for TagPropRef"
 
+getTagPropEss :: TagPropertyVL -> EssenceVL
+getTagPropEss (TagProp tagGroup) = getTagPropGroupEssence tagGroup
+
+getTagPropGroupEssence :: TagPropertyGroupVL -> EssenceVL
+getTagPropGroupEssence (TagGroup ess) = ess
+getTagPropGroupEssence (TagGroupRoot ess _) = ess
 
 getStringValue :: ValDefVL -> Maybe String
 getStringValue (StringValue str) = Just str
@@ -36,20 +40,9 @@ getStringValue _ = Nothing
 -- TODO: move to the Query language.
 queryStringValue :: EssencePathVL -> PropertyVL -> Maybe String
 queryStringValue [] _ = Nothing
-queryStringValue _ (StaticProp _) =
-  error "queryStringValue not implemented for StaticProp"
-queryStringValue _ (StaticPropRef _) =
-  error "queryStringValue not implemented for StaticPropRef"
-queryStringValue (ess:[]) (PropVal group valDef) = let
-  (ess', _) = getComboPropertyId group
-  in if ess == ess'
-        then getStringValue valDef
-        else Nothing
-queryStringValue _ (PropVal _ _) = Nothing
-queryStringValue _ (DerivedProp _ _ _) =
-  error "queryStringValue not implemented for DerivedProp"
-queryStringValue _ (PropScript _ _) = Nothing
-queryStringValue (ess:esss) (PropDict group kvs) = let
+queryStringValue _ (TagPropRef _) =
+  error "queryStringValue not implemented for TagPropRef"
+queryStringValue (ess:esss) (PropDict group kvs _) = let
   (ess', _) = getComboPropertyId group
   in case ess == ess' of
         True -> queryStringValueForKeyVals esss kvs
@@ -61,18 +54,9 @@ queryStringValue (ess:esss) (PropDict group kvs) = let
 -- TODO: move to the Query language.
 queryStringValueRelative :: EssencePathVL -> PropertyVL -> Maybe String
 queryStringValueRelative [] _ = Nothing
-queryStringValueRelative _ (StaticProp _) =
-  error "queryStringValueRelative not implemented for StaticProp"
-queryStringValueRelative _ (StaticPropRef _) =
-  error "queryStringValueRelative not implemented for StaticPropRef"
-queryStringValueRelative [] (PropVal group valDef) =
-  getStringValue valDef
-queryStringValueRelative esss (PropVal _ _) =
-  error $ "queryStringValueRelative: path is not empty: " <> show esss
-queryStringValueRelative _ (DerivedProp _ _ _) =
-  error "queryStringValueRelative not implemented for DerivedProp"
-queryStringValueRelative _ (PropScript _ _) = Nothing
-queryStringValueRelative esss (PropDict group kvs) =
+queryStringValueRelative _ (TagPropRef _) =
+  error "queryStringValueRelative not implemented for TagPropRef"
+queryStringValueRelative esss (PropDict group kvs _) =
   queryStringValueForKeyVals esss kvs
 
 -- Hardcoded function.
@@ -86,9 +70,10 @@ queryStringValueForKeyVals _ [] = Nothing
 queryStringValueForKeyVals path@(ess:_) (PropKeyVal ess' owning : kvs)
   | ess == ess' = queryStringValueForOwning path owning
   | otherwise = queryStringValueForKeyVals path kvs
-queryStringValueForKeyVals path@(ess:_) (PropKeyBag ess' ownings : kvs)
-  | ess == ess' = queryStringValueForOwnings path ownings
-  | otherwise = queryStringValueForKeyVals path kvs
+-- queryStringValueForKeyVals path@(ess:_) (PropKeyBag ess' props : kvs)
+--   | ess == ess' = queryStringValueForProps path props
+--   | otherwise = queryStringValueForKeyVals path kvs
+queryStringValueForKeyVals _ _ = error "queryStringValueForKeyVals not implemented"
 
 -- Hardcoded function.
 -- TODO: move to the Query language.
@@ -96,6 +81,8 @@ queryStringValueForOwning
   :: EssencePathVL
   -> PropertyOwningVL
   -> Maybe String
+queryStringValueForOwning esss (OwnVal valDef) =
+  getStringValue valDef
 queryStringValueForOwning esss (OwnProp prop) =
   queryStringValue esss prop
 queryStringValueForOwning esss (SharedProp prop) =

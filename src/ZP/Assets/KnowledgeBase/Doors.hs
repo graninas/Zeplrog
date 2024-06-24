@@ -2,84 +2,78 @@
 
 module ZP.Assets.KnowledgeBase.Doors where
 
+import ZP.Prelude
+
 import ZP.Domain.Static.Model
-import ZP.Domain.Hardcode.KnowledgeBase
 import ZP.Assets.KnowledgeBase.Essences
 import ZP.Assets.KnowledgeBase.Common
 
-import Prelude (Bool(..))
 import GHC.TypeLits
 
 
--- Intrinsics are value props a parent property has unconditionally.
---   Intrinsics have some default value.
---   Examples:
---    * HP. Default value is max HP
---    * MP (mana points). Default value is max MP.
-
--- Pos is not intrinsic because doesn't have a default value.
-
-
 -- | General root property for everything that is open.
-type Open  = StaticProp (Group EOpen)
-type Close = StaticProp (Group EClose)
+type Open  = TagProp (TagGroup EOpen)
+type Close = TagProp (TagGroup EClose)
 
-type StateOpen  = StaticProp (GroupRoot EStateOpen Open)
-type StateClose = StaticProp (GroupRoot EStateClose Close)
+type StateOpen  = TagProp (TagGroupRoot EStateOpen  Open)
+type StateClose = TagProp (TagGroupRoot EStateClose Close)
 
-type StatePropRefVal = PropVal (Group EStateRef)
-  (PathValue '[ EStates, EStateClose ])
+type PushableScript = 'Script @'TypeLevel "'pushable' ability script"
+  '[]
+  -- '[ SimpleQuery
+  --       '[ FollowReferences ]
+  --       '[ QEssence EState, QGetEssence ]
+  --        (BoolVar "is open")
+  --  ]
+  -- '[ ConditionalAction
+  --     (ConditionDef "is open" QEq (BoolValue True))
+  --     (ReplaceProp '[ EState ] '[ EStates, EStateClose ])
+  --  , ConditionalAction
+  --     (ConditionDef "is open" QEq (BoolValue False))
+  --     (ReplaceProp '[ EState ] '[ EStates, EStateOpen ])
+  --  ]
 
-type PushableScript = SimpleScript EPushableScript
-  '[ SimpleQuery
-        '[ FollowReferences ]
-        '[ QEssence EState, QGetEssence ]
-         (BoolVar "is open")
-   ]
-  '[ ConditionalAction
-      (ConditionDef "is open" QEq (BoolValue True))
-      (ReplaceProp '[ EState ] '[ EStates, EStateClose ])
-   , ConditionalAction
-      (ConditionDef "is open" QEq (BoolValue False))
-      (ReplaceProp '[ EState ] '[ EStates, EStateOpen ])
-   ]
+type CloseStateRef = '[ EStates, EStateClose ]
+type OpenStateRef  = '[ EStates, EStateOpen  ]
 
-
--- | Abstract door. Should not be directely materialized.
+-- | Abstract door.
 type AbstractDoor = AbstractProp (Group EAbstractDoor)
-  '[ PropKeyVal EIcon (OwnProp (IconVal "+"))   -- TODO: open and close door with own icons
-   , PropKeyVal EHP   (OwnProp (HPVal 50))
-   , PropKeyVal EPos  (OwnProp DerivedPosVal)
+  '[ PropKeyVal EIcon (OwnVal (IconVal "+"))   -- TODO: open and close door with own icons
+   , PropKeyVal EHP   (OwnVal (HPTagVal 50))
+   , PropKeyVal EPos  (OwnVal (DerivablePosTagVal 0 0))
 
     -- | Possible states
    , PropKeyBag EStates
-      '[ OwnProp (StaticPropRef StateOpen)
-       , OwnProp (StaticPropRef StateClose)
+      '[ TagPropRef StateOpen
+       , TagPropRef StateClose
        ]
 
     -- | Current state. Points to a close/open state
-   , PropKeyVal EState (OwnProp StatePropRefVal)
+   , PropKeyVal EState (OwnVal (PathValue CloseStateRef))
 
-    -- | Abilities to react to effects
-   , PropKeyBag EAbilities
-      '[ SharedProp (PropScript (Group EPushable)
-                    PushableScript)
-       ]
+  --   -- | Abilities to react to effects
+  --  , PropKeyBag EAbilities
+  --     '[ SharedProp (PropScript (Group EPushable)
+  --                   PushableScript)
+  --      ]
    ]
+   '[]
 
 
 -- | Specific door with a specific icon.
 type SpecificDoor = DerivedProp ESpecificDoor AbstractDoor
-  '[ PropKeyVal EIcon (OwnProp (IconVal "?"))   -- TODO: open and close door with own icons
-   , PropKeyVal EHP   (OwnProp (HPVal 100))
-   , PropKeyVal EPos  (OwnProp (PosVal 2 3))
+  '[ PropKeyVal EIcon (OwnVal (IconVal "?"))   -- TODO: open and close door with own icons
+   , PropKeyVal EHP   (OwnVal (HPTagVal 100))
+   , PropKeyVal EPos  (OwnVal (PosTagVal 2 3))
    ]
+  '[]
 
 -- | Template for all doors having no predefined location.
 --   Derived from AbstractDoor.
 type GenericDoor = DerivedProp EDoor AbstractDoor
-  '[ PropKeyVal EHP (OwnProp (HPVal 70))
+  '[ PropKeyVal EHP (OwnVal (HPTagVal 70))
    ]
+  '[]
 
 
 -- Door

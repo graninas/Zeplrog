@@ -2,8 +2,9 @@
 
 module ZP.Assets.KnowledgeBase.Essences where
 
+import ZP.Prelude
+
 import ZP.Domain.Static.Model
-import ZP.Domain.Hardcode.KnowledgeBase
 
 import GHC.TypeLits
 
@@ -18,9 +19,6 @@ type ENoAction      = Ess @TypeLevel "action:no action"
 type EActionLoop    = Ess @TypeLevel "system:action loop"
 type EGoal          = Ess @TypeLevel "system:goal"
 
-
-type EHP            = Ess @TypeLevel "intrinsics:hp"
-type EStrength      = Ess @TypeLevel "intrinsics:strength"
 
 type EInventory     = Ess @TypeLevel "category:inventory"
 type EIntrinsics    = Ess @TypeLevel "category:intrinsics"
@@ -52,3 +50,15 @@ type EPhysicalImpact = Ess @TypeLevel "effect:physical impact"
 type EPush           = Ess @TypeLevel "effect:push"
 type EShockwave      = Ess @TypeLevel "effect:shockwave"
 type EKick           = Ess @TypeLevel "effect:kick"
+
+
+type EIcon = Ess @TypeLevel "system:icon"
+
+type EGenericPos = Ess @TypeLevel "intrinsics:generic pos"
+type EPos        = Ess @TypeLevel "intrinsics:pos"
+type EGenericHP = Ess @TypeLevel "intrinsics:generic hp"
+type EHP            = Ess @TypeLevel "intrinsics:hp"
+type EStrength      = Ess @TypeLevel "intrinsics:strength"
+
+
+type EAnyProp = Ess @TypeLevel "prop:any"

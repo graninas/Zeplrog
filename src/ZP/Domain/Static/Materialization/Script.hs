@@ -1,5 +1,14 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+
 module ZP.Domain.Static.Materialization.Script where
 
 import ZP.Prelude
@@ -13,167 +22,156 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
----------- Script --------------
 
-data Queries qs
-data Settings sets
-data Actions acts
-data QPathItems items
+data ScrOps ops
 
--- Statically materialize settings
+instance SMat () 'True Bool where
+  sMat () _ = pure True
 
-instance
-  SMat () 'FollowReferences QuerySetting where
-  sMat () _ = pure FollowReferences
+instance SMat () 'False Bool where
+  sMat () _ = pure False
 
 instance
-  SMat () (Settings '[]) [QuerySetting] where
+  ( KnownSymbol typeName
+  , SMat () val ValDefVL
+  ) =>
+  SMat (Proxy typeTag)
+        ('GenericConst @'TypeLevel val typeName)
+        (ConstDefVL typeTag) where
+  sMat _ _ = do
+    let typeName = symbolVal $ Proxy @typeName
+    val <- sMat () $ Proxy @val
+    pure $ GenericConst val typeName
+
+-- Var materialization
+
+instance
+  ( KnownSymbol varName
+  , KnownSymbol typeName
+  , SMat () defVal ValDefVL
+  ) =>
+  SMat (Proxy typeTag)
+        ('GenericVar @'TypeLevel varName defVal typeName)
+        (VarDefVL typeTag) where
+  sMat _ _ = do
+    let varName = symbolVal $ Proxy @varName
+    let typeName = symbolVal $ Proxy @typeName
+    val <- sMat () $ Proxy @defVal
+    pure $ GenericVar varName val typeName
+
+-- Target materialization
+
+instance
+  ( varDef ~ (vd :: VarDefTL typeTag)
+  , SMat (Proxy typeTag) varDef (VarDefVL typeTag)
+  ) =>
+  SMat () ('ToVar @'TypeLevel varDef)
+          (TargetVL typeTag) where
+  sMat () _ = do
+    varDef <- sMat (Proxy @typeTag) $ Proxy @varDef
+    pure $ ToVar varDef
+
+instance
+  ( SMat () (Essences essPath) [EssenceVL]
+  , proxy ~ (p :: Proxy typeTag)
+  ) =>
+  SMat () ('ToField proxy essPath)
+          (TargetVL typeTag) where
+  sMat () _ = do
+    path <- sMat () $ Proxy @(Essences essPath)
+    pure $ ToField (Proxy @typeTag) path
+
+instance
+  ( varDef ~ (vd :: VarDefTL typeTag)
+  , SMat (Proxy typeTag) varDef (VarDefVL typeTag)
+  ) =>
+  SMat () ('FromVar @'TypeLevel varDef)
+          (SourceVL typeTag) where
+  sMat () _ = do
+    varDef <- sMat (Proxy @typeTag) $ Proxy @varDef
+    pure $ FromVar varDef
+
+instance
+  ( SMat () (Essences essPath) [EssenceVL]
+  , proxy ~ (p :: Proxy typeTag)
+  ) =>
+  SMat () ('FromField proxy essPath)
+          (SourceVL typeTag) where
+  sMat () _ = do
+    path <- sMat () $ Proxy @(Essences essPath)
+    pure $ FromField (Proxy @typeTag) path
+
+instance
+  ( constDef ~ (c :: ConstDefTL typeTag)
+  , SMat (Proxy typeTag) constDef (ConstDefVL typeTag)
+  ) =>
+  SMat () ('FromConst constDef)
+          (SourceVL typeTag) where
+  sMat () _ = do
+    val <- sMat (Proxy @typeTag) $ Proxy @constDef
+    pure $ FromConst val
+
+instance
+  SMat () ('NegateF @'TypeLevel)
+          (FuncVL BoolTag BoolTag) where
+  sMat () _ = pure NegateF
+
+instance
+  ( SMat (Proxy typeTag) varDef (VarDefVL typeTag)
+  ) =>
+  SMat () ('DeclareVar @'TypeLevel varDef)
+         ScriptOpVL where
+  sMat () _ = do
+    varDef <- sMat (Proxy @typeTag) $ Proxy @varDef
+    pure $ DeclareVar varDef
+
+instance
+  ( SMat () source (SourceVL typeTag)
+  , SMat () target (TargetVL typeTag)
+  ) =>
+  SMat () ('WriteData @'TypeLevel target source)
+         ScriptOpVL where
+  sMat () _ = do
+    source <- sMat () $ Proxy @source
+    target <- sMat () $ Proxy @target
+    pure $ WriteData target source
+
+instance
+  ( SMat () func   (FuncVL typeTag1 typeTag2)
+  , SMat () source (SourceVL typeTag1)
+  , SMat () target (TargetVL typeTag2)
+  ) =>
+  SMat () ('Invoke @'TypeLevel func source target)
+         ScriptOpVL where
+  sMat () _ = do
+    func   <- sMat () $ Proxy @func
+    source <- sMat () $ Proxy @source
+    target <- sMat () $ Proxy @target
+    pure $ Invoke func source target
+
+instance
+  SMat () (ScrOps '[]) [ScriptOpVL] where
   sMat () _ = pure []
 
 instance
-  ( SMat () setting QuerySetting
-  , SMat () (Settings settings) [QuerySetting]
+  ( SMat () op ScriptOpVL
+  , SMat () (ScrOps ops) [ScriptOpVL]
   ) =>
-  SMat () (Settings (setting ': settings))
-      [QuerySetting] where
+  SMat () (ScrOps (op ': ops)) [ScriptOpVL] where
   sMat () _ = do
-    setting  <- sMat () $ Proxy @setting
-    settings <- sMat () $ Proxy @(Settings settings)
-    pure $ setting : settings
-
--- Statically materialize query term
+    op  <- sMat () $ Proxy @op
+    ops <- sMat () $ Proxy @(ScrOps ops)
+    pure $ op : ops
 
 instance
-  ( SMat () ess (Essence 'ValueLevel)
+  ( KnownSymbol descr
+  , SMat () (ScrOps ops) [ScriptOpVL]
   ) =>
-  SMat () ('QEssence @'TypeLevel ess) (QueryTerm 'ValueLevel) where
+  SMat () ('Script @'TypeLevel descr ops)
+         CustomScriptVL where
   sMat () _ = do
-    ess <- sMat () $ Proxy @ess
-    pure $ QEssence ess
+    descr <- sMat () $ Proxy @descr
+    ops   <- sMat () $ Proxy @(ScrOps ops)
+    pure $ Script descr ops
 
-instance
-  SMat () ('QGetEssence @'TypeLevel) (QueryTerm 'ValueLevel) where
-  sMat () _ = pure QGetEssence
 
--- Statically materialize query path
-
-instance
-  SMat () (QPathItems '[]) [QueryTerm 'ValueLevel] where
-  sMat () _ = pure []
-
-instance
-  ( SMat () item (QueryTerm 'ValueLevel)
-  , SMat () (QPathItems items) [QueryTerm 'ValueLevel]
-  ) =>
-  SMat () (QPathItems (item ': items))
-      [QueryTerm 'ValueLevel] where
-  sMat () _ = do
-    item  <- sMat () $ Proxy @item
-    items <- sMat () $ Proxy @(QPathItems items)
-    pure $ item : items
-
--- Statically materialize query
-
-instance
-  ( SMat () (Settings settings) [QuerySetting]
-  , SMat () (QPathItems qPath) [QueryTerm 'ValueLevel]
-  , SMat () varDef (VarDef 'ValueLevel)
-  ) =>
-  SMat () ('SimpleQuery @'TypeLevel settings qPath varDef) (Query 'ValueLevel) where
-  sMat () _ = do
-    settings <- sMat () $ Proxy @(Settings settings)
-    qPath    <- sMat () $ Proxy @(QPathItems qPath)
-    varDef   <- sMat () $ Proxy @varDef
-    pure $ SimpleQuery settings qPath varDef
-
--- Statically materialize queries
-
-instance
-  SMat () (Queries '[]) [Query 'ValueLevel] where
-  sMat () _ = pure []
-
-instance
-  ( SMat () q (Query 'ValueLevel)
-  , SMat () (Queries qs) [Query 'ValueLevel]
-  ) =>
-  SMat () (Queries (q ': qs))
-      [Query 'ValueLevel] where
-  sMat () _ = do
-    q     <- sMat () $ Proxy @q
-    qs <- sMat () $ Proxy @(Queries qs)
-    pure $ q : qs
-
--- Statically materialize compare op
-
-instance
-  SMat () 'QEq CompareOp where
-  sMat () _ = pure QEq
-
--- Statically materialize procedure
-
-instance
-  ( SMat () (Essences whatProp) [Essence 'ValueLevel]
-  , SMat () (Essences withProp) [Essence 'ValueLevel]
-  ) =>
-  SMat () ('ReplaceProp @'TypeLevel whatProp withProp) (Procedure 'ValueLevel) where
-  sMat () _ = do
-    whatPropPath <- sMat () $ Proxy @(Essences whatProp)
-    withPropPath <- sMat () $ Proxy @(Essences withProp)
-    pure $ ReplaceProp whatPropPath withPropPath
-
--- Statically materialize condition
-
-instance
-  ( SMat () varName (VarName 'ValueLevel)
-  , SMat () op CompareOp
-  , SMat () valDef (ValDef 'ValueLevel)
-  ) =>
-  SMat () ('ConditionDef @'TypeLevel varName op valDef) (Condition 'ValueLevel) where
-  sMat () _ = do
-    varName <- sMat () $ Proxy @varName
-    op      <- sMat () $ Proxy @op
-    valDef  <- sMat () $ Proxy @valDef
-    pure $ ConditionDef varName op valDef
-
--- Statically materialize action
-
-instance
-  ( SMat () cond (Condition 'ValueLevel)
-  , SMat () procedure (Procedure 'ValueLevel)
-  ) =>
-  SMat () ('ConditionalAction @'TypeLevel cond procedure) (Action 'ValueLevel) where
-  sMat () _ = do
-    cond      <- sMat () $ Proxy @cond
-    procedure <- sMat () $ Proxy @procedure
-    pure $ ConditionalAction cond procedure
-
--- Statically materialize actions
-
-instance
-  SMat () (Actions '[]) [Action 'ValueLevel] where
-  sMat () _ = pure []
-
-instance
-  ( SMat () act (Action 'ValueLevel)
-  , SMat () (Actions acts) [Action 'ValueLevel]
-  ) =>
-  SMat () (Actions (act ': acts))
-      [Action 'ValueLevel] where
-  sMat () _ = do
-    act  <- sMat () $ Proxy @act
-    acts <- sMat () $ Proxy @(Actions acts)
-    pure $ act : acts
-
--- Statically materialize script
-
-instance
-  ( SMat () ess (Essence 'ValueLevel)
-  , SMat () (Queries queries) [Query 'ValueLevel]
-  , SMat () (Actions actions) [Action 'ValueLevel]
-  ) =>
-  SMat () ('SimpleScript @'TypeLevel ess queries actions) (Script 'ValueLevel) where
-  sMat () _ = do
-    ess     <- sMat () $ Proxy @ess
-    queries <- sMat () $ Proxy @(Queries queries)
-    actions <- sMat () $ Proxy @(Actions actions)
-    pure $ SimpleScript ess queries actions

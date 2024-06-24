@@ -2,9 +2,10 @@
 
 module ZP.Assets.KnowledgeBase.Game where
 
+import ZP.Prelude
+
 import ZP.Domain.Static.Model
 import ZP.Domain.Static.Macro
-import ZP.Domain.Hardcode.KnowledgeBase
 import ZP.Assets.KnowledgeBase.Essences
 import ZP.Assets.KnowledgeBase.Common
 import ZP.Assets.KnowledgeBase.Doors
@@ -12,7 +13,6 @@ import ZP.Assets.KnowledgeBase.Surroundings
 import ZP.Assets.KnowledgeBase.Agents
 import ZP.Assets.KnowledgeBase.Effects
 
-import Prelude (Bool(..))
 import GHC.TypeLits
 
 

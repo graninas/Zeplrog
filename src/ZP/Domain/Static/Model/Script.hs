@@ -1,5 +1,8 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE GADTs #-}
 
 module ZP.Domain.Static.Model.Script where
 
@@ -9,75 +12,93 @@ import qualified Text.Show as T
 
 import ZP.Domain.Static.Model.Common
 
------- Query and Procedure Script ------------
 
--- | Query settings.
+-- | Variable definition
+data GenericVarDef (lvl :: Level) typeTag where
+  GenericVar
+    :: StringType lvl             -- ^ Var name
+    -> GenericValDef lvl typeTag  -- ^ Default value
+    -> GenericVarDef lvl typeTag
 
-data QuerySetting where
-  FollowReferences :: QuerySetting
+-- | Script operation
+data ScriptOp (lvl :: Level) where
+  DeclareVar :: GenericVarDef lvl typeTag -> ScriptOp lvl
 
--- | Comparing operators.
+  -- Can be the only MOV instruction
+  WriteData
+    :: Target lvl typeTag
+    -> Source lvl typeTag
+    -> ScriptOp lvl
 
-data CompareOp where
-  QEq :: CompareOp
+  Invoke
+    :: Func lvl typeTag1 typeTag2
+    -> Source lvl typeTag1
+    -> Target lvl typeTag2
+    -> ScriptOp lvl
 
--- | Query path chain.
+type ReadData src tgt = WriteData tgt src
 
-data QueryTerm (lvl :: Level) where
-  QEssence    :: Essence lvl -> QueryTerm lvl
-  QGetEssence :: QueryTerm lvl
+-- N.B., Proxy is only needed to satisfy functional dependency
+-- that is somehow fails to define typeTag without this workaround.
+data Target (lvl :: Level) typeTag where
+  ToField :: Proxy typeTag -> EssencePath lvl -> Target lvl typeTag
+  ToVar   :: GenericVarDef lvl typeTag -> Target lvl typeTag
 
--- | Path to a value to extract.
+-- N.B., Proxy is only needed to satisfy functional dependency
+-- that is somehow fails to define typeTag without this workaround.
+data Source (lvl :: Level) typeTag where
+  FromField :: Proxy typeTag -> EssencePath lvl -> Source lvl typeTag
+  FromVar   :: GenericVarDef lvl typeTag -> Source lvl typeTag
+  FromConst :: GenericConstDef lvl typeTag -> Source lvl typeTag
 
-type QueryPath (lvl :: Level) = [QueryTerm lvl]
+-- | Function over a value
+data Func (lvl :: Level) typeTag1 typeTag2 where
+  NegateF :: Func lvl BoolTag BoolTag
 
--- | Query language for extracting values.
+-- | Script type
+data CustomScript (lvl :: Level) where
+  Script
+    :: StringType lvl
+    -- ^ Description
+    -> [ScriptOp lvl]
+    -> CustomScript lvl
 
-data Query (lvl :: Level) where
-  SimpleQuery
-    :: [QuerySetting]
-    -> QueryPath lvl
-    -> VarDef lvl
-    -> Query lvl
+-- Predefined var types
 
--- | Condition.
+-- type IntVar (name :: Symbol) (i :: Nat)
+--   = GenericVar @'TypeLevel @IntTag name (IntValue i) IntTag
+type IntVar (name :: Symbol) (i :: Nat)
+  = GenericVar name (IntValue i)
 
-data Condition (lvl :: Level) where
-  ConditionDef
-    :: VarName lvl
-    -> CompareOp
-    -> ValDef lvl
-    -> Condition lvl
+type BoolVar (name :: Symbol) (b :: Bool)
+  = GenericVar name (BoolValue b)
 
--- | Specific procedure for modifying a property.
+type StringVar (name :: Symbol) (s :: Symbol)
+  = GenericVar name (StringValue s)
 
-data Procedure (lvl :: Level) where
-  ReplaceProp
-    :: [Essence lvl]
-    -> [Essence lvl]
-    -> Procedure lvl
+type PathVar (name :: Symbol) (ss :: [EssenceTL])
+  = GenericVar name (PathValue ss)
 
--- | Action to perform over the property when condition is met.
+-- TODO: rest of vars
 
-data Action (lvl :: Level) where
-  ConditionalAction
-    :: Condition lvl
-    -> Procedure lvl
-    -> Action lvl
 
--- | Script for manipulations with properties.
--- For static properties, it allows to query values.
--- For dynamic properties, it allows to query values
---   and to change variables and properties themselves.
+-- Short definitions
 
-data Script (lvl :: Level) where
-  SimpleScript
-    :: Essence lvl
-    -> [Query lvl]       -- ^ Query specific values before the script
-    -> [Action lvl]
-    -> Script lvl
+type CustomScriptTL = CustomScript 'TypeLevel
+type CustomScriptVL = CustomScript 'ValueLevel
 
------- Short identifiers ----------
+type FuncTL = Func 'TypeLevel
+type FuncVL = Func 'ValueLevel
 
-type ScriptTL = Script 'TypeLevel
-type ScriptVL = Script 'ValueLevel
+type SourceTL = Source 'TypeLevel
+type SourceVL = Source 'ValueLevel
+
+type TargetTL = Target 'TypeLevel
+type TargetVL = Target 'ValueLevel
+
+type GenericVarDefTL = GenericVarDef 'TypeLevel
+type GenericVarDefVL = GenericVarDef 'ValueLevel
+
+type ScriptOpTL = ScriptOp 'TypeLevel
+type ScriptOpVL = ScriptOp 'ValueLevel
+

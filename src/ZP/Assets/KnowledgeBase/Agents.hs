@@ -3,48 +3,52 @@
 
 module ZP.Assets.KnowledgeBase.Agents where
 
+import ZP.Prelude
+
 import ZP.Domain.Static.Model
-import ZP.Domain.Hardcode.KnowledgeBase
 import ZP.Assets.KnowledgeBase.Essences
 import ZP.Assets.KnowledgeBase.Common
 
 import GHC.TypeLits
 
-
--- Why this is not a compound object?
-type FireWand = StaticProp (Group EWand)
-type IceWand  = StaticProp (Group EWand)
-type KillGoal = StaticProp (Group EGoal)
-
-
-type Observing     = StaticProp (Group EObserving)
-type Discovering   = StaticProp (Group EDiscovering)
-type SettingGoals  = StaticProp (Group ESettingGoals)
-type Planning      = StaticProp (Group EPlanning)
-type FollowingPlan = StaticProp (Group EFollowingPlan)
+type Observing     = TagProp (TagGroup EObserving)
+type Discovering   = TagProp (TagGroup EDiscovering)
+type SettingGoals  = TagProp (TagGroup ESettingGoals)
+type Planning      = TagProp (TagGroup EPlanning)
+type FollowingPlan = TagProp (TagGroup EFollowingPlan)
 
 
-type ActionLoop = PropDict (Group EActionLoop)
-  '[ AddPropKV (SharedProp Observing)
-   , AddPropKV (SharedProp Discovering)
-   , AddPropKV (SharedProp SettingGoals)
-   , AddPropKV (SharedProp Planning)
-   , AddPropKV (SharedProp FollowingPlan)
+
+-- Tmp, find a better way to encode this
+type AbstractActionLoop = AbstractDerivedProp
+  (Ess @TypeLevel "abstract act loop") AnyProp
+  '[
    ]
+  '[]
+
+type ActionLoop = DerivedProp EActionLoop AbstractActionLoop
+  '[]
+  '[]
+  -- '[ AddPropKV (SharedProp Observing)
+  --  , AddPropKV (SharedProp Discovering)
+  --  , AddPropKV (SharedProp SettingGoals)
+  --  , AddPropKV (SharedProp Planning)
+  --  , AddPropKV (SharedProp FollowingPlan)
+  --  ]
 
 
-type RatActor = PropDict (Group ERat)
-  '[ AddPropKV (OwnProp (HPVal 20))
-   , AddPropKV (OwnProp DerivedPosVal)
-   , AddPropKV (SharedProp ActionLoop)
-   ]
+-- type RatActor = PropDict (Group ERat)
+--   '[ AddPropKV (OwnProp (HPVal 20))
+--    , AddPropKV (OwnProp DerivedPosVal)
+--    , AddPropKV (SharedProp ActionLoop)
+--    ]
 
-type GuardActor = PropDict (Group EGuard)
-  '[ AddPropKV (OwnProp (HPVal 100))
-   , AddPropKV (OwnProp (StrengthRandomVal 10 20))
-   , AddPropKV (OwnProp DerivedPosVal)
-   , AddPropKV (SharedProp ActionLoop)
-   ]
+-- type GuardActor = PropDict (Group EGuard)
+--   '[ AddPropKV (OwnProp (HPVal 100))
+--    , AddPropKV (OwnProp (StrengthRandomVal 10 20))
+--    , AddPropKV (OwnProp DerivedPosVal)
+--    , AddPropKV (SharedProp ActionLoop)
+--    ]
 
 
 

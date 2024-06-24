@@ -1,5 +1,13 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
+
 module ZP.Domain.Static.Materialization.Common where
 
 import ZP.Prelude
@@ -12,8 +20,7 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
--- TODO: FIXME: bare String type
-
+-- Helper to materialize the list of essences
 data Essences essPath
 
 -- Statically materialize variable def
@@ -24,75 +31,100 @@ instance
   SMat () str String where
   sMat () _ = pure $ symbolVal $ Proxy @str
 
-instance
-  ( KnownSymbol varName
-  ) =>
-  SMat () ('IntVar @'TypeLevel varName) VarDefVL where
-  sMat () _ = do
-    let varName = symbolVal $ Proxy @varName
-    pure $ IntVar varName
+
+-- Statically materialize tag property group
 
 instance
-  ( KnownSymbol varName
+  ( SMat () ess EssenceVL
   ) =>
-  SMat () ('BoolVar @'TypeLevel varName) VarDefVL where
+  SMat () ('TagGroup @'TypeLevel ess)
+          TagPropertyGroupVL where
   sMat () _ = do
-    let varName = symbolVal $ Proxy @varName
-    pure $ BoolVar varName
+    ess <- sMat () $ Proxy @ess
+    pure $ TagGroup ess
 
 instance
-  ( KnownSymbol varName
-  , SMat () varDef1 VarDefVL
-  , SMat () varDef2 VarDefVL
+  ( SMat () ess EssenceVL
+  , SMat () tagProp TagPropertyVL
   ) =>
-  SMat () ('PairVar @'TypeLevel varName varDef1 varDef2)
-      VarDefVL where
+  SMat () ('TagGroupRoot @'TypeLevel ess tagProp)
+          TagPropertyGroupVL where
   sMat () _ = do
-    let varName = symbolVal $ Proxy @varName
-    varDef1 <- sMat () $ Proxy @varDef1
-    varDef2 <- sMat () $ Proxy @varDef2
-    pure $ PairVar varName varDef1 varDef2
+    ess      <- sMat () $ Proxy @ess
+    tagProp  <- sMat () $ Proxy @tagProp
+    pure $ TagGroupRoot ess tagProp
+
+-- Statically materialize tag property
+
+instance
+  ( SMat () tagGroup TagPropertyGroupVL
+  ) =>
+  SMat () ('TagProp @'TypeLevel tagGroup)
+          TagPropertyVL where
+  sMat () _ = do
+    tagGroup <- sMat () $ Proxy @tagGroup
+    pure $ TagProp tagGroup
 
 -- Statically materialize value
 
 instance
-  ( KnownNat intVal
+  ( TypeTagRelation typeTag t
+  , SMat () defVal t
   ) =>
-  SMat () ('IntValue @'TypeLevel intVal)
-      ValDefVL where
-  sMat () _ = pure
-      $ IntValue
-      $ fromIntegral
-      $ natVal
-      $ Proxy @intVal
+  SMat (Proxy typeTag)
+        ('GenericVal @'TypeLevel defVal typeName)
+        (GenericValDefVL typeTag) where
+  sMat _ _ = do
+    let typeName = symbolVal $ Proxy @typeName
+    val <- sMat () $ Proxy @defVal
+    pure $ GenericVal val typeName
 
-instance
-  ( SMat () val1 ValDefVL
-  , SMat () val2 ValDefVL
-  ) =>
-  SMat () ('PairValue @'TypeLevel val1 val2) ValDefVL where
-  sMat () _ = do
-    val1 <- sMat () $ Proxy @val1
-    val2 <- sMat () $ Proxy @val2
-    pure $ PairValue val1 val2
 
-instance
-  SMat () ('BoolValue @'TypeLevel 'True) ValDefVL where
-  sMat () _ = pure $ BoolValue True
+-- instance
+--   ( KnownNat intVal
+--   ) =>
+--   SMat () ('IntValue @'TypeLevel intVal)
+--       ValDefVL where
+--   sMat () _ = pure
+--       $ IntValue
+--       $ fromIntegral
+--       $ natVal
+--       $ Proxy @intVal
 
-instance
-  ( KnownSymbol str
-  ) =>
-  SMat () ('StringValue @'TypeLevel str) ValDefVL where
-  sMat () _ = pure $ StringValue $ symbolVal $ Proxy @str
+-- instance
+--   ( SMat () val1 ValDefVL
+--   , SMat () val2 ValDefVL
+--   ) =>
+--   SMat () ('PairValue @'TypeLevel val1 val2) ValDefVL where
+--   sMat () _ = do
+--     val1 <- sMat () $ Proxy @val1
+--     val2 <- sMat () $ Proxy @val2
+--     pure $ PairValue val1 val2
 
-instance
-  SMat () ('BoolValue @'TypeLevel 'False) ValDefVL where
-  sMat () _ = pure $ BoolValue False
+-- instance
+--   SMat () ('BoolValue @'TypeLevel 'True) ValDefVL where
+--   sMat () _ = pure $ BoolValue True
 
-instance
-  SMat () ('DerivedWorldPos @'TypeLevel) ValDefVL where
-  sMat () _ = pure DerivedWorldPos
+-- instance
+--   ( KnownSymbol str
+--   ) =>
+--   SMat () ('StringValue @'TypeLevel str) ValDefVL where
+--   sMat () _ = pure $ StringValue $ symbolVal $ Proxy @str
+
+-- instance
+--   SMat () ('BoolValue @'TypeLevel 'False) ValDefVL where
+--   sMat () _ = pure $ BoolValue False
+
+-- instance
+--   ( SMat () valDef ValDefVL
+--   ) =>
+--   SMat () ('OverriddableValue @'TypeLevel valDef) ValDefVL where
+--   sMat () _ = do
+--     valDef <- sMat () $ Proxy @valDef
+--     pure $ OverriddableValue valDef
+
+
+-- Static materialization of essences
 
 instance
   ( SMat () (Essences essPath) [EssenceVL]
@@ -103,17 +135,16 @@ instance
     path <- sMat () $ Proxy @(Essences essPath)
     pure $ PathValue path
 
--- special values
-
 instance
-  ( KnownNat from
-  , KnownNat to
+  ( SMat () tagProp TagPropertyVL
+  , SMat () valDef ValDefVL
   ) =>
-  SMat () ('RandomIntValue @'TypeLevel from to)
+  SMat () ('TagValue @'TypeLevel tagProp valDef)
          ValDefVL where
-  sMat () _ = pure $ RandomIntValue
-    (fromIntegral $ natVal $ Proxy @from)
-    (fromIntegral $ natVal $ Proxy @to)
+  sMat () _ = do
+    tagProp <- sMat () $ Proxy @tagProp
+    valDef  <- sMat () $ Proxy @valDef
+    pure $ TagValue tagProp valDef
 
 -- Statically materialize Essence path
 

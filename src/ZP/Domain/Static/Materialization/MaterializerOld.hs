@@ -1,9 +1,6 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE PolyKinds #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
-
-module ZP.Domain.Static.Materialization.Materializer where
+{-# LANGUAGE UndecidableInstances #-}
+module ZP.Domain.Static.Materialization.MaterializerOld where
 
 import ZP.Prelude
 
@@ -18,14 +15,17 @@ import qualified Data.Map.Strict as Map
 
 ---------- Interface ------------------
 
+-- TODO: make Materializer thread-safe.
+--  Currently, TVars do not do anything useful.
+
 type StaticProperties = Map.Map StaticPropertyId (EssenceVL, PropertyVL)
 type StaticEssences   = Map.Map EssenceVL [(StaticPropertyId, PropertyVL)]
 
 data SEnv = SEnv
   { seDebugMode           :: DebugMode
-  , seStaticPropertyIdRef :: IORef StaticPropertyId
-  , seStaticPropertiesRef :: IORef StaticProperties
-  , seStaticEssencesRef   :: IORef StaticEssences
+  , seStaticPropertyIdVar :: TVar StaticPropertyId
+  , seStaticPropertiesVar :: TVar StaticProperties
+  , seStaticEssencesVar   :: TVar StaticEssences
   }
 
 type SMaterializer a = ReaderT SEnv IO a
@@ -54,9 +54,9 @@ sMat' sEnv p proxy = runSMaterializer sEnv $ sMat p proxy
 makeSEnv :: DebugMode -> IO SEnv
 makeSEnv dbg = SEnv
   <$> pure dbg
-  <*> newIORef (StaticPropertyId 0)
-  <*> newIORef Map.empty
-  <*> newIORef Map.empty
+  <*> newTVarIO (StaticPropertyId 0)
+  <*> newTVarIO Map.empty
+  <*> newTVarIO Map.empty
 
 ----- Utils ---------------
 
@@ -64,44 +64,44 @@ getStaticProperty
   :: StaticPropertyId
   -> SMaterializer (EssenceVL, PropertyVL)
 getStaticProperty statPropId = do
-  statPropsRef <- asks seStaticPropertiesRef
-  statProps    <- readIORef statPropsRef
+  statPropsVar <- asks seStaticPropertiesVar
+  statProps    <- readTVarIO statPropsVar
   case Map.lookup statPropId statProps of
     Nothing -> error
       $ "Static property " <> show statPropId <> " not found."
     Just prop -> pure prop
 
 getNextStaticPropertyId'
-  :: IORef StaticPropertyId
+  :: TVar StaticPropertyId
   -> SMaterializer StaticPropertyId
-getNextStaticPropertyId' statPropIdRef = do
-  StaticPropertyId pId <- readIORef statPropIdRef
-  writeIORef statPropIdRef $ StaticPropertyId $ pId + 1
+getNextStaticPropertyId' statPropIdVar = atomically $ do
+  StaticPropertyId pId <- readTVar statPropIdVar
+  writeTVar statPropIdVar $ StaticPropertyId $ pId + 1
   pure $ StaticPropertyId pId
 
 getNextStaticPropertyId :: SMaterializer StaticPropertyId
 getNextStaticPropertyId = do
-  statPropIdRef <- asks seStaticPropertyIdRef
-  getNextStaticPropertyId' statPropIdRef
+  statPropIdVar <- asks seStaticPropertyIdVar
+  getNextStaticPropertyId' statPropIdVar
 
 
 addStaticProperty
   :: (StaticPropertyId, EssenceVL, PropertyVL)
   -> SMaterializer ()
 addStaticProperty (statPropId, ess, prop) = do
-  statPropsRef    <- asks seStaticPropertiesRef
-  statEssencesRef <- asks seStaticEssencesRef
-  do
-    props <- readIORef statPropsRef
-    esss  <- readIORef statEssencesRef
+  statPropsVar    <- asks seStaticPropertiesVar
+  statEssencesVar <- asks seStaticEssencesVar
+  atomically $ do
+    props <- readTVar statPropsVar
+    esss  <- readTVar statEssencesVar
 
-    writeIORef statPropsRef
+    writeTVar statPropsVar
       $ Map.insert statPropId (ess, prop) props
 
     case Map.lookup ess esss of
-      Nothing -> writeIORef statEssencesRef
+      Nothing -> writeTVar statEssencesVar
         $ Map.insert ess [(statPropId, prop)] esss
-      Just ps -> writeIORef statEssencesRef
+      Just ps -> writeTVar statEssencesVar
         $ Map.insert ess ((statPropId, prop) : ps) esss
 
 

@@ -1,5 +1,11 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+
+-- | Static property model.
+-- Can work as a static type-level or static value-level model.
 
 module ZP.Domain.Static.Model.Property where
 
@@ -10,11 +16,8 @@ import qualified Text.Show as T
 import ZP.Domain.Static.Model.Common
 import ZP.Domain.Static.Model.Script
 
------- Property -----
 
 -- | Used to make static property hierarchies.
--- Essence arg: own essence
--- Property arg: parent property
 data PropertyGroup (lvl :: Level) where
   -- | Property groups for static type-level representation.
   Group     :: EssenceTL -> PropertyGroupTL
@@ -24,86 +27,89 @@ data PropertyGroup (lvl :: Level) where
   GroupId      :: EssenceVL -> StaticPropertyId -> PropertyGroupVL
   GroupRootId  :: EssenceVL -> StaticPropertyId -> PropertyVL -> PropertyGroupVL
 
--- Property owning replaces materialization from the prev version
+-- | Property owning
 data PropertyOwning (lvl :: Level) where
-  -- | Property will be materialized for each parent prop.
+  -- | Own value. Will be materialized for each parent prop.
+  OwnVal :: GenericValDef lvl typeTag -> PropertyOwning lvl
+  -- | Own property. Will be materialized for each parent prop.
   OwnProp    :: Property lvl -> PropertyOwning lvl
-  -- | Property will be materialized only once and shared between parents.
+  -- | Shared property. Will be materialized only once and shared between parents.
   SharedProp :: Property lvl -> PropertyOwning lvl
 
+-- | Key-value pair for a property
 data PropertyKeyValue (lvl :: Level) where
   -- | Implicit dictionary of properties.
-  -- When materialized, becomes a dict with keys taken from properties
-  PropKeyBag :: Essence lvl -> [PropertyOwning lvl] -> PropertyKeyValue lvl
+  PropKeyBag :: Essence lvl -> [Property lvl] -> PropertyKeyValue lvl
   -- | Separate property
   PropKeyVal :: Essence lvl -> PropertyOwning lvl -> PropertyKeyValue lvl
 
+data PropertyScript (lvl :: Level) where
+  PropScript
+    :: Essence lvl
+    -> CustomScript lvl
+    -> PropertyScript lvl
+
+  -- | Abstract property.
+  --   Provides the shape for the derived properties.
+--     Abstract property itself can't be value level.
+data AbstractProperty where
+  -- | Abstract property with fields.
+  --   Becomes a regular static value-level property that can't be
+  --   instantiated but can be referenced.
+  --   Due to the group reference, can define properties in the middle of the hierarchy.
+  AbstractProp
+    :: PropertyGroupTL
+    -> [PropertyKeyValueTL]
+    -> [PropertyScriptTL]
+    -> AbstractProperty
+  -- | Abstract property that derives another abstract prop.
+  --   Does not contain group because will not reference prop branches.
+  --   Resulting PropDict will contain prop group with this essence only.
+  AbstractDerivedProp
+    :: EssenceTL
+    -> AbstractProperty
+    -> [PropertyKeyValueTL]
+    -> [PropertyScriptTL]
+    -> AbstractProperty
+
 -- | Static property that must be stat and dyn materialized.
 data Property (lvl :: Level) where
-
-  -- | Static properties hierarchy.
-  --   Can only be 1 instance of each.
-  --   Static props can be referenced by StaticPropertyId
-  --     OR by EssenceVL which should be unique to them.
-  --   These properties can't be dyn materialized.
-  StaticProp
-    :: PropertyGroup lvl
+  -- | Tag property reference.
+  TagPropRef
+    :: TagProperty lvl
     -> Property lvl
 
-  -- | Static prop reference.
-  --   When StaticPropRef is dyn materialized,
-  --   becomes own dyn prop with a reference to the static prop.
-  StaticPropRef
-    :: Property lvl
-    -> Property lvl
-
-  -- | Leaf prop. Value will be dyn materialized as mutable var (TVar).
-  PropVal
-    :: PropertyGroup lvl
-    -> ValDef lvl
-    -> Property lvl
-
-  -- | Compound property.
-  -- Each prop in the bag is a mutable reference.
-  -- Each prop can be replaced by some other prop in the dyn model.
-  PropDict
-    :: PropertyGroup lvl
-    -> [PropertyKeyValue lvl]
-    -> Property lvl
-
-  -- | Abstract property (identical to PropDict).
-  --   Provides the shape for the derived properties.
-  --   Should not be dynamically materialized.
-  AbstractProp
-    :: PropertyGroup lvl
-    -> [PropertyKeyValue lvl]
-    -> Property lvl
-
-  -- | Derived property.
-  --    Will take the shape of the parent, with certain props (of the 1st level) replaced.
-  --    (Yes, it's OOP, dude!)
+  -- | Derived property from any abstract property.
+  --    Will take the shape of the parent.
   --    After static materialization, becomes PropDict.
-  --    No value-type static or dynamic props correspond to it.
+  --    DeriviedProp can't be value level.
   DerivedProp
-    :: Essence lvl
-    -> Property lvl
-    -> [PropertyKeyValue lvl]
-    -> Property lvl
+    :: EssenceTL
+    -> AbstractProperty
+    -> [PropertyKeyValueTL]
+    -> [PropertyScriptTL]
+    -> PropertyTL
 
-  -- | Property script.
-  PropScript
-    :: PropertyGroup lvl
-    -> Script lvl
-    -> Property lvl
+  -- | Compound property for static value-level and dynamic
+  -- value-level representation.
+  -- Can't be type-level; use AbstractProp and DerivedProp instead.
+  PropDict
+    :: PropertyGroupVL
+    -> [PropertyKeyValueVL]
+    -> [PropertyScriptVL]
+    -> PropertyVL
 
 
 ------ Short identifiers ----------
 
-type PropertyTL = Property 'TypeLevel
-type PropertyVL = Property 'ValueLevel
-
 type PropertyGroupTL = PropertyGroup 'TypeLevel
 type PropertyGroupVL = PropertyGroup 'ValueLevel
+
+type PropertyScriptTL = PropertyScript 'TypeLevel
+type PropertyScriptVL = PropertyScript 'ValueLevel
+
+type PropertyTL = Property 'TypeLevel
+type PropertyVL = Property 'ValueLevel
 
 type PropertyKeyValueTL = PropertyKeyValue 'TypeLevel
 type PropertyKeyValueVL = PropertyKeyValue 'ValueLevel

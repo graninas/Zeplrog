@@ -2,9 +2,10 @@
 
 module ZP.Assets.KnowledgeBase.Common where
 
+import ZP.Prelude
+
 import ZP.Domain.Static.Model
 import ZP.Assets.KnowledgeBase.Essences
-import ZP.Domain.Hardcode.KnowledgeBase
 
 import GHC.TypeLits
 
@@ -12,13 +13,31 @@ import GHC.TypeLits
 type PathToIcon = IconPath '[ EIcon ]
 type PathToPos  = PosPath  '[ EPos ]
 
--- | HP value: current and max
-type HPVal hp = PropVal
-  (Group EHP)
-  (PairValue (IntValue hp) (IntValue hp))
+-- | World position value.
+type GenericPos    = TagProp (TagGroup EGenericPos)
+type PosVal x y    = PairValue (IntValue x) (IntValue y)
+type PosTagVal x y = TagValue GenericPos (PosVal x y)
 
--- | Strength random val
-type StrengthRandomVal from to = PropVal
-  (Group EStrength)
-  (RandomIntValue from to)
+-- | Actor's HP.
+type GenericHP   = TagProp (TagGroup EGenericHP)
+type HPVal hp    = PairValue (IntValue hp) (IntValue hp)
+type HPTagVal hp = TagValue GenericHP (HPVal hp)
 
+
+-- -- | Strength random val
+-- type StrengthRandomVal from to = PropVal
+--   (Group EStrength)
+--   (RandomIntValue from to)
+
+-- -- | Derived world position value.
+-- type DerivedPosVal = PropVal
+--   (GroupRoot EPos GenericPos)
+--   DerivedWorldPos
+
+-- | Derived world position value.
+type DerivablePosTagVal x y = OverriddableValue (PosTagVal x y)
+
+type IconVal icon = StringValue icon
+
+
+type AnyProp = AbstractProp (Group EAnyProp) '[] '[]

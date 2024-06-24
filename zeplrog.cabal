@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 63ebb18fa79d188735015c3fabb06cdf286f6e296a4f0126e34c5e0ed978650b
+-- hash: f11e38d84b3c160ae7265f4c49e3c54dce5b368c2a669d8763c9423dd68f9ed7
 
 name:           zeplrog
 version:        0.0.0.1
@@ -31,6 +31,7 @@ library
       ZP.Assets.KnowledgeBase.Effects
       ZP.Assets.KnowledgeBase.Essences
       ZP.Assets.KnowledgeBase.Game
+      ZP.Assets.KnowledgeBase.Items
       ZP.Assets.KnowledgeBase.Surroundings
       ZP.Assets.KnowledgeBase.World1
       ZP.Domain.Dynamic.Materialization
@@ -48,34 +49,41 @@ library
       ZP.Domain.Dynamic.Model.Game
       ZP.Domain.Dynamic.Model.Object
       ZP.Domain.Dynamic.Model.Property
-      ZP.Domain.Dynamic.Model.Script
       ZP.Domain.Dynamic.Model.World
-      ZP.Domain.Hardcode.KnowledgeBase
       ZP.Domain.Materializer
       ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
+      ZP.Domain.Static.Materialization.CommonOld
       ZP.Domain.Static.Materialization.Effect
       ZP.Domain.Static.Materialization.Game
       ZP.Domain.Static.Materialization.Macro
       ZP.Domain.Static.Materialization.Materializer
+      ZP.Domain.Static.Materialization.MaterializerOld
       ZP.Domain.Static.Materialization.Object
       ZP.Domain.Static.Materialization.Property
+      ZP.Domain.Static.Materialization.PropertyOld
       ZP.Domain.Static.Materialization.Script
+      ZP.Domain.Static.Materialization.ScriptOld
       ZP.Domain.Static.Materialization.World
       ZP.Domain.Static.Model
       ZP.Domain.Static.Model.Common
+      ZP.Domain.Static.Model.CommonOld
       ZP.Domain.Static.Model.Effect
       ZP.Domain.Static.Model.Game
       ZP.Domain.Static.Model.Helpers
       ZP.Domain.Static.Model.Object
       ZP.Domain.Static.Model.Property
+      ZP.Domain.Static.Model.PropertyOld
       ZP.Domain.Static.Model.Script
+      ZP.Domain.Static.Model.ScriptOld
       ZP.Domain.Static.Model.World
       ZP.Domain.Static.Query
+      ZP.Domain.Static.QueryOld
       ZP.Domain.Static.Transform
       ZP.Prelude
       ZP.System.Debug
+      ZP.System.TypeSelector.Granular
   other-modules:
       Paths_zeplrog
   hs-source-dirs:
@@ -151,6 +159,7 @@ executable zeplrog
       ZP.Assets.KnowledgeBase.Effects
       ZP.Assets.KnowledgeBase.Essences
       ZP.Assets.KnowledgeBase.Game
+      ZP.Assets.KnowledgeBase.Items
       ZP.Assets.KnowledgeBase.Surroundings
       ZP.Assets.KnowledgeBase.World1
       ZP.Domain.Dynamic.Materialization
@@ -168,34 +177,41 @@ executable zeplrog
       ZP.Domain.Dynamic.Model.Game
       ZP.Domain.Dynamic.Model.Object
       ZP.Domain.Dynamic.Model.Property
-      ZP.Domain.Dynamic.Model.Script
       ZP.Domain.Dynamic.Model.World
-      ZP.Domain.Hardcode.KnowledgeBase
       ZP.Domain.Materializer
       ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
+      ZP.Domain.Static.Materialization.CommonOld
       ZP.Domain.Static.Materialization.Effect
       ZP.Domain.Static.Materialization.Game
       ZP.Domain.Static.Materialization.Macro
       ZP.Domain.Static.Materialization.Materializer
+      ZP.Domain.Static.Materialization.MaterializerOld
       ZP.Domain.Static.Materialization.Object
       ZP.Domain.Static.Materialization.Property
+      ZP.Domain.Static.Materialization.PropertyOld
       ZP.Domain.Static.Materialization.Script
+      ZP.Domain.Static.Materialization.ScriptOld
       ZP.Domain.Static.Materialization.World
       ZP.Domain.Static.Model
       ZP.Domain.Static.Model.Common
+      ZP.Domain.Static.Model.CommonOld
       ZP.Domain.Static.Model.Effect
       ZP.Domain.Static.Model.Game
       ZP.Domain.Static.Model.Helpers
       ZP.Domain.Static.Model.Object
       ZP.Domain.Static.Model.Property
+      ZP.Domain.Static.Model.PropertyOld
       ZP.Domain.Static.Model.Script
+      ZP.Domain.Static.Model.ScriptOld
       ZP.Domain.Static.Model.World
       ZP.Domain.Static.Query
+      ZP.Domain.Static.QueryOld
       ZP.Domain.Static.Transform
       ZP.Prelude
       ZP.System.Debug
+      ZP.System.TypeSelector.Granular
       Paths_zeplrog
   hs-source-dirs:
       src/
