@@ -14,59 +14,57 @@ import ZP.Domain.Static.Model.Common
 
 
 -- | Variable definition
-data GenericVarDef (lvl :: Level) typeTag where
+data GenericVarDef (lvl :: Level) tag where
   GenericVar
     :: StringType lvl             -- ^ Var name
-    -> GenericValDef lvl typeTag  -- ^ Default value
-    -> GenericVarDef lvl typeTag
+    -> GenericValDef lvl tag  -- ^ Default value
+    -> GenericVarDef lvl tag
+
+-- N.B., Proxy is only needed to satisfy functional dependency
+-- that is somehow fails to define tag without this workaround.
+data Target (lvl :: Level) tag where
+  ToField :: Proxy tag -> EssencePath lvl -> Target lvl tag
+  ToVar   :: GenericVarDef lvl tag -> Target lvl tag
+
+-- N.B., Proxy is only needed to satisfy functional dependency
+-- that is somehow fails to define tag without this workaround.
+data Source (lvl :: Level) tag where
+  FromField :: Proxy tag -> EssencePath lvl -> Source lvl tag
+  FromVar   :: GenericVarDef lvl tag -> Source lvl tag
+  FromConst :: GenericConstDef lvl tag -> Source lvl tag
+
+-- | Function over a value
+data Func (lvl :: Level) tag1 tag2 where
+  NegateF :: Func lvl BoolTag BoolTag
 
 -- | Script operation
 data ScriptOp (lvl :: Level) where
-  DeclareVar :: GenericVarDef lvl typeTag -> ScriptOp lvl
+  DeclareVar :: GenericVarDef lvl tag -> ScriptOp lvl
 
   -- Can be the only MOV instruction
   WriteData
-    :: Target lvl typeTag
-    -> Source lvl typeTag
+    :: Target lvl tag
+    -> Source lvl tag
     -> ScriptOp lvl
 
   Invoke
-    :: Func lvl typeTag1 typeTag2
-    -> Source lvl typeTag1
-    -> Target lvl typeTag2
+    :: Func lvl tag1 tag2
+    -> Source lvl tag1
+    -> Target lvl tag2
     -> ScriptOp lvl
 
 type ReadData src tgt = WriteData tgt src
-
--- N.B., Proxy is only needed to satisfy functional dependency
--- that is somehow fails to define typeTag without this workaround.
-data Target (lvl :: Level) typeTag where
-  ToField :: Proxy typeTag -> EssencePath lvl -> Target lvl typeTag
-  ToVar   :: GenericVarDef lvl typeTag -> Target lvl typeTag
-
--- N.B., Proxy is only needed to satisfy functional dependency
--- that is somehow fails to define typeTag without this workaround.
-data Source (lvl :: Level) typeTag where
-  FromField :: Proxy typeTag -> EssencePath lvl -> Source lvl typeTag
-  FromVar   :: GenericVarDef lvl typeTag -> Source lvl typeTag
-  FromConst :: GenericConstDef lvl typeTag -> Source lvl typeTag
-
--- | Function over a value
-data Func (lvl :: Level) typeTag1 typeTag2 where
-  NegateF :: Func lvl BoolTag BoolTag
 
 -- | Script type
 data CustomScript (lvl :: Level) where
   Script
     :: StringType lvl
     -- ^ Description
-    -> [ScriptOp lvl]
+    -- -> [ScriptOp lvl]
     -> CustomScript lvl
 
 -- Predefined var types
 
--- type IntVar (name :: Symbol) (i :: Nat)
---   = GenericVar @'TypeLevel @IntTag name (IntValue i) IntTag
 type IntVar (name :: Symbol) (i :: Nat)
   = GenericVar name (IntValue i)
 
@@ -79,26 +77,26 @@ type StringVar (name :: Symbol) (s :: Symbol)
 type PathVar (name :: Symbol) (ss :: [EssenceTL])
   = GenericVar name (PathValue ss)
 
--- TODO: rest of vars
+-- -- TODO: rest of vars
 
 
--- Short definitions
+-- -- Short definitions
 
-type CustomScriptTL = CustomScript 'TypeLevel
-type CustomScriptVL = CustomScript 'ValueLevel
+-- type CustomScriptTL = CustomScript 'TypeLevel
+-- type CustomScriptVL = CustomScript 'ValueLevel
 
-type FuncTL = Func 'TypeLevel
-type FuncVL = Func 'ValueLevel
+-- type FuncTL = Func 'TypeLevel
+-- type FuncVL = Func 'ValueLevel
 
-type SourceTL = Source 'TypeLevel
-type SourceVL = Source 'ValueLevel
+-- type SourceTL = Source 'TypeLevel
+-- type SourceVL = Source 'ValueLevel
 
-type TargetTL = Target 'TypeLevel
-type TargetVL = Target 'ValueLevel
+-- type TargetTL = Target 'TypeLevel
+-- type TargetVL = Target 'ValueLevel
 
 type GenericVarDefTL = GenericVarDef 'TypeLevel
 type GenericVarDefVL = GenericVarDef 'ValueLevel
 
-type ScriptOpTL = ScriptOp 'TypeLevel
-type ScriptOpVL = ScriptOp 'ValueLevel
+-- type ScriptOpTL = ScriptOp 'TypeLevel
+-- type ScriptOpVL = ScriptOp 'ValueLevel
 

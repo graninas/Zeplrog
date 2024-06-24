@@ -15,12 +15,12 @@ type PathToPos  = PosPath  '[ EPos ]
 
 -- | World position value.
 type GenericPos    = TagProp (TagGroup EGenericPos)
-type PosVal x y    = PairValue (IntValue x) (IntValue y)
+type PosVal x y    = IntPairValue x y
 type PosTagVal x y = TagValue GenericPos (PosVal x y)
 
 -- | Actor's HP.
 type GenericHP   = TagProp (TagGroup EGenericHP)
-type HPVal hp    = PairValue (IntValue hp) (IntValue hp)
+type HPVal hp    = IntPairValue hp hp
 type HPTagVal hp = TagValue GenericHP (HPVal hp)
 
 
@@ -35,7 +35,7 @@ type HPTagVal hp = TagValue GenericHP (HPVal hp)
 --   DerivedWorldPos
 
 -- | Derived world position value.
-type DerivablePosTagVal x y = OverriddableValue (PosTagVal x y)
+type DerivablePosTagVal = PosTagVal 0 0
 
 type IconVal icon = StringValue icon
 

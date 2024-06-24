@@ -43,7 +43,6 @@ instance
   ( DMat () SMod.WorldVL World
   , DMat () SMod.PropertyVL Property
   , DMat SMod.PosEssencePathVL SMod.ObjectVL Object
-  -- , DMat () (SMat.Instantiate, SMod.PropertyVL) Property
   ) =>
   DMat () SMod.GameVL Game where
   dMat _ () (SMod.GameEnvironment

@@ -19,7 +19,7 @@ type StateOpen  = TagProp (TagGroupRoot EStateOpen  Open)
 type StateClose = TagProp (TagGroupRoot EStateClose Close)
 
 type PushableScript = 'Script @'TypeLevel "'pushable' ability script"
-  '[]
+  -- '[]
   -- '[ SimpleQuery
   --       '[ FollowReferences ]
   --       '[ QEssence EState, QGetEssence ]
@@ -40,7 +40,7 @@ type OpenStateRef  = '[ EStates, EStateOpen  ]
 type AbstractDoor = AbstractProp (Group EAbstractDoor)
   '[ PropKeyVal EIcon (OwnVal (IconVal "+"))   -- TODO: open and close door with own icons
    , PropKeyVal EHP   (OwnVal (HPTagVal 50))
-   , PropKeyVal EPos  (OwnVal (DerivablePosTagVal 0 0))
+   , PropKeyVal EPos  (OwnVal DerivablePosTagVal)
 
     -- | Possible states
    , PropKeyBag EStates

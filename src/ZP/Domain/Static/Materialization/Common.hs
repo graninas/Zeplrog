@@ -68,52 +68,55 @@ instance
 -- Statically materialize value
 
 instance
-  ( TypeTagRelation typeTag t
-  , SMat () defVal t
+  ( SMat () val (TagToType 'ValueLevel tag)
   ) =>
-  SMat (Proxy typeTag)
-        ('GenericVal @'TypeLevel defVal typeName)
-        (GenericValDefVL typeTag) where
+  SMat (Proxy tag)
+        ('GenericValue @'TypeLevel @tag val)
+        (GenericValDefVL tag) where
   sMat _ _ = do
-    let typeName = symbolVal $ Proxy @typeName
-    val <- sMat () $ Proxy @defVal
-    pure $ GenericVal val typeName
+    val <- sMat () $ Proxy @val
+    pure $ GenericValue val
 
+instance
+  ( t ~ TagToType 'ValueLevel IntTag
+  , KnownNat intVal
+  ) =>
+  SMat () intVal t where
+  sMat () _ = pure
+      $ fromIntegral
+      $ natVal
+      $ Proxy @intVal
 
--- instance
---   ( KnownNat intVal
---   ) =>
---   SMat () ('IntValue @'TypeLevel intVal)
---       ValDefVL where
---   sMat () _ = pure
---       $ IntValue
---       $ fromIntegral
---       $ natVal
---       $ Proxy @intVal
+instance
+  ( t ~ TagToType 'ValueLevel StringTag
+  , KnownSymbol s
+  ) =>
+  SMat () s t where
+  sMat () _ = pure
+      $ symbolVal
+      $ Proxy @s
 
--- instance
---   ( SMat () val1 ValDefVL
---   , SMat () val2 ValDefVL
---   ) =>
---   SMat () ('PairValue @'TypeLevel val1 val2) ValDefVL where
---   sMat () _ = do
---     val1 <- sMat () $ Proxy @val1
---     val2 <- sMat () $ Proxy @val2
---     pure $ PairValue val1 val2
+instance
+  ( t ~ TagToType 'ValueLevel BoolTag
+  ) =>
+  SMat () 'True t where
+  sMat () _ = pure True
 
--- instance
---   SMat () ('BoolValue @'TypeLevel 'True) ValDefVL where
---   sMat () _ = pure $ BoolValue True
+instance
+  ( t ~ TagToType 'ValueLevel BoolTag
+  ) =>
+  SMat () 'False t where
+  sMat () _ = pure False
 
--- instance
---   ( KnownSymbol str
---   ) =>
---   SMat () ('StringValue @'TypeLevel str) ValDefVL where
---   sMat () _ = pure $ StringValue $ symbolVal $ Proxy @str
-
--- instance
---   SMat () ('BoolValue @'TypeLevel 'False) ValDefVL where
---   sMat () _ = pure $ BoolValue False
+instance
+  ( t ~ TagToType 'ValueLevel PairIntIntTag
+  , KnownNat i1
+  , KnownNat i2
+  ) =>
+  SMat () ('Pair i1 i2) t where
+  sMat () _ = pure $
+    Pair (fromIntegral $ natVal $ Proxy @i1)
+         (fromIntegral $ natVal $ Proxy @i2)
 
 -- instance
 --   ( SMat () valDef ValDefVL
@@ -123,28 +126,25 @@ instance
 --     valDef <- sMat () $ Proxy @valDef
 --     pure $ OverriddableValue valDef
 
+-- instance
+--   ( SMat () (Essences essPath) [EssenceVL]
+--   ) =>
+--   SMat () ('PathValue @'TypeLevel essPath)
+--          ValDefVL where
+--   sMat () _ = do
+--     path <- sMat () $ Proxy @(Essences essPath)
+--     pure $ PathValue path
 
--- Static materialization of essences
-
-instance
-  ( SMat () (Essences essPath) [EssenceVL]
-  ) =>
-  SMat () ('PathValue @'TypeLevel essPath)
-         ValDefVL where
-  sMat () _ = do
-    path <- sMat () $ Proxy @(Essences essPath)
-    pure $ PathValue path
-
-instance
-  ( SMat () tagProp TagPropertyVL
-  , SMat () valDef ValDefVL
-  ) =>
-  SMat () ('TagValue @'TypeLevel tagProp valDef)
-         ValDefVL where
-  sMat () _ = do
-    tagProp <- sMat () $ Proxy @tagProp
-    valDef  <- sMat () $ Proxy @valDef
-    pure $ TagValue tagProp valDef
+-- instance
+--   ( SMat () tagProp TagPropertyVL
+--   , SMat () valDef ValDefVL
+--   ) =>
+--   SMat () ('TagValue @'TypeLevel tagProp valDef)
+--          ValDefVL where
+--   sMat () _ = do
+--     tagProp <- sMat () $ Proxy @tagProp
+--     valDef  <- sMat () $ Proxy @valDef
+--     pure $ TagValue tagProp valDef
 
 -- Statically materialize Essence path
 

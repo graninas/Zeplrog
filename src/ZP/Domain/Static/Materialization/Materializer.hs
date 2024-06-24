@@ -34,12 +34,6 @@ type SMaterializer a = ReaderT SEnv IO a
 class SMat payload a b | payload a -> b where
   sMat :: payload -> Proxy a -> SMaterializer b
 
--- | Special payload to make specific instances when materializing props.
-data Instantiate
-  = InstantiateValue
-      [EssenceVL]        -- ^ Possible path to this value
-      ValDefVL           -- ^ Value to instantiate
-
 -- | Run materializer with an environment.
 runSMaterializer :: SEnv -> SMaterializer a -> IO a
 runSMaterializer sEnv m = do

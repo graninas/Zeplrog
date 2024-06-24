@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -11,6 +12,7 @@ import ZP.Prelude
 import GHC.TypeLits
 
 import qualified Text.Show as T
+import qualified Data.Kind as DK
 
 ------ Common and General -----------------
 
@@ -43,57 +45,49 @@ data TagProperty (lvl :: Level) where
     :: TagPropertyGroup lvl
     -> TagProperty lvl
 
--- -- | Value definition with a default value
-
--- data ValDef (lvl :: Level) where
---   IntValue      :: IntegerType lvl -> ValDef lvl
---   BoolValue     :: Bool -> ValDef lvl
---   StringValue   :: StringType lvl-> ValDef lvl
---   PairValue     :: ValDef lvl -> ValDef lvl-> ValDef lvl
-
---   -- TODO:
---   -- ListValue     :: [ValDef lvl] -> ValDef lvl
---   -- EssenceValue  :: Essence lvl -> ValDef lvl
-
---   -- | Reference to a dynamic property relative to the parent prop
---   PathValue     :: [Essence lvl] -> ValDef lvl
-
---   -- | Reference to a tag property
---   -- with a value
---   TagValue      :: TagProperty lvl -> ValDef lvl -> ValDef lvl
-
 -- | Open type family that will match a type tag
 --   to a specific type depending on the level
-type family TagToType (lvl :: Level) (typeTag :: Symbol) :: *
+type family TagToType (lvl :: Level) (tag :: (Symbol, extraTag)) :: a
 
-data GenericValDef (lvl :: Level) typeTag where
+-- | Generic value definition with a default value
+data GenericValDef (lvl :: Level) tag where
   GenericValue
-    :: TagToType lvl typeTag       -- ^ Type family that adjusts
+    :: TagToType lvl tag       -- ^ Type family that adjusts
          -- the actual field type depending on the level and type tag
-    -> GenericValDef lvl typeTag
+    -> GenericValDef lvl tag
 
 -- | Constant definition
-data GenericConstDef (lvl :: Level) typeTag where
+data GenericConstDef (lvl :: Level) tag where
   GenericConst
-    :: GenericValDef lvl typeTag   -- ^ Constant value
-    -> GenericConstDef lvl typeTag
+    :: GenericValDef lvl tag   -- ^ Constant value
+    -> GenericConstDef lvl tag
 
 ------------- Predefined values and types
 
 -- Predefined types and tags
-type IntTag     = "tag:int"
-type BoolTag    = "tag:bool"
-type StringTag  = "tag:string"
-type PairTag    = "tag:pair"
-type PathTag    = "tag:path"
-type TagTag     = "tag:tag"
-type EssenceTag = "tag:essence"
+type IntTag         = '("tag:int", ())
+type BoolTag        = '("tag:bool", ())
+type StringTag      = '("tag:string", ())
+type PathTag        = '("tag:path", ())
+type TagTag         = "tag:tag"
+type EssenceTag     = '("tag:essence", ())
+type PairIntIntTag  = '("tag:(int,int)", ())
+
+data GenericPair a b = Pair a b
+data TagValueHolder lvl tag
+  = TVH
+    (TagProperty lvl)
+    (GenericValDef lvl tag)
 
 type instance TagToType lvl IntTag = IntegerType lvl
 type instance TagToType lvl StringTag = StringType lvl
 type instance TagToType lvl BoolTag = Bool
 type instance TagToType lvl EssenceTag = Essence lvl
 type instance TagToType lvl PathTag = [Essence lvl]
+type instance TagToType 'TypeLevel '(TagTag, vt)
+  = TagValueHolder 'TypeLevel vt
+type instance TagToType lvl PairIntIntTag
+  = GenericPair (IntegerType lvl) (IntegerType lvl)
 
 -- Predefined values
 
@@ -112,15 +106,16 @@ type EssenceValue (ess :: EssenceTL)
 type PathValue (ss :: [EssenceTL])
   = GenericValue @'TypeLevel @PathTag ss
 
--- type PairValue
---   (p1 :: GenericValDef 'TypeLevel typeTag1 t1)
---   (p2 :: GenericValDef 'TypeLevel typeTag2 t2)
---   = GenericValue @'TypeLevel @PairTag (p1, p2) PairTag
+type IntPairValue (i1 :: Nat) (i2 :: Nat)
+  = GenericValue @'TypeLevel @PairIntIntTag ('Pair i1 i2)
 
--- type TagValue
---   (tp :: TagProperty 'TypeLevel)
---   (v :: GenericValDef 'TypeLevel typeTag t)
---   = GenericValue @'TypeLevel @TagTag (tp, v) TagTag
+type TagValue
+  (tagProp :: TagProperty 'TypeLevel)
+  (genVal :: GenericValDef 'TypeLevel vt)
+  = GenericValue @TypeLevel @'(TagTag, vt)
+      (TVH tagProp genVal)
+
+
 
 -- Predefined constants
 
