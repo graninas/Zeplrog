@@ -56,12 +56,14 @@ instance
       <> show (length statProps)
 
     -- N.B., repeated props will be droped.
-    let iconsToStatPropsMap = Map.fromList
-          [ (fromJust mbIcon, statProp)
-          | statProp <- statProps
-          , let mbIcon = SQuery.queryStringValueRelative pathToIcon statProp
-          , isJust (trace ("\n\n" <> show mbIcon) mbIcon)
-          ]
+    let iconsToStatPropsMap = Map.fromList []
+
+    -- TODO
+          -- [ (fromJust mbIcon, statProp)
+          -- | statProp <- statProps
+          -- , let mbIcon = SQuery.queryStringValueRelative pathToIcon statProp
+          -- , isJust (trace ("\n\n" <> show mbIcon) mbIcon)
+          -- ]
 
     -- World cells to traverse and search for icons.
     let cells = worldDataToList statWD
@@ -90,19 +92,19 @@ instance
           allObjs1
           objs
 
-    allObjsVar <- newTVarIO allObjs2
+    allObjsRef <- newIORef allObjs2
 
-    objIdVar      <- asks deObjectIdVar
-    propIdVar     <- asks dePropertyIdVar
-    statPropsVar  <- asks $ seStaticPropertiesVar . deSEnv
-    statEsssVar   <- asks $ seStaticEssencesVar . deSEnv
-    statProps     <- readTVarIO statPropsVar
-    statEsss      <- readTVarIO statEsssVar
+    objIdRef      <- asks deObjectIdRef
+    propIdRef     <- asks dePropertyIdRef
+    statPropsRef  <- asks $ seStaticPropertiesRef . deSEnv
+    statEsssRef   <- asks $ seStaticEssencesRef . deSEnv
+    statProps     <- readIORef statPropsRef
+    statEsss      <- readIORef statEsssRef
 
     pure $ Game
       world
-      propIdVar
-      objIdVar
+      propIdRef
+      objIdRef
       statProps
       statEsss
-      allObjsVar
+      allObjsRef

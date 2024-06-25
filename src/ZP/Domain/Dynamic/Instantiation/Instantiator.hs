@@ -35,6 +35,7 @@ data DEnv = DEnv
     -- ^ List of shared props
   , deEssencesRef         :: IORef DynamicEssences
     -- ^ List of all dynamic props
+  , deObjectIdRef         :: IORef ObjectId
   }
 
 type DInstantiator a = ReaderT DEnv IO a
@@ -84,6 +85,7 @@ makeDEnv sEnv = DEnv
   <*> newIORef Map.empty
   <*> newIORef Map.empty
   <*> newIORef Map.empty
+  <*> newIORef (ObjectId 0)
 
 makeEnvs :: DebugMode -> IO (SMat.SEnv, DEnv)
 makeEnvs dbg = do
@@ -122,6 +124,12 @@ dTraceDebug mMsg = do
     msg <- mMsg
     trace msg $ pure ()
 
+withSMaterializer
+  :: SMat.SMaterializer a
+  -> DInstantiator a
+withSMaterializer sMaterializer = do
+  sEnv <- asks deSEnv
+  liftIO $ SMat.runSMaterializer sEnv sMaterializer
 
 -- | Finalizes creation of property.
 -- Registers the property in maps.
@@ -158,9 +166,9 @@ spawnProperty propMat = do
 
   pure (ess, prop)
 
-withSMaterializer
-  :: SMat.SMaterializer a
-  -> DInstantiator a
-withSMaterializer sMaterializer = do
-  sEnv <- asks deSEnv
-  liftIO $ SMat.runSMaterializer sEnv sMaterializer
+spawnObject :: Property -> DInstantiator Object
+spawnObject prop = do
+  objIdRef <- asks deObjectIdRef
+  ObjectId objId <- readIORef objIdRef
+  writeIORef objIdRef $ ObjectId $ objId + 1
+  pure $ Object (ObjectId objId) prop
