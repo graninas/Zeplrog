@@ -16,6 +16,8 @@ import qualified Data.Kind as DK
 
 ------ Common and General -----------------
 
+
+
 -- | Sudo ID of a property
 
 data Essence (lvl :: Level) where
@@ -53,7 +55,7 @@ type family TagToType (lvl :: Level) (tag :: (Symbol, extraTag)) :: a
 data GenericValDef (lvl :: Level) tag where
   GenericValue
     :: TagToType lvl tag       -- ^ Type family that adjusts
-         -- the actual field type depending on the level and type tag
+                               -- the actual field type depending on the level and type tag
     -> GenericValDef lvl tag
 
 -- | Constant definition

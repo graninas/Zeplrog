@@ -37,30 +37,30 @@ import ZP.Prelude
 --     -- ^ List of all dynamic props
 --   }
 
--- type DMaterializer a = ReaderT DEnv IO a
+-- type DInstantiator a = ReaderT DEnv IO a
 
 -- type Shared = Bool
 
 -- -- | Materialization type class.
--- class DMat payload a b | payload a -> b where
---   dMat :: Shared -> payload -> a -> DMaterializer b
+-- class DInst payload a b | payload a -> b where
+--   dInst :: Shared -> payload -> a -> DInstantiator b
 
--- runDMaterializer :: DEnv -> DMaterializer a -> IO a
--- runDMaterializer dEnv m = runReaderT m dEnv
+-- runDInstantiator :: DEnv -> DInstantiator a -> IO a
+-- runDInstantiator dEnv m = runReaderT m dEnv
 
--- dMat' :: DMat payload a b => DEnv -> payload -> a -> IO b
--- dMat' dEnv p itVL = runDMaterializer dEnv $ dMat False p itVL
+-- dInst' :: DInst payload a b => DEnv -> payload -> a -> IO b
+-- dInst' dEnv p itVL = runDInstantiator dEnv $ dInst False p itVL
 
 -- fullMat
 --   :: SMat payload itTL itVL
---   => DMat payload itVL res
+--   => DInst payload itVL res
 --   => DEnv
 --   -> payload
 --   -> Proxy itTL
 --   -> IO res
 -- fullMat dEnv p proxy = do
 --   itVL <- sMat' (deSEnv dEnv) p proxy
---   dMat' dEnv p itVL
+--   dInst' dEnv p itVL
 
 -- makeDEnv :: SEnv -> IO DEnv
 -- makeDEnv sEnv = DEnv
@@ -81,18 +81,18 @@ import ZP.Prelude
 
 -- getNextPropertyId'
 --   :: TVar PropertyId
---   -> DMaterializer PropertyId
+--   -> DInstantiator PropertyId
 -- getNextPropertyId' propIdVar = atomically $ do
 --   PropertyId pId <- readTVar propIdVar
 --   writeTVar propIdVar $ PropertyId $ pId + 1
 --   pure $ PropertyId pId
 
--- getNextPropertyId :: DMaterializer PropertyId
+-- getNextPropertyId :: DInstantiator PropertyId
 -- getNextPropertyId = do
 --   propIdVar <- asks dePropertyIdVar
 --   getNextPropertyId' propIdVar
 
--- getPropertyEssence :: PropertyId -> DMaterializer Essence
+-- getPropertyEssence :: PropertyId -> DInstantiator Essence
 -- getPropertyEssence propId = do
 --   propsVar <- asks dePropertiesVar
 --   props    <- readTVarIO propsVar
@@ -101,7 +101,7 @@ import ZP.Prelude
 --       $ "Property essence not found for pId: " <> show propId
 --     Just (ess, _) -> pure ess
 
--- dTraceDebug :: DMaterializer String -> DMaterializer ()
+-- dTraceDebug :: DInstantiator String -> DInstantiator ()
 -- dTraceDebug mMsg = do
 --   dbg <- asks $ seDebugMode . deSEnv
 --   when (dbg == DebugEnabled) $ do
@@ -112,8 +112,8 @@ import ZP.Prelude
 -- -- | Finalizes creation of property.
 -- -- Registers the property in maps.
 -- spawnProperty
---   :: DMaterializer (Essence, Property)
---   -> DMaterializer Property
+--   :: DInstantiator (Essence, Property)
+--   -> DInstantiator Property
 -- spawnProperty propMat = do
 --   (ess, prop) <- propMat
 --   let propId = pPropertyId prop
@@ -144,7 +144,7 @@ import ZP.Prelude
 
 --   pure prop
 
--- spawnObject :: Property -> DMaterializer Object
+-- spawnObject :: Property -> DInstantiator Object
 -- spawnObject prop = do
 --   objIdVar <- asks deObjectIdVar
 --   atomically $ do
@@ -154,7 +154,7 @@ import ZP.Prelude
 
 -- withSMaterializer
 --   :: SMaterializer a
---   -> DMaterializer a
+--   -> DInstantiator a
 -- withSMaterializer sMaterializer = do
 --   sEnv <- asks deSEnv
 --   liftIO $ runSMaterializer sEnv sMaterializer

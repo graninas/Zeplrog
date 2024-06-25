@@ -85,7 +85,7 @@ buildStaticValueNode uidVar stylesVar valVar = do
           [ quoted nName          <> " -> " <> quoted jointPointName <> toValueNodeArrStyle
           , quoted jointPointName <> " -> " <> quoted sPropName <> toValueNodeArrStyle
           ])
-    MaterializableStateValue d (SharedMaterialization sProp) -> do
+    MaterializableStateValue d (SharedInsterialization sProp) -> do
       let Essence ess = essence sProp
       let StaticPropertyId sPId = staticPropertyId sProp
       let sPropName = "S:" <> show sPId <> ":" <> ess
@@ -179,16 +179,16 @@ buildStaticPropertiesByType
   -> (PropertyType, [MaterializationLink])
   -> STM (PropertyType, [String], [String])
 buildStaticPropertiesByType uidVar stylesVar (pType, matLinks) = do
-  strs :: [(String, [String])] <- mapM (buildMaterializationLinkNode uidVar stylesVar) matLinks
+  strs :: [(String, [String])] <- mapM (buildInsterializationLinkNode uidVar stylesVar) matLinks
   let names = map fst strs
   pure (pType, names, join $ map snd strs)
 
 
-buildMaterializationLinkNode :: NodeUID -> NodeStyles -> MaterializationLink -> STM (String, [String])
-buildMaterializationLinkNode uidVar stylesVar matLink = do
+buildInsterializationLinkNode :: NodeUID -> NodeStyles -> MaterializationLink -> STM (String, [String])
+buildInsterializationLinkNode uidVar stylesVar matLink = do
   uid <- getNodeUID uidVar
   let (jointPointName, sProp) = case matLink of
-        SharedMaterialization sProp -> ("○/" <> show uid, sProp)
+        SharedInsterialization sProp -> ("○/" <> show uid, sProp)
         DirectMaterialization sProp -> ("●/" <> show uid, sProp)
   addNodeStyle stylesVar valueNodeStyle jointPointName
   buildJointedStaticPropertyNode uidVar stylesVar jointPointName sProp
@@ -305,7 +305,7 @@ buildGraph ZPNet{knowledgeBase, actingObjects} = do
   nodeUIDVar <- newTVar 0
   stylesVar <- newTVar Map.empty
 
-  staticPropsStrings' <- mapM (buildMaterializationLinkNode nodeUIDVar stylesVar) materializationLinks
+  staticPropsStrings' <- mapM (buildInsterializationLinkNode nodeUIDVar stylesVar) materializationLinks
   let staticPropsStrings = join $ map snd staticPropsStrings'
 
   actingObjectsStrings' <- mapM (buildActingObjectNode nodeUIDVar stylesVar) $ Map.toList actingObjects

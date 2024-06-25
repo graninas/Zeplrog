@@ -23,7 +23,7 @@ spec = do
       (sEnv, dEnv) <- makeEnvs DebugDisabled
 
       doorStat <- sMat' sEnv () $ Proxy @KB.SpecificDoor
-      door     <- dMat' dEnv () doorStat
+      door     <- dInst' dEnv () doorStat
 
       props <- readTVarIO $ dePropertiesVar dEnv
       print $ "All props: " <> show (Map.keys props)

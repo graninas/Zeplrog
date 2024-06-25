@@ -3,7 +3,7 @@ module ZP.Domain.Dynamic.Instantiation
   ) where
 
 
-import ZP.Domain.Dynamic.Instantiation.Materializer as X
+import ZP.Domain.Dynamic.Instantiation.Instantiator as X
 import ZP.Domain.Dynamic.Instantiation.Common as X
 import ZP.Domain.Dynamic.Instantiation.Script as X
 import ZP.Domain.Dynamic.Instantiation.Property as X

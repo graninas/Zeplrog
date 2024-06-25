@@ -7,7 +7,7 @@ import ZP.Prelude
 import qualified ZP.Domain.Static.Model as SMod
 import qualified ZP.Domain.Static.Materialization as SMat
 import ZP.Domain.Dynamic.Model
-import ZP.Domain.Dynamic.Instantiation.Materializer
+import ZP.Domain.Dynamic.Instantiation.Instantiator
 import ZP.Domain.Dynamic.Instantiation.Common
 
 import Data.Proxy
@@ -17,20 +17,20 @@ import qualified Data.Map.Strict as Map
 -- Materialization of effect
 
 instance
-  DMat () SMod.EffectVL Effect where
-  dMat _ () prop@(SMod.Eff ess) = do
-    ess' <- dMat False () ess
+  DInst () SMod.EffectVL Effect where
+  dInst _ () prop@(SMod.Eff ess) = do
+    ess' <- dInst False () ess
     pure $ Effect ess'
 
 -- Materialization of trigger
 
 instance
-  DMat () SMod.TriggerVL EffectTrigger where
-  dMat _ () prop@(SMod.EffTrigger eff1 eff2) = do
-    eff1' <- dMat False () eff1
-    eff2' <- dMat False () eff2
+  DInst () SMod.TriggerVL EffectTrigger where
+  dInst _ () prop@(SMod.EffTrigger eff1 eff2) = do
+    eff1' <- dInst False () eff1
+    eff2' <- dInst False () eff2
     pure $ EffTrigger eff1' eff2'
-  dMat _ () prop@(SMod.AbilityTrigger eff ess) = do
-    eff' <- dMat False () eff
-    ess' <- dMat False () ess
+  dInst _ () prop@(SMod.AbilityTrigger eff ess) = do
+    eff' <- dInst False () eff
+    ess' <- dInst False () ess
     pure $ AbilityTrigger eff' ess'

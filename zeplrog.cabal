@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4caaec8af822364e718e479c3bd2ccec8affdc8e6a339c5846c0897e6c99cd0b
+-- hash: e3b5628464f49988fa700d52cea509134f287516531449230babdfdbea9cfa8f
 
 name:           zeplrog
 version:        0.0.0.1
@@ -34,15 +34,19 @@ library
       ZP.Assets.KnowledgeBase.Items
       ZP.Assets.KnowledgeBase.Surroundings
       ZP.Assets.KnowledgeBase.World1
-      ZP.Domain.Dynamic.Materialization
-      ZP.Domain.Dynamic.Materialization.Common
-      ZP.Domain.Dynamic.Materialization.Effect
-      ZP.Domain.Dynamic.Materialization.Game
-      ZP.Domain.Dynamic.Materialization.Materializer
-      ZP.Domain.Dynamic.Materialization.Object
-      ZP.Domain.Dynamic.Materialization.Property
-      ZP.Domain.Dynamic.Materialization.Script
-      ZP.Domain.Dynamic.Materialization.World
+      ZP.Domain.Dynamic.Instantiation
+      ZP.Domain.Dynamic.Instantiation.Common
+      ZP.Domain.Dynamic.Instantiation.CommonOld
+      ZP.Domain.Dynamic.Instantiation.Effect
+      ZP.Domain.Dynamic.Instantiation.Game
+      ZP.Domain.Dynamic.Instantiation.Instantiator
+      ZP.Domain.Dynamic.Instantiation.InstantiatorOld
+      ZP.Domain.Dynamic.Instantiation.Object
+      ZP.Domain.Dynamic.Instantiation.Property
+      ZP.Domain.Dynamic.Instantiation.PropertyOld
+      ZP.Domain.Dynamic.Instantiation.Script
+      ZP.Domain.Dynamic.Instantiation.ScriptOld
+      ZP.Domain.Dynamic.Instantiation.World
       ZP.Domain.Dynamic.Model
       ZP.Domain.Dynamic.Model.Common
       ZP.Domain.Dynamic.Model.CommonOld
@@ -52,7 +56,7 @@ library
       ZP.Domain.Dynamic.Model.Property
       ZP.Domain.Dynamic.Model.PropertyOld
       ZP.Domain.Dynamic.Model.World
-      ZP.Domain.Materializer
+      ZP.Domain.Dynamic.Query
       ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
@@ -132,6 +136,7 @@ library
     , fmt
     , free
     , generic-lens
+    , ghc-prim
     , lens
     , mtl
     , newtype-generics
@@ -164,15 +169,19 @@ executable zeplrog
       ZP.Assets.KnowledgeBase.Items
       ZP.Assets.KnowledgeBase.Surroundings
       ZP.Assets.KnowledgeBase.World1
-      ZP.Domain.Dynamic.Materialization
-      ZP.Domain.Dynamic.Materialization.Common
-      ZP.Domain.Dynamic.Materialization.Effect
-      ZP.Domain.Dynamic.Materialization.Game
-      ZP.Domain.Dynamic.Materialization.Materializer
-      ZP.Domain.Dynamic.Materialization.Object
-      ZP.Domain.Dynamic.Materialization.Property
-      ZP.Domain.Dynamic.Materialization.Script
-      ZP.Domain.Dynamic.Materialization.World
+      ZP.Domain.Dynamic.Instantiation
+      ZP.Domain.Dynamic.Instantiation.Common
+      ZP.Domain.Dynamic.Instantiation.CommonOld
+      ZP.Domain.Dynamic.Instantiation.Effect
+      ZP.Domain.Dynamic.Instantiation.Game
+      ZP.Domain.Dynamic.Instantiation.Instantiator
+      ZP.Domain.Dynamic.Instantiation.InstantiatorOld
+      ZP.Domain.Dynamic.Instantiation.Object
+      ZP.Domain.Dynamic.Instantiation.Property
+      ZP.Domain.Dynamic.Instantiation.PropertyOld
+      ZP.Domain.Dynamic.Instantiation.Script
+      ZP.Domain.Dynamic.Instantiation.ScriptOld
+      ZP.Domain.Dynamic.Instantiation.World
       ZP.Domain.Dynamic.Model
       ZP.Domain.Dynamic.Model.Common
       ZP.Domain.Dynamic.Model.CommonOld
@@ -182,7 +191,7 @@ executable zeplrog
       ZP.Domain.Dynamic.Model.Property
       ZP.Domain.Dynamic.Model.PropertyOld
       ZP.Domain.Dynamic.Model.World
-      ZP.Domain.Materializer
+      ZP.Domain.Dynamic.Query
       ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
@@ -261,6 +270,7 @@ executable zeplrog
     , fmt
     , free
     , generic-lens
+    , ghc-prim
     , lens
     , mtl
     , newtype-generics
@@ -335,6 +345,7 @@ test-suite tests
     , fmt
     , free
     , generic-lens
+    , ghc-prim
     , hspec
     , lens
     , mtl

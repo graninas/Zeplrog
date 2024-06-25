@@ -28,7 +28,7 @@ prepareProp
   :: SMod.PosEssencePathVL
   -> Map.Map String SMod.PropertyVL
   -> ((Int, Int), Char)
-  -> DMaterializer (Maybe SMod.PropertyVL)
+  -> DInstantiator (Maybe SMod.PropertyVL)
 prepareProp (SMod.PosPath pathToPos) statProps ((x, y), ch) = do
   case Map.lookup [ch] statProps of
     Nothing -> do
@@ -40,12 +40,12 @@ prepareProp (SMod.PosPath pathToPos) statProps ((x, y), ch) = do
     Just statProp -> pure $ Just statProp
 
 instance
-  ( DMat () SMod.WorldVL World
-  , DMat () SMod.PropertyVL Property
-  , DMat SMod.PosEssencePathVL SMod.ObjectVL Object
+  ( DInst () SMod.WorldVL World
+  , DInst () SMod.PropertyVL Property
+  , DInst SMod.PosEssencePathVL SMod.ObjectVL Object
   ) =>
-  DMat () SMod.GameVL Game where
-  dMat _ () (SMod.GameEnvironment
+  DInst () SMod.GameVL Game where
+  dInst _ () (SMod.GameEnvironment
               statWorld
               (SMod.IconPath pathToIcon)
               pathToPos
@@ -71,13 +71,13 @@ instance
     preparedStatProps <-
       mapM (prepareProp pathToPos iconsToStatPropsMap) cells
 
-    world <- dMat False () statWorld
+    world <- dInst False () statWorld
 
-    propsFromWorld <- mapM (dMat False ()) $ catMaybes preparedStatProps
+    propsFromWorld <- mapM (dInst False ()) $ catMaybes preparedStatProps
     objsFromWorld  <- mapM spawnObject propsFromWorld
 
     -- Spawning the list of objects with world positions.
-    objs <- mapM (dMat False pathToPos) statObjs
+    objs <- mapM (dInst False pathToPos) statObjs
 
     -- TODO: verify that all objects are in the world's bounds
 

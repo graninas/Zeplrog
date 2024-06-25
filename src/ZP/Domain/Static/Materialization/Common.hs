@@ -23,11 +23,45 @@ import qualified Data.Map.Strict as Map
 -- Helper to materialize the list of essences
 data Essences essPath
 
+-- Statically materialize elementary types
+
+instance
+  ( t ~ TagToType 'ValueLevel IntTag
+  , KnownNat intVal
+  ) =>
+  SMat () intVal t where
+  sMat () _ = pure
+      $ fromIntegral
+      $ natVal
+      $ Proxy @intVal
+
 instance SMat () 'True Bool where
   sMat () _ = pure True
 
 instance SMat () 'False Bool where
   sMat () _ = pure False
+
+instance
+  ( t ~ TagToType 'ValueLevel PairIntIntTag
+  , KnownNat i1
+  , KnownNat i2
+  ) =>
+  SMat () ('Pair i1 i2) t where
+  sMat () _ = pure $
+    Pair (fromIntegral $ natVal $ Proxy @i1)
+         (fromIntegral $ natVal $ Proxy @i2)
+
+-- instance
+--   ( SMat () tagProp TagPropertyVL
+--   , SMat () valDef ValDefVL
+--   ) =>
+--   SMat () ('TagValue @'TypeLevel tagProp valDef)
+--          ValDefVL where
+--   sMat () _ = do
+--     tagProp <- sMat () $ Proxy @tagProp
+--     valDef  <- sMat () $ Proxy @valDef
+--     pure $ TagValue tagProp valDef
+
 
 -- Statically materialize variable def
 
@@ -83,47 +117,6 @@ instance
     val <- sMat () $ Proxy @val
     pure $ GenericValue val
 
-instance
-  ( t ~ TagToType 'ValueLevel IntTag
-  , KnownNat intVal
-  ) =>
-  SMat () intVal t where
-  sMat () _ = pure
-      $ fromIntegral
-      $ natVal
-      $ Proxy @intVal
-
--- instance
---   ( t ~ TagToType 'ValueLevel StringTag
---   , KnownSymbol s
---   ) =>
---   SMat () s t where
---   sMat () _ = pure
---       $ symbolVal
---       $ Proxy @s
-
--- instance
---   ( t ~ TagToType 'ValueLevel BoolTag
---   ) =>
---   SMat () 'True t where
---   sMat () _ = pure True
-
--- instance
---   ( t ~ TagToType 'ValueLevel BoolTag
---   ) =>
---   SMat () 'False t where
---   sMat () _ = pure False
-
-instance
-  ( t ~ TagToType 'ValueLevel PairIntIntTag
-  , KnownNat i1
-  , KnownNat i2
-  ) =>
-  SMat () ('Pair i1 i2) t where
-  sMat () _ = pure $
-    Pair (fromIntegral $ natVal $ Proxy @i1)
-         (fromIntegral $ natVal $ Proxy @i2)
-
 -- instance
 --   ( SMat () valDef ValDefVL
 --   ) =>
@@ -131,26 +124,6 @@ instance
 --   sMat () _ = do
 --     valDef <- sMat () $ Proxy @valDef
 --     pure $ OverriddableValue valDef
-
--- instance
---   ( SMat () (Essences essPath) [EssenceVL]
---   ) =>
---   SMat () ('PathValue @'TypeLevel essPath)
---          ValDefVL where
---   sMat () _ = do
---     path <- sMat () $ Proxy @(Essences essPath)
---     pure $ PathValue path
-
--- instance
---   ( SMat () tagProp TagPropertyVL
---   , SMat () valDef ValDefVL
---   ) =>
---   SMat () ('TagValue @'TypeLevel tagProp valDef)
---          ValDefVL where
---   sMat () _ = do
---     tagProp <- sMat () $ Proxy @tagProp
---     valDef  <- sMat () $ Proxy @valDef
---     pure $ TagValue tagProp valDef
 
 -- Statically materialize constant
 
@@ -166,7 +139,7 @@ instance
 
 -- Value
 
--- Statically materialize Essence path
+-- Statically materialize Essence & path
 
 instance
   ( KnownSymbol symb

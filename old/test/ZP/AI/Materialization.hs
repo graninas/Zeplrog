@@ -109,7 +109,7 @@ materializeStaticProperty
 
       -- The same, just delaying the materialization.
       -- This should prevent for loops.
-      MaterializableStateValue descr (SharedMaterialization linkedSProp) -> do
+      MaterializableStateValue descr (SharedInsterialization linkedSProp) -> do
         outputDbg $ pad <> "-- state val, shared materialization. Linked sProp: "
             <> show (staticPropertyId linkedSProp)
             <> " essence: " <> show (essence linkedSProp)
@@ -154,7 +154,7 @@ materializeLink' pad idCounterVar kb matPropsVar delayedVarsVar propsSetter matL
 
     -- If static property is already materialized, search for it.
     -- Otherwise, materialize into a new active property and remember it for the future.
-    SharedMaterialization sProp -> do
+    SharedInsterialization sProp -> do
       outputDbg $ pad <> "-- shared mat, sProp: "
         <> show (staticPropertyId sProp)
         <> " essence: " <> show (essence sProp)

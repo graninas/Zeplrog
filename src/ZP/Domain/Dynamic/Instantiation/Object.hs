@@ -24,12 +24,12 @@ import Data.Maybe
 -- Materialization of Object with positions
 
 instance
-  ( DMat () SMod.EssenceVL Essence
+  ( DInst () SMod.EssenceVL Essence
   ) =>
-  DMat SMod.PosEssencePathVL SMod.ObjectVL Object where
-  dMat _ (SMod.PosPath pathToPos) (SMod.Obj x y statObjProp) = do
-    essPath <- mapM (dMat False ()) pathToPos
-    objProp <- dMat False () statObjProp
+  DInst SMod.PosEssencePathVL SMod.ObjectVL Object where
+  dInst _ (SMod.PosPath pathToPos) (SMod.Obj x y statObjProp) = do
+    essPath <- mapM (dInst False ()) pathToPos
+    objProp <- dInst False () statObjProp
 
     let posVal = PairValue (IntValue x, IntValue y)
 
@@ -39,7 +39,7 @@ instance
 
 
 
-updateValue :: [Category] -> Value -> Property -> DMaterializer ()
+updateValue :: [Category] -> Value -> Property -> DInstantiator ()
 updateValue [] _ _ =
   error $ "Can't update value, path is empty."
 
@@ -101,7 +101,7 @@ updateValueForOwning cs val (OwnProperty prop) =
 updateValueForOwning cs _ (SharedProperty _) =
   error $ "Can't update value for shared property: " <> show cs
 
--- addChildProperty :: [Category] -> Property -> Property -> DMaterializer ()
+-- addChildProperty :: [Category] -> Property -> Property -> DInstantiator ()
 -- addChildProperty [] _ _ =
 --   error $ "Can't add a child under for property, path is empty."
 -- addChildProperty cs'@(_:_:[]) _ (ValueProperty _ _ _) =

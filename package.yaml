@@ -67,6 +67,7 @@ dependencies:
 - uuid
 - vector
 - void
+- ghc-prim
 
 library:
   source-dirs:

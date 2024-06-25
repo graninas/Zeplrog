@@ -64,7 +64,7 @@ data StaticPropertyValue
 
 data MaterializationLink
   = DirectMaterialization StaticProperty
-  | SharedMaterialization StaticProperty
+  | SharedInsterialization StaticProperty
 
 type StaticPropertyMap = Map.Map PropertyType [MaterializationLink]
 

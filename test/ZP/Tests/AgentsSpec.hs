@@ -25,8 +25,8 @@ spec = do
       -- (sEnv, dEnv) <- makeEnvs DebugDisabled
 
       -- (essStat, guardStat) <- sMat' sEnv () $ Proxy @KB.GuardActor
-      -- ess <- dMat' dEnv () essStat
-      -- (_, guard) <- dMat' dEnv () guardStat
+      -- ess <- dInst' dEnv () essStat
+      -- (_, guard) <- dInst' dEnv () guardStat
 
       -- let Property ess parent scriptVar propsBagVar valVar = guard
 

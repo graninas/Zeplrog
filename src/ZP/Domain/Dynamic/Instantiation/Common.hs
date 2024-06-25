@@ -14,39 +14,51 @@ import System.Random
 import qualified Data.Map.Strict as Map
 
 
--- Materialize group and essence
+-- Instantiate group and essence
 
 instance
-  DMat () SMod.EssenceVL Essence where
-  dMat _ () (SMod.Ess ess) = pure ess
+  DInst () SMod.EssenceVL Essence where
+  dInst _ () (SMod.Ess ess) = pure ess
+
+toDynEss :: SMod.EssenceVL -> Essence
+toDynEss (SMod.Ess ess) = ess
+
+toDynEssPath :: [SMod.EssenceVL] -> EssencePath
+toDynEssPath esss = map toDynEss esss
 
 instance
-  DMat () SMod.PropertyGroupVL (Essence, SMod.StaticPropertyId) where
-  dMat _ () (SMod.GroupId statEss sId) = do
-    ess <- dMat False () statEss
+  DInst () SMod.PropertyGroupVL (Essence, SMod.StaticPropertyId) where
+  dInst _ () (SMod.GroupId statEss sId) = do
+    ess <- dInst False () statEss
     pure (ess, sId)
-  dMat _ () (SMod.GroupRootId statEss sId _) = do
-    ess <- dMat False () statEss
+  dInst _ () (SMod.GroupRootId statEss sId _) = do
+    ess <- dInst False () statEss
     pure (ess, sId)
 
--- Materialize value
+-- Instantiate value
 
-instance
-  DMat () SMod.ValDefVL Value where
-  dMat _ () (SMod.IntValue val)  = pure $ IntValue val
-  dMat _ () (SMod.BoolValue val) = pure $ BoolValue val
-  dMat _ () (SMod.StringValue val) = pure $ StringValue val
-  dMat _ () (SMod.PairValue val1 val2) = do
-    val1' <- dMat False () val1
-    val2' <- dMat False () val2
-    pure $ PairValue (val1', val2')
-  dMat _ () (SMod.PathValue essPath) = do
-    essPath' <- mapM (dMat False ()) essPath
-    -- TODO: should we ensure that the referenced property already exists?
-    pure $ PathValue essPath'
-  dMat _ () (SMod.RandomIntValue from to) = do
-    val <- randomRIO (from, to)
-    pure $ IntValue val
-  dMat _ () SMod.DerivedWorldPos =
-    pure $ PairValue (IntValue 0, IntValue 0)   --- ??????
+class InstVal t where
+  instVal :: t -> Value
+
+instance InstVal (SMod.GenericValDefVL tag) where
+  instVal (SMod.GenericValue v) = error ""
+
+-- instance
+--   DInst () SMod.ValDefVL Value where
+--   dInst _ () (SMod.IntValue val)  = pure $ IntValue val
+--   dInst _ () (SMod.BoolValue val) = pure $ BoolValue val
+--   dInst _ () (SMod.StringValue val) = pure $ StringValue val
+--   dInst _ () (SMod.PairValue val1 val2) = do
+--     val1' <- dInst False () val1
+--     val2' <- dInst False () val2
+--     pure $ PairValue (val1', val2')
+--   dInst _ () (SMod.PathValue essPath) = do
+--     essPath' <- mapM (dInst False ()) essPath
+--     -- TODO: should we ensure that the referenced property already exists?
+--     pure $ PathValue essPath'
+--   dInst _ () (SMod.RandomIntValue from to) = do
+--     val <- randomRIO (from, to)
+--     pure $ IntValue val
+--   dInst _ () SMod.DerivedWorldPos =
+--     pure $ PairValue (IntValue 0, IntValue 0)   --- ??????
 

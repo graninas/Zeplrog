@@ -18,7 +18,7 @@ import qualified Data.Set as Set
 openStateStaticProperty :: CommonStaticProperties -> StaticProperty -> KBBuilder StaticProperty
 openStateStaticProperty CommonStaticProperties{..} closingCondSProp = do
   valVar <- lift $ newTVar NoStaticValue
-  let props = Map.singleton activationsPropType [(SharedMaterialization closingCondSProp)]
+  let props = Map.singleton activationsPropType [(SharedInsterialization closingCondSProp)]
   -- TODO: passable property & discoverability
   mkStaticProperty openEssence "" props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
@@ -26,7 +26,7 @@ openStateStaticProperty CommonStaticProperties{..} closingCondSProp = do
 closedStateStaticProperty :: CommonStaticProperties -> StaticProperty -> KBBuilder StaticProperty
 closedStateStaticProperty CommonStaticProperties{..} openingCondSProp = do
   valVar <- lift $ newTVar NoStaticValue
-  let props = Map.singleton activationsPropType [(SharedMaterialization openingCondSProp)]
+  let props = Map.singleton activationsPropType [(SharedInsterialization openingCondSProp)]
   -- TODO: passable property & discoverability
   mkStaticProperty closedEssence "" props valVar StaticDiscoverRoot ActiveValueNonDiscoverable
 
@@ -58,16 +58,16 @@ doorStaticProperty csp@(CommonStaticProperties{posSProp, hpSProp}) = do
   -- Making a loop of states
   lift $ writeTVar (staticPropertyValueVar openingCondSProp)
        $ MaterializableStateValue "to open state"
-       $ SharedMaterialization openStateSProp
+       $ SharedInsterialization openStateSProp
   lift $ writeTVar (staticPropertyValueVar closingCondSProp)
        $ MaterializableStateValue "to closed state"
-       $ SharedMaterialization closedStateSProp
+       $ SharedInsterialization closedStateSProp
 
-  currentStateVar <- lift $ newTVar $ MaterializableStateValue "cur state" (SharedMaterialization closedStateSProp)
+  currentStateVar <- lift $ newTVar $ MaterializableStateValue "cur state" (SharedInsterialization closedStateSProp)
 
   let props = Map.fromList
-        [ (statesPropType,    [ (SharedMaterialization openStateSProp)
-                              , (SharedMaterialization closedStateSProp) ])
+        [ (statesPropType,    [ (SharedInsterialization openStateSProp)
+                              , (SharedInsterialization closedStateSProp) ])
         , (inventoryPropType, [ (DirectMaterialization posSProp)
                               , (DirectMaterialization hpSProp) ])
         ]
