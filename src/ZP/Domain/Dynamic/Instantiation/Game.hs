@@ -10,7 +10,7 @@ import ZP.Domain.Static.Materialization ()
 import ZP.Domain.Static.Materialization.Materializer
 import qualified ZP.Domain.Static.Query as SQuery
 import ZP.Domain.Dynamic.Model
-import ZP.Domain.Dynamic.Instantiation.Materializer
+import ZP.Domain.Dynamic.Instantiation.Instantiator
 import ZP.Domain.Dynamic.Instantiation.Common
 import ZP.Domain.Dynamic.Instantiation.Property
 import ZP.Domain.Dynamic.Instantiation.Effect
@@ -20,9 +20,8 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 import Data.Maybe
 
--- TODO: static materialization of abstract props
 
--- Materialization of Game
+-- Instatiation of Game
 
 prepareProp
   :: SMod.PosEssencePathVL

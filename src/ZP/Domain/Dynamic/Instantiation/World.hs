@@ -17,7 +17,7 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Vector as V
 
 
--- Materialization of World
+-- Instatiation of World
 
 worldDataToVector :: [String] -> Vector (Vector Char)
 worldDataToVector = V.fromList . map V.fromList

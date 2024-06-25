@@ -37,11 +37,7 @@ instance
 
 -- Instantiate value
 
-class InstVal t where
-  instVal :: t -> Value
-
-instance InstVal (SMod.GenericValDefVL tag) where
-  instVal (SMod.GenericValue v) = error ""
+instVal (SMod.GenericValue _ v) = v
 
 -- instance
 --   DInst () SMod.ValDefVL Value where

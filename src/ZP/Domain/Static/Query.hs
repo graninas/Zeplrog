@@ -41,8 +41,8 @@ class
   QueryValue it typeTag t where
   getValue :: it -> Maybe t
 
-instance QueryValue (GenericValDefVL typeTag) StringTag String where
-  getValue (GenericValue str) = Just (unsafeCoerce str)           --- !!!!!! if this will work?
+-- instance QueryValue (GenericValDefVL typeTag) StringTag String where
+--   getValue (GenericValue str) = Just (unsafeCoerce str)           --- !!!!!! if this will work?
 
 
 -- -- Hardcoded function.

@@ -18,7 +18,7 @@ import qualified ZP.Domain.Static.Query as SQuery
 import ZP.Domain.Dynamic.Model
 import ZP.Domain.Dynamic.Instantiation.Instantiator
 import ZP.Domain.Dynamic.Instantiation.Common
-import ZP.Domain.Dynamic.Instantiation.Script
+import qualified ZP.Domain.Dynamic.Instantiation.Script as Script
 
 import Data.Proxy
 import qualified Data.Map.Strict as Map
@@ -84,7 +84,7 @@ instance
   DInst MbParentId SMod.PropertyOwningVL PropertyOwning where
 
   dInst _ _ (SMod.OwnVal valDef) = do
-    val    <- dInst False () valDef
+    let val = instVal valDef
     valRef <- newIORef val
     pure (OwnVal valRef)
 

@@ -14,7 +14,7 @@ import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
--- Materialization of effect
+-- Instatiation of effect
 
 instance
   DInst () SMod.EffectVL Effect where
@@ -22,7 +22,7 @@ instance
     ess' <- dInst False () ess
     pure $ Effect ess'
 
--- Materialization of trigger
+-- Instatiation of trigger
 
 instance
   DInst () SMod.TriggerVL EffectTrigger where

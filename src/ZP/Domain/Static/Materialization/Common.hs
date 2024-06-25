@@ -108,14 +108,14 @@ instance
 -- Statically materialize value
 
 instance
-  ( SMat () val (TagToType 'ValueLevel tag)
+  ( SMat () val (TagToType 'ValueLevel tag, DValue)
   ) =>
   SMat ()
         ('GenericValue @'TypeLevel @tag val)
         (GenericValDefVL tag) where
   sMat _ _ = do
-    val <- sMat () $ Proxy @val
-    pure $ GenericValue val
+    (val, dVal) <- sMat () $ Proxy @val
+    pure $ GenericValue val dVal
 
 -- instance
 --   ( SMat () valDef ValDefVL

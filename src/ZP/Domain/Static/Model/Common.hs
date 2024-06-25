@@ -16,7 +16,17 @@ import qualified Data.Kind as DK
 
 ------ Common and General -----------------
 
-
+-- | Dynamic value needed to avoid much complexities
+--   of dependent typing
+data DValue
+  = PairValue DValue DValue
+  | IntValue Int
+  | BoolValue Bool
+  | StringValue String
+  | TagValue TagPropertyVL DValue
+  | PathValue [String]
+  | StaticPropertyRefValue StaticPropertyId
+  deriving (Show, Eq, Ord)
 
 -- | Sudo ID of a property
 
@@ -51,11 +61,14 @@ data TagProperty (lvl :: Level) where
 --   to a specific type depending on the level
 type family TagToType (lvl :: Level) (tag :: (Symbol, extraTag)) :: a
 
+type family DynType (lvl :: Level) :: a
+
 -- | Generic value definition with a default value
 data GenericValDef (lvl :: Level) tag where
   GenericValue
     :: TagToType lvl tag       -- ^ Type family that adjusts
                                -- the actual field type depending on the level and type tag
+    -> DynType lvl
     -> GenericValDef lvl tag
 
 -- | Constant definition
@@ -75,17 +88,21 @@ type TagTag         = "tag:tag"
 type EssenceTag     = '("tag:essence", ())
 type PairIntIntTag  = '("tag:(int,int)", ())
 
+type instance DynType 'TypeLevel = ()
+type instance DynType 'ValueLevel = DValue
+
 data GenericPair a b = Pair a b
 data TagValueHolder lvl tag
   = TVH
     (TagProperty lvl)
     (GenericValDef lvl tag)
 
-type instance TagToType lvl IntTag = IntegerType lvl
-type instance TagToType lvl StringTag = StringType lvl
-type instance TagToType lvl BoolTag = Bool
+type instance TagToType lvl IntTag     = IntegerType lvl
+type instance TagToType lvl IntTag     = IntegerType lvl
+type instance TagToType lvl StringTag  = StringType lvl
+type instance TagToType lvl BoolTag    = Bool
 type instance TagToType lvl EssenceTag = Essence lvl
-type instance TagToType lvl PathTag = [Essence lvl]
+type instance TagToType lvl PathTag    = [Essence lvl]
 type instance TagToType 'TypeLevel '(TagTag, vt)
   = TagValueHolder 'TypeLevel vt
 type instance TagToType lvl PairIntIntTag
@@ -94,28 +111,28 @@ type instance TagToType lvl PairIntIntTag
 -- Predefined values
 
 type IntValue (i :: Nat)
-  = GenericValue @'TypeLevel @IntTag i
+  = GenericValue @'TypeLevel @IntTag i '()
 
 type BoolValue (b :: Bool)
-  = GenericValue @'TypeLevel @BoolTag b
+  = GenericValue @'TypeLevel @BoolTag b '()
 
 type StringValue (s :: Symbol)
-  = GenericValue @'TypeLevel @StringTag s
+  = GenericValue @'TypeLevel @StringTag s '()
 
 type EssenceValue (ess :: EssenceTL)
-  = GenericValue @'TypeLevel @EssenceTag ess
+  = GenericValue @'TypeLevel @EssenceTag ess '()
 
 type PathValue (ss :: [EssenceTL])
-  = GenericValue @'TypeLevel @PathTag ss
+  = GenericValue @'TypeLevel @PathTag ss '()
 
 type IntPairValue (i1 :: Nat) (i2 :: Nat)
-  = GenericValue @'TypeLevel @PairIntIntTag ('Pair i1 i2)
+  = GenericValue @'TypeLevel @PairIntIntTag ('Pair i1 i2) '()
 
 type TagValue
   (tagProp :: TagProperty 'TypeLevel)
   (genVal :: GenericValDef 'TypeLevel vt)
   = GenericValue @TypeLevel @'(TagTag, vt)
-      (TVH tagProp genVal)
+      (TVH tagProp genVal) '()
 
 
 

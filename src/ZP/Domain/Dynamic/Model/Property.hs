@@ -16,7 +16,7 @@ newtype PropertyId = PropertyId Int
 
 -- | Property owning
 data PropertyOwning
-  = OwnVal (IORef Value)
+  = OwnVal (IORef SMod.DValue)
   -- ^ Mutable dynamic value
   | OwnDict (IORef (Map.Map Essence Property))
   -- ^ Multiple child props

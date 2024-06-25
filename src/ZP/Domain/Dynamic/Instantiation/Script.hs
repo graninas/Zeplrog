@@ -87,7 +87,7 @@ invokeF
   -> GHC.Any
 invokeF Nothing anyVal = anyVal
 invokeF (Just NegateF) anyVal = let
-  val :: DMod.Value = unsafeCoerce anyVal
+  val :: DMod.DValue = unsafeCoerce anyVal
   in case val of
         DMod.BoolValue b -> unsafeCoerce $ DMod.BoolValue $ not b
         _ -> error $ "invokeF (Just NegateF) type mismatch: " <> show val

@@ -20,7 +20,7 @@ import Unsafe.Coerce (unsafeCoerce)
 
 
 class QueryValue item where
-  queryValueRef :: item -> EssencePath -> IO (IORef Value)
+  queryValueRef :: item -> EssencePath -> IO (IORef DValue)
 
 
 instance QueryValue Property where
