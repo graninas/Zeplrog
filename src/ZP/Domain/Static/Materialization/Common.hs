@@ -179,7 +179,7 @@ instance
     ('GenericValue val 'DPlaceholder)
     (GenericValDefVL ('RegularTag strTag)) where
   sMat proxy _ = do
-    (val, dVal) <- sMat (Proxy @strTag) (Proxy @val)
+    (val, dVal) <- sMat (Proxy @strTag) $ Proxy @val
     pure $ GenericValue val dVal
 
 instance
@@ -191,4 +191,6 @@ instance
     ('GenericValue val 'DPlaceholder)
     (GenericValDefVL ('CompoundTag "int pair" IntTag IntTag)) where
 
-  sMat _ _ = error ""
+  sMat _ _ = do
+    (genPVal, dVal) <- sMat (Proxy @"int pair") $ Proxy @val
+    pure $ GenericValue genPVal dVal
