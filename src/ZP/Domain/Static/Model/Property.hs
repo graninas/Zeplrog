@@ -30,7 +30,7 @@ data PropertyGroup (lvl :: Level) where
 -- | Property owning
 data PropertyOwning (lvl :: Level) where
   -- | Own value. Will be materialized for each parent prop.
-  OwnVal :: GenericValDef lvl tag -> PropertyOwning lvl
+  OwnVal :: GenericValDef lvl (tag :: CustomTag) -> PropertyOwning lvl
   -- | Own property. Will be materialized for each parent prop.
   OwnProp    :: Property lvl -> PropertyOwning lvl
   -- | Shared property. Will be materialized only once and shared between parents.

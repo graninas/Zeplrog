@@ -7,6 +7,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 
 module ZP.Domain.Static.Materialization.Common where
 
@@ -51,26 +52,11 @@ instance
     Pair (fromIntegral $ natVal $ Proxy @i1)
          (fromIntegral $ natVal $ Proxy @i2)
 
--- instance
---   ( SMat () tagProp TagPropertyVL
---   , SMat () valDef ValDefVL
---   ) =>
---   SMat () ('TagValue @'TypeLevel tagProp valDef)
---          ValDefVL where
---   sMat () _ = do
---     tagProp <- sMat () $ Proxy @tagProp
---     valDef  <- sMat () $ Proxy @valDef
---     pure $ TagValue tagProp valDef
-
-
--- Statically materialize variable def
-
 instance
   ( KnownSymbol str
   ) =>
   SMat () str String where
   sMat () _ = pure $ symbolVal $ Proxy @str
-
 
 -- Statically materialize tag property group
 
@@ -105,40 +91,6 @@ instance
     tagGroup <- sMat () $ Proxy @tagGroup
     pure $ TagProp tagGroup
 
--- Statically materialize value
-
-instance
-  ( SMat () val (TagToType 'ValueLevel tag, DValue)
-  ) =>
-  SMat ()
-        ('GenericValue @'TypeLevel @tag val)
-        (GenericValDefVL tag) where
-  sMat _ _ = do
-    (val, dVal) <- sMat () $ Proxy @val
-    pure $ GenericValue val dVal
-
--- instance
---   ( SMat () valDef ValDefVL
---   ) =>
---   SMat () ('OverriddableValue @'TypeLevel valDef) ValDefVL where
---   sMat () _ = do
---     valDef <- sMat () $ Proxy @valDef
---     pure $ OverriddableValue valDef
-
--- Statically materialize constant
-
-instance
-  ( SMat () val (GenericValDefVL tag)
-  ) =>
-  SMat (Proxy tag)
-        ('GenericConst @'TypeLevel val)
-        (GenericConstDefVL tag) where
-  sMat _ _ = do
-    val <- sMat () $ Proxy @val
-    pure $ GenericConst val
-
--- Value
-
 -- Statically materialize Essence & path
 
 instance
@@ -161,3 +113,82 @@ instance
     ess     <- sMat () $ Proxy @ess
     essPath <- sMat () $ Proxy @(Essences essPath)
     pure $ ess : essPath
+
+
+-- Statically materialize generic value
+
+instance
+  ( SMat () tagProp TagPropertyVL
+  , SMat (Proxy childTag) genVal (GenericValDefVL childTag)
+  ) =>
+  SMat (Proxy childTag)
+       ('TVH tagProp genVal)
+       (TagValueHolderVL childTag) where
+  sMat _ parentGenVal = do
+    tagProp <- sMat () $ Proxy @tagProp
+    genVal  <- sMat (Proxy @childTag) $ Proxy @genVal
+    pure $ TVH tagProp genVal
+
+
+
+instance
+  ( SMat (Proxy childTag) tvh (TagValueHolderVL childTag)
+  ) =>
+  SMat (Proxy (TVHTag childTag))
+       ('GenericValue tvh 'DPlaceholder)
+       (GenericValDefVL (TVHTag childTag)) where
+  sMat _ parentGenVal = do
+    tvh <- sMat (Proxy @childTag) (Proxy @tvh)
+    pure (GenericValue tvh DPlaceholder)
+
+
+instance
+  ( KnownSymbol s
+  ) =>
+  SMat (Proxy "string") s (String, DValue) where
+  sMat _ _ = do
+    let s = symbolVal $ Proxy @s
+    pure (s, StringValue s)
+
+instance
+  ( SMat () (Essences essPath) [EssenceVL]
+  ) =>
+  SMat (Proxy "path") essPath ([EssenceVL], DValue) where
+  sMat _ _ = do
+    essPath <- sMat () $ Proxy @(Essences essPath)
+    let dEssPath = map (\(Ess s) -> s) essPath
+    pure (essPath, PathValue dEssPath)
+
+instance
+  ( KnownNat n1
+  , KnownNat n2
+  ) =>
+  SMat (Proxy "int pair") ('Pair n1 n2) (CustomPair Int Int, DValue) where
+  sMat _ _ = do
+    let n1 = fromIntegral $ natVal $ Proxy @n1
+    let n2 = fromIntegral $ natVal $ Proxy @n2
+    pure (Pair n1 n2, PairValue (IntValue n1) (IntValue n2))
+
+-- Generic value itself
+instance
+  ( SMat (Proxy strTag) val
+    (TagToType 'ValueLevel ('RegularTag strTag), DValue)
+  ) =>
+  SMat
+    (Proxy ('RegularTag strTag))
+    ('GenericValue val 'DPlaceholder)
+    (GenericValDefVL ('RegularTag strTag)) where
+  sMat proxy _ = do
+    (val, dVal) <- sMat (Proxy @strTag) (Proxy @val)
+    pure $ GenericValue val dVal
+
+instance
+  ( SMat (Proxy "int pair") val
+    (TagToType 'ValueLevel ('CompoundTag "int pair" IntTag IntTag), DValue)
+  ) =>
+  SMat
+    (Proxy ('CompoundTag "int pair" IntTag IntTag))
+    ('GenericValue val 'DPlaceholder)
+    (GenericValDefVL ('CompoundTag "int pair" IntTag IntTag)) where
+
+  sMat _ _ = error ""

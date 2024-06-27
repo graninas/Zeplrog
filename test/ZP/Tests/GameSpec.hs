@@ -10,10 +10,11 @@ module ZP.Tests.GameSpec where
 
 import ZP.Prelude
 
-import ZP.System.Debug
-import ZP.Domain.Dynamic.Model
-import ZP.Domain.Materializer
 import qualified ZP.Assets.KnowledgeBase as KB
+import ZP.Domain.Dynamic.Model
+import ZP.Domain.Static.Materialization
+import ZP.Domain.Dynamic.Instantiation
+import ZP.System.Debug
 
 import Test.Hspec
 

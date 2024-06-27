@@ -4,31 +4,32 @@ module ZP.Tests.QuerySpec where
 
 import ZP.Prelude
 
-import ZP.System.Debug
 import ZP.Domain.Static.Model
 import ZP.Domain.Static.Query
-import ZP.Domain.Materializer
-import qualified ZP.Domain.Static.Materialization as SMat
+import ZP.Domain.Static.Materialization
 import qualified ZP.Assets.KnowledgeBase as KB
-import qualified ZP.Domain.Hardcode.KnowledgeBase
+import qualified ZP.Domain.Static.Materialization as SMat
 
+import ZP.System.Debug
 import Test.Hspec
 
 import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
-type TestIconOwning = OwnProp (KB.IconVal "+")
+type TestIconOwning = OwnVal (KB.IconVal "+")
 type TestPropKeyVal = PropKeyVal KB.EIcon TestIconOwning
 
-type TestProp = PropDict (Group KB.EIntrinsics)
+type TestProp = DerivedProp KB.EIntrinsics KB.AnyProp
   '[ TestPropKeyVal
    ]
+  '[]
 
 
-type Wall = PropDict (Group KB.EWall)
-  '[ PropKeyVal KB.EIcon (OwnProp (KB.IconVal "#"))
+type Wall = DerivedProp KB.EWall KB.AnyProp
+  '[ PropKeyVal KB.EIcon (OwnVal (KB.IconVal "#"))
    ]
+  '[]
 
 spec :: Spec
 spec = do

@@ -7,6 +7,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 
 module ZP.Domain.Static.Materialization.Property where
 
@@ -298,13 +299,14 @@ instance
 -- Statically materialize property owning
 
 instance
-  ( SMat () val (GenericValDefVL tag)
+  ( x ~ (parentGenVal :: GenericValDefTL parentTag)
+  , SMat (Proxy parentTag) parentGenVal (GenericValDefVL parentTag)
   ) =>
-  SMat () ('OwnVal @'TypeLevel val)
+  SMat () ('OwnVal @'TypeLevel parentGenVal)
           PropertyOwningVL where
   sMat _ _ = do
-    val <- sMat () $ Proxy @val
-    pure $ OwnVal val
+    parentGenVal <- sMat (Proxy @parentTag) $ Proxy @parentGenVal
+    pure $ OwnVal parentGenVal
 
 instance
   ( SMat () prop PropertyVL

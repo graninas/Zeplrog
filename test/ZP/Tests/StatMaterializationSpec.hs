@@ -4,12 +4,13 @@ module ZP.Tests.StatMaterializationSpec where
 
 import ZP.Prelude
 
-import ZP.System.Debug
-import ZP.Domain.Static.Model
 import ZP.Domain.Static.Query
-import ZP.Domain.Materializer
+import ZP.Domain.Static.Model
+import ZP.Domain.Static.Materialization
 import qualified ZP.Assets.KnowledgeBase as KB
 
+
+import ZP.System.Debug
 import Test.Hspec
 
 import Data.Proxy
@@ -25,15 +26,16 @@ spec = do
 
       door <- sMat' sEnv () $ Proxy @KB.SpecificDoor
 
-      statProps <- readTVarIO $ seStaticPropertiesVar sEnv
-      statEsss  <- readTVarIO $ seStaticEssencesVar sEnv
+      statProps <- readIORef $ seStaticPropertiesRef sEnv
+      statEsss  <- readIORef $ seStaticEssencesRef sEnv
 
       -- print $ "Stat props: " <> show (Map.keys statProps)
       -- print $ "Stat essences: " <> show (Map.keys statEsss)
 
       case door of
-        PropDict group props -> do
+        PropDict group props scripts -> do
           let (ess, sId) = getComboPropertyId group
+          length scripts `shouldBe` 1
           length props `shouldBe` 6
           length statProps `shouldBe` 15
           ess `shouldBe` Ess "object:specific door"
@@ -46,8 +48,8 @@ spec = do
       game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
       let GameEnvironment _ _ _ props objs = game
 
-      statProps <- readTVarIO $ seStaticPropertiesVar sEnv
-      statEsss  <- readTVarIO $ seStaticEssencesVar sEnv
+      statProps <- readIORef $ seStaticPropertiesRef sEnv
+      statEsss  <- readIORef $ seStaticEssencesRef sEnv
 
       -- print $ "Stat props: " <> show (Map.keys statProps)
       -- print $ "Stat essences: " <> show (Map.keys statEsss)

@@ -4,11 +4,12 @@ module ZP.Tests.DynMaterializationSpec where
 
 import ZP.Prelude
 
-import ZP.System.Debug
-import ZP.Domain.Dynamic.Model
 import qualified ZP.Assets.KnowledgeBase as KB
+import ZP.Domain.Dynamic.Model
+import ZP.Domain.Static.Materialization
+import ZP.Domain.Dynamic.Instantiation
 
-import ZP.Domain.Materializer
+import ZP.System.Debug
 import ZP.Testing.Utils
 
 import Test.Hspec
@@ -25,7 +26,7 @@ spec = do
       doorStat <- sMat' sEnv () $ Proxy @KB.SpecificDoor
       door     <- dInst' dEnv () doorStat
 
-      props <- readTVarIO $ dePropertiesVar dEnv
+      props <- readIORef $ dePropertiesRef dEnv
       print $ "All props: " <> show (Map.keys props)
 
       Map.size props `shouldBe` 8
@@ -35,8 +36,8 @@ spec = do
 
       game <- fullMat dEnv () $ Proxy @(KB.Zeplrog KB.World1)
 
-      props <- readTVarIO $ dePropertiesVar dEnv
-      esss  <- readTVarIO $ deEssencesVar dEnv
+      props <- readIORef $ dePropertiesRef dEnv
+      esss  <- readIORef $ deEssencesRef dEnv
 
       print $ "Props: " <> show (Map.keys props)
 
