@@ -28,6 +28,10 @@ getGroup :: PropertyVL -> PropertyGroupVL
 getGroup (PropDict group _ _) = group
 getGroup (TagPropRef _) = error "getGroup not implemented for TagPropRef"
 
+getEssence :: PropertyVL -> EssenceVL
+getEssence (PropDict group _ _) = fst $ getComboPropertyId group
+getEssence (TagPropRef _) = error "getEssence not implemented for TagPropRef"
+
 getTagPropEss :: TagPropertyVL -> EssenceVL
 getTagPropEss (TagProp tagGroup) = getTagPropGroupEssence tagGroup
 
@@ -35,77 +39,33 @@ getTagPropGroupEssence :: TagPropertyGroupVL -> EssenceVL
 getTagPropGroupEssence (TagGroup ess) = ess
 getTagPropGroupEssence (TagGroupRoot ess _) = ess
 
-class
-  ( t ~ TagToType 'ValueLevel typeTag
-  ) =>
-  QueryValue it typeTag t where
-  getValue :: it -> Maybe t
 
--- instance QueryValue (GenericValDefVL typeTag) StringTag String where
---   getValue (GenericValue str) = Just (unsafeCoerce str)           --- !!!!!! if this will work?
+class QueryValue from where
+  queryValue :: EssencePathVL -> from -> Maybe DValue
 
+instance QueryValue PropertyVL where
+  queryValue [] prop = Nothing
+  queryValue _ (TagPropRef _) =
+    error "queryValue StringTag not implemented for TagPropRef"
+  queryValue (ess : path) (PropDict _ kvs _) =
+    case filter (\kv -> getEssenceFromKV kv == ess) kvs of
+      [] -> Nothing
+      (kv:_) -> queryValue path kv
 
--- -- Hardcoded function.
--- -- TODO: move to the Query language.
--- queryStringValue :: EssencePathVL -> PropertyVL -> Maybe String
--- queryStringValue [] _ = Nothing
--- queryStringValue _ (TagPropRef _) =
---   error "queryStringValue not implemented for TagPropRef"
--- queryStringValue (ess:esss) (PropDict group kvs _) = let
---   (ess', _) = getComboPropertyId group
---   in case ess == ess' of
---         True -> queryStringValueForKeyVals esss kvs
---         False -> Nothing
+instance QueryValue PropertyKeyValueVL where
+  queryValue path (PropKeyVal _ own) = queryValue path own
+  queryValue [] (PropKeyBag _ _) = error "QueryValue PropKeyBag path is empty"
+  queryValue (ess : path) (PropKeyBag _ props) =
+    case filter (\p -> getEssence p == ess) props of
+      [] -> Nothing
+      (prop : _) -> queryValue path prop
 
--- -- Hardcoded function.
--- -- Queries a value of string for this property.
--- -- The path doesn't contain the essence of this property.
--- -- TODO: move to the Query language.
--- queryStringValueRelative :: EssencePathVL -> PropertyVL -> Maybe String
--- queryStringValueRelative [] _ = Nothing
--- queryStringValueRelative _ (TagPropRef _) =
---   error "queryStringValueRelative not implemented for TagPropRef"
--- queryStringValueRelative esss (PropDict group kvs _) =
---   queryStringValueForKeyVals esss kvs
+instance QueryValue PropertyOwningVL where
+  queryValue [] (OwnVal (GenericValue _ dVal)) = Just dVal
+  queryValue _  (OwnVal _) = error "QueryValue OwnVal path not empty"
+  queryValue path (OwnProp prop) = queryValue path prop
+  queryValue path (SharedProp prop) = queryValue path prop
 
--- -- Hardcoded function.
--- -- TODO: move to the Query language.
--- queryStringValueForKeyVals
---   :: EssencePathVL
---   -> [PropertyKeyValueVL]
---   -> Maybe String
--- queryStringValueForKeyVals [] _ = Nothing
--- queryStringValueForKeyVals _ [] = Nothing
--- queryStringValueForKeyVals path@(ess:_) (PropKeyVal ess' owning : kvs)
---   | ess == ess' = queryStringValueForOwning path owning
---   | otherwise = queryStringValueForKeyVals path kvs
--- -- queryStringValueForKeyVals path@(ess:_) (PropKeyBag ess' props : kvs)
--- --   | ess == ess' = queryStringValueForProps path props
--- --   | otherwise = queryStringValueForKeyVals path kvs
--- queryStringValueForKeyVals _ _ = error "queryStringValueForKeyVals not implemented"
-
--- -- -- Hardcoded function.
--- -- -- TODO: move to the Query language.
--- -- queryStringValueForOwning
--- --   :: EssencePathVL
--- --   -> PropertyOwningVL
--- --   -> Maybe String
--- -- queryStringValueForOwning esss (OwnVal valDef) =
--- --   getStringValue valDef
--- -- queryStringValueForOwning esss (OwnProp prop) =
--- --   queryStringValue esss prop
--- -- queryStringValueForOwning esss (SharedProp prop) =
--- --   queryStringValue esss prop
-
--- -- Hardcoded function.
--- -- TODO: move to the Query language.
--- queryStringValueForOwnings
---   :: EssencePathVL
---   -> [PropertyOwningVL]
---   -> Maybe String
--- queryStringValueForOwnings [] _ = Nothing
--- queryStringValueForOwnings _ [] = Nothing
--- queryStringValueForOwnings esss (owning : ownings) =
---   case queryStringValueForOwning esss owning of
---     Nothing  -> queryStringValueForOwnings esss ownings
---     Just str -> Just str
+instance QueryValue (GenericValDefVL tag) where
+  queryValue [] (GenericValue _ dVal) = Just dVal
+  queryValue _ _ = error "QueryValue (GenericValDefVL tag) path is not empty"

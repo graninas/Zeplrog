@@ -16,22 +16,27 @@ import ZP.Domain.Static.Model.Common
 -- | Variable definition
 data GenericVarDef (lvl :: Level) (tag :: CustomTag) where
   GenericVar
-    :: StringType lvl             -- ^ Var name
+    :: StringType lvl         -- ^ Var name
     -> GenericValDef lvl tag  -- ^ Default value
     -> GenericVarDef lvl tag
 
 -- N.B., Proxy is only needed to satisfy functional dependency
 -- that is somehow fails to define tag without this workaround.
 data Target (lvl :: Level) (tag :: CustomTag) where
-  ToField :: Proxy tag -> EssencePath lvl -> Target lvl tag
-  ToVar   :: GenericVarDef lvl tag -> Target lvl tag
+  ToField
+    :: Proxy tag -> EssencePath lvl -> Target lvl tag
+  ToVar
+    :: GenericVarDef lvl tag -> Target lvl tag
 
 -- N.B., Proxy is only needed to satisfy functional dependency
 -- that is somehow fails to define tag without this workaround.
 data Source (lvl :: Level) (tag :: CustomTag) where
-  FromField :: Proxy tag -> EssencePath lvl -> Source lvl tag
-  FromVar   :: GenericVarDef lvl tag -> Source lvl tag
-  FromConst :: GenericConstDef lvl tag -> Source lvl tag
+  FromField
+    :: Proxy tag -> EssencePath lvl -> Source lvl tag
+  FromVar
+    :: GenericVarDef lvl tag -> Source lvl tag
+  FromConst
+    :: GenericConstDef lvl tag -> Source lvl tag
 
 -- | Function over a value
 data Func (lvl :: Level) (tag1 :: CustomTag) (tag2 :: CustomTag) where
@@ -43,7 +48,6 @@ data ScriptOp (lvl :: Level) where
     :: GenericVarDef lvl (tag :: CustomTag)
     -> ScriptOp lvl
 
-  -- Can be the only MOV instruction
   WriteData
     :: Target lvl (tag :: CustomTag)
     -> Source lvl (tag :: CustomTag)
@@ -55,7 +59,7 @@ data ScriptOp (lvl :: Level) where
     -> Target lvl (tag2 :: CustomTag)
     -> ScriptOp lvl
 
-type ReadData src tgt = WriteData tgt src
+type ReadData src tgt = 'WriteData tgt src
 
 -- | Script type
 data CustomScript (lvl :: Level) where

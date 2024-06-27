@@ -58,6 +58,7 @@ instance
     -- N.B., repeated props will be droped.
     let iconsToStatPropsMap = Map.fromList []
 
+    error "TODO..."
     -- TODO
           -- [ (fromJust mbIcon, statProp)
           -- | statProp <- statProps

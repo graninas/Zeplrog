@@ -35,26 +35,3 @@ instance
     ess <- dInst False () statEss
     pure (ess, sId)
 
--- Instantiate value
-
-instVal (SMod.GenericValue _ v) = v
-
--- instance
---   DInst () SMod.ValDefVL Value where
---   dInst _ () (SMod.IntValue val)  = pure $ IntValue val
---   dInst _ () (SMod.BoolValue val) = pure $ BoolValue val
---   dInst _ () (SMod.StringValue val) = pure $ StringValue val
---   dInst _ () (SMod.PairValue val1 val2) = do
---     val1' <- dInst False () val1
---     val2' <- dInst False () val2
---     pure $ PairValue (val1', val2')
---   dInst _ () (SMod.PathValue essPath) = do
---     essPath' <- mapM (dInst False ()) essPath
---     -- TODO: should we ensure that the referenced property already exists?
---     pure $ PathValue essPath'
---   dInst _ () (SMod.RandomIntValue from to) = do
---     val <- randomRIO (from, to)
---     pure $ IntValue val
---   dInst _ () SMod.DerivedWorldPos =
---     pure $ PairValue (IntValue 0, IntValue 0)   --- ??????
-

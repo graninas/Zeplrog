@@ -14,7 +14,7 @@ import ZP.Prelude
 import qualified ZP.Domain.Static.Model as SMod
 import ZP.Domain.Static.Materialization ()
 import ZP.Domain.Static.Materialization.Materializer
-import qualified ZP.Domain.Static.Query as SQuery
+import qualified ZP.Domain.Static.Query as SQ
 import ZP.Domain.Dynamic.Model
 import ZP.Domain.Dynamic.Instantiation.Instantiator
 import ZP.Domain.Dynamic.Instantiation.Common
@@ -61,12 +61,12 @@ type MbParentId = Maybe PropertyId
 instance
   DInst MbParentId SMod.PropertyVL (Essence, Property) where
   dInst shared _ (SMod.TagPropRef tagProp) = do
-    ess <- dInst False () $ SQuery.getTagPropEss tagProp
+    ess <- dInst False () $ SQ.getTagPropEss tagProp
     pure (ess, TagPropRef tagProp)
 
   dInst shared mbParentId (SMod.PropDict group propKVs scripts) =
     spawnProperty $ withShared shared group $ do
-      let (sEss, sId) = SQuery.getComboPropertyId group
+      let (sEss, sId) = SQ.getComboPropertyId group
 
       ess         <- dInst False () sEss
       propId      <- getNextPropertyId
@@ -84,7 +84,7 @@ instance
   DInst MbParentId SMod.PropertyOwningVL PropertyOwning where
 
   dInst _ _ (SMod.OwnVal valDef) = do
-    let val = instVal valDef
+    let val = fromJust $ SQ.queryValue [] valDef
     valRef <- newIORef val
     pure (OwnVal valRef)
 

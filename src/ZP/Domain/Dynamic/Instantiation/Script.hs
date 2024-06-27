@@ -16,6 +16,7 @@ module ZP.Domain.Dynamic.Instantiation.Script
 import ZP.Prelude
 
 import ZP.Domain.Static.Model
+import qualified ZP.Domain.Static.Query as SQ
 import qualified ZP.Domain.Dynamic.Model as DMod
 import qualified ZP.Domain.Dynamic.Instantiation.Common as DInst
 import qualified ZP.Domain.Dynamic.Query as Q
@@ -46,21 +47,6 @@ instance
   iScr _ (Ess ess) = pure ess
 
 
-
-
-  -- iScr _ (BoolValue val)   = pure $ DMod.BoolValue val
-  -- iScr _ (StringValue val) = pure $ DMod.StringValue val
-  -- iScr prop (TagValue tagProp cVal) = do
-  --   val <- iScr prop cVal
-  --   pure $ DMod.TagValue tagProp val
-  -- iScr prop (PairValue val1 val2) = do
-  --   val1' <- iScr prop val1
-  --   val2' <- iScr prop val2
-  --   pure $ DMod.PairValue val1' val2'
-  -- iScr prop (PathValue essPath) = do
-  --   essPath' <- mapM (iScr prop) essPath
-  --   pure $ DMod.PathValue essPath'
-
 instance IScr ScriptOpVL () where
   iScr prop (DeclareVar varDef) = do
     IScrRuntime varsRef <- ask
@@ -68,7 +54,7 @@ instance IScr ScriptOpVL () where
 
     case varDef of
       GenericVar name defVal -> do
-        let val = DInst.instVal defVal
+        let val = fromJust $ SQ.queryValue [] defVal
         varRef <- liftIO $ newIORef $ unsafeCoerce val
 
         let vars' = Map.insert name varRef vars
@@ -92,33 +78,26 @@ invokeF (Just NegateF) anyVal = let
         DMod.BoolValue b -> unsafeCoerce $ DMod.BoolValue $ not b
         _ -> error $ "invokeF (Just NegateF) type mismatch: " <> show val
 
--- readWrite
---   :: DMod.Property
---   -> Maybe (FuncVL typeTag1 typeTag2)
---   -> SourceVL typeTag1
---   -> TargetVL typeTag2
---   -> ScriptInterpreter ()
+readWrite
+  :: DMod.Property
+  -> Maybe (FuncVL typeTag1 typeTag2)
+  -> SourceVL tag1
+  -> TargetVL tag2
+  -> ReaderT IScrRuntime IO ()
 readWrite prop mbF
-  (FromVar (GenericVar from _))
-  (ToVar   (GenericVar to   _))
-    -- TODO!!
-    -- | typeName1 /= typeName2 = error $ show
-    --         $ "readWrite (FromVar, ToVar) type mismatch: "
-    --         <> from <> "(" <> typeName1 <> ")"
-    --         <> to <> "(" <> typeName2 <> ")"
+  (FromVar (GenericVar from fromGenVal))
+  (ToVar   (GenericVar to   toGenVal)) = do
 
-    | otherwise = do
+    IScrRuntime varsRef <- ask
+    vars <- liftIO $ readIORef varsRef
 
-  IScrRuntime varsRef <- ask
-  vars <- liftIO $ readIORef varsRef
-
-  case (Map.lookup from vars, Map.lookup to vars) of
-    (Nothing, _) -> error $ show $ "readWrite (FromVar, ToVar) from var not found: " <> from
-    (_, Nothing) -> error $ show $ "readWrite (FromVar, ToVar) to var not found: " <> to
-    (Just fromRef, Just toRef) -> liftIO $ do
-      val <- readIORef fromRef
-      let val' = invokeF mbF val
-      writeIORef toRef val'
+    case (Map.lookup from vars, Map.lookup to vars) of
+      (Nothing, _) -> error $ show $ "readWrite (FromVar, ToVar) from var not found: " <> from
+      (_, Nothing) -> error $ show $ "readWrite (FromVar, ToVar) to var not found: " <> to
+      (Just fromRef, Just toRef) -> liftIO $ do
+        val <- readIORef fromRef
+        let val' = invokeF mbF val
+        writeIORef toRef val'
 
 readWrite prop mbF
   (FromVar (GenericVar from _))
@@ -174,7 +153,7 @@ readWrite prop mbF (FromConst (GenericConst constVal))
   case Map.lookup to vars of
     Nothing    -> error $ show $ "To var not found: " <> to
     Just toRef -> do
-      let val = DInst.instVal constVal
+      let val = fromJust $ SQ.queryValue [] constVal
       let anyVal = invokeF mbF $ unsafeCoerce val
       writeIORef toRef anyVal
 
@@ -183,7 +162,7 @@ readWrite prop mbF (FromConst (GenericConst constVal))
   let toFieldDPath = DInst.toDynEssPath toFieldSPath
 
   toValRef <- liftIO $ Q.queryValueRef prop toFieldDPath
-  let val = DInst.instVal constVal
+  let val = fromJust $ SQ.queryValue [] constVal
   let anyVal = invokeF mbF $ unsafeCoerce val
   writeIORef toValRef $ unsafeCoerce anyVal
 
@@ -211,4 +190,3 @@ makeScript prop (PropScript (Ess ess) customScr) = do
         clearRuntime runtime
         putStrLn $ "Script finished: " <> ess
   pure (ess, DMod.DynScript ioAct)
-

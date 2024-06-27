@@ -22,19 +22,19 @@ import Data.Maybe
 
 -- Instatiation of Object with positions
 
--- instance
---   ( DInst () SMod.EssenceVL Essence
---   ) =>
---   DInst SMod.PosEssencePathVL SMod.ObjectVL Object where
---   dInst _ (SMod.PosPath pathToPos) (SMod.Obj x y statObjProp) = do
---     essPath <- mapM (dInst False ()) pathToPos
---     objProp <- dInst False () statObjProp
+instance
+  ( DInst () SMod.EssenceVL Essence
+  ) =>
+  DInst SMod.PosEssencePathVL SMod.ObjectVL Object where
+  dInst _ (SMod.PosPath pathToPos) (SMod.Obj x y statObjProp) = do
+    essPath <- mapM (dInst False ()) pathToPos
+    objProp <- dInst False () statObjProp
 
---     let posVal = PairValue (IntValue x, IntValue y)
+    let posVal = PairValue (IntValue x, IntValue y)
 
---     updateValue essPath posVal objProp
+    updateValue essPath posVal objProp
 
---     spawnObject objProp
+    spawnObject objProp
 
 
 

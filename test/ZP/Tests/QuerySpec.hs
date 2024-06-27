@@ -40,10 +40,8 @@ spec = do
       owning <- sMat' sEnv () $ Proxy @TestIconOwning
       path   <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
 
-      let mbRes = queryStringValueForOwning path owning
-      case mbRes of
-        Nothing  -> error "String value not found"
-        Just val -> val `shouldBe` "+"
+      let mbRes = queryValue path owning
+      mbRes `shouldBe` (Just $ StringValue "+")
 
     it "Query string value for prop key val" $ do
       sEnv <- makeSEnv DebugDisabled
@@ -51,10 +49,8 @@ spec = do
       kv   <- sMat' sEnv () $ Proxy @TestPropKeyVal
       path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
 
-      let mbRes = queryStringValueForKeyVals path [kv]
-      case mbRes of
-        Nothing -> error "String value not found"
-        Just val -> val `shouldBe` "+"
+      let mbRes = queryValue path kv
+      mbRes `shouldBe` (Just $ StringValue "+")
 
     it "Query string value for prop not relative" $ do
       sEnv <- makeSEnv DebugDisabled
@@ -62,10 +58,8 @@ spec = do
       prop <- sMat' sEnv () $ Proxy @TestProp
       path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIntrinsics, KB.EIcon])
 
-      let mbRes = queryStringValue path prop
-      case mbRes of
-        Nothing -> error "String value not found"
-        Just val -> val `shouldBe` "+"
+      let mbRes = queryValue path prop
+      mbRes `shouldBe` (Just $ StringValue "+")
 
     it "Query string value for prop relative" $ do
       sEnv <- makeSEnv DebugDisabled
@@ -73,7 +67,5 @@ spec = do
       prop <- sMat' sEnv () $ Proxy @TestProp
       path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
 
-      let mbRes = queryStringValueRelative path prop
-      case mbRes of
-        Nothing -> error "String value not found"
-        Just val -> val `shouldBe` "+"
+      let mbRes = queryValue path prop
+      mbRes `shouldBe` (Just $ StringValue "+")

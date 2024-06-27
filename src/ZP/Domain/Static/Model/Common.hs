@@ -217,3 +217,16 @@ instance Ord TagPropertyVL where
 instance T.Show TagPropertyVL where
   show (TagProp a) = "TagProp " <> T.show a
 
+
+class Tag (tag :: CustomTag) where
+  tagToString :: Proxy tag -> String
+
+instance
+  ( KnownSymbol s
+  ) => Tag ('RegularTag s) where
+  tagToString _ = symbolVal $ Proxy @s
+
+instance
+  ( KnownSymbol s
+  ) => Tag ('CompoundTag s v1 v2) where
+  tagToString _ = symbolVal $ Proxy @s
