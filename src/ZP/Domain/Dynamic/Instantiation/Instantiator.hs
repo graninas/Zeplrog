@@ -173,13 +173,3 @@ spawnObject prop = do
   writeIORef objIdRef $ ObjectId $ objId + 1
   pure $ Object (ObjectId objId) prop
 
-fullMat
-  :: SMat payload itTL itVL
-  => DInst payload itVL res
-  => DEnv
-  -> payload
-  -> Proxy itTL
-  -> IO res
-fullMat dEnv p proxy = do
-  itVL <- sMat' (deSEnv dEnv) p proxy
-  dInst' dEnv p itVL

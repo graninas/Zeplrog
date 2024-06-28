@@ -56,8 +56,6 @@ withShared shared group matProp = do
 
 type MbParentId = Maybe PropertyId
 
-
-
 instance
   DInst MbParentId SMod.PropertyVL (Essence, Property) where
   dInst shared _ (SMod.TagPropRef tagProp) = do
@@ -111,3 +109,16 @@ instance
     props    <- mapM (dInst False mbParentId) props
     propsVar <- newIORef $ Map.fromList props
     pure (keyEss, OwnDict propsVar)
+
+
+instance
+  DInst () SMod.PropertyVL Property where
+  dInst _ _ sProp = instProperty sProp
+
+instProperty
+  :: SMod.PropertyVL
+  -> DInstantiator Property
+instProperty sProp = do
+  (_ :: Essence, prop)
+      <- dInst False (Nothing :: MbParentId) sProp
+  pure prop
