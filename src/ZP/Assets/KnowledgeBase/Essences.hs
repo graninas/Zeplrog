@@ -44,6 +44,7 @@ type EGuard         = Ess @TypeLevel "object:guard"
 type EAbstractDoor  = Ess @TypeLevel "object:abstract door"
 type ESpecificDoor  = Ess @TypeLevel "object:specific door"
 type EDoor          = Ess @TypeLevel "object:door"
+type EGenericDoor   = Ess @TypeLevel "object:generic door"
 
 
 type EPhysicalImpact = Ess @TypeLevel "effect:physical impact"
@@ -56,9 +57,9 @@ type EIcon = Ess @TypeLevel "system:icon"
 
 type EGenericPos = Ess @TypeLevel "intrinsics:generic pos"
 type EPos        = Ess @TypeLevel "intrinsics:pos"
-type EGenericHP = Ess @TypeLevel "intrinsics:generic hp"
-type EHP            = Ess @TypeLevel "intrinsics:hp"
-type EStrength      = Ess @TypeLevel "intrinsics:strength"
+type EGenericHP  = Ess @TypeLevel "intrinsics:generic hp"
+type EHP         = Ess @TypeLevel "intrinsics:hp"
+type EStrength   = Ess @TypeLevel "intrinsics:strength"
 
 
 type EAnyProp = Ess @TypeLevel "prop:any"

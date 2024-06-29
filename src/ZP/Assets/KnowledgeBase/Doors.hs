@@ -18,7 +18,7 @@ type Close = TagProp (TagGroup EClose)
 type StateOpen  = TagProp (TagGroupRoot EStateOpen  Open)
 type StateClose = TagProp (TagGroupRoot EStateClose Close)
 
-type PushableScript = 'Script @'TypeLevel "'pushable' ability script"
+type PushableScript = 'Script @'TypeLevel "'pushable' ability script" '[]
   -- '[]
   -- '[ SimpleQuery
   --       '[ FollowReferences ]
@@ -57,7 +57,8 @@ type AbstractDoor = AbstractProp (Group EAbstractDoor)
   --                   PushableScript)
   --      ]
    ]
-   '[]
+   '[ PropScript EPushable PushableScript
+   ]
 
 
 -- | Specific door with a specific icon.
@@ -70,7 +71,7 @@ type SpecificDoor = DerivedProp ESpecificDoor AbstractDoor
 
 -- | Template for all doors having no predefined location.
 --   Derived from AbstractDoor.
-type GenericDoor = DerivedProp EDoor AbstractDoor
+type GenericDoor = DerivedProp EGenericDoor AbstractDoor
   '[ PropKeyVal EHP (OwnVal (HPTagVal 70))
    ]
   '[]

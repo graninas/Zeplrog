@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 08a8a67bf418c76ec4b08f463a6a75934eb9fe1f440386e670c3dcfdb7cb0d3a
+-- hash: 9499f54ff56e01c1316f7e9d7a69ba18f6a90d39f645d21af35fbd28d822034f
 
 name:           zeplrog
 version:        0.0.0.1
@@ -57,6 +57,7 @@ library
       ZP.Domain.Dynamic.Model.PropertyOld
       ZP.Domain.Dynamic.Model.World
       ZP.Domain.Dynamic.Query
+      ZP.Domain.Static.Description
       ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
@@ -192,6 +193,7 @@ executable zeplrog
       ZP.Domain.Dynamic.Model.PropertyOld
       ZP.Domain.Dynamic.Model.World
       ZP.Domain.Dynamic.Query
+      ZP.Domain.Static.Description
       ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common

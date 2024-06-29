@@ -7,6 +7,7 @@ import ZP.Prelude
 import ZP.Domain.Static.Query
 import ZP.Domain.Static.Model
 import ZP.Domain.Static.Materialization
+import qualified ZP.Domain.Static.Description as Descr
 import qualified ZP.Assets.KnowledgeBase as KB
 
 
@@ -24,7 +25,7 @@ spec = do
     it "Door materialization test" $ do
       sEnv <- makeSEnv DebugDisabled
 
-      door <- sMat' sEnv () $ Proxy @KB.SpecificDoor
+      _ <- sMat' sEnv () $ Proxy @KB.SpecificDoor
 
       statProps <- readIORef $ seStaticPropertiesRef sEnv
       statEsss  <- readIORef $ seStaticEssencesRef sEnv
@@ -32,12 +33,30 @@ spec = do
       -- print $ "Stat props: " <> show (Map.keys statProps)
       -- print $ "Stat essences: " <> show (Map.keys statEsss)
 
+      length statProps `shouldBe` 2
+
+      let (_, abstrDoor) = fromJust $ Map.lookup (StaticPropertyId 0) statProps
+      let (_, door)      = fromJust $ Map.lookup (StaticPropertyId 1) statProps
+
+      -- Descr.printDescription abstrDoor
+      -- Descr.printDescription door
+
+      case abstrDoor of
+        PropDict group props scripts -> do
+          let (ess, sId) = getComboId group
+          sId `shouldBe` StaticPropertyId 0
+          length scripts `shouldBe` 1
+          length props `shouldBe` 5
+          ess `shouldBe` Ess "object:abstract door"
+          Map.member ess statEsss `shouldBe` True
+        _ -> error "invalid materialization result"
+
       case door of
         PropDict group props scripts -> do
           let (ess, sId) = getComboId group
+          sId `shouldBe` StaticPropertyId 1
           length scripts `shouldBe` 1
-          length props `shouldBe` 6
-          length statProps `shouldBe` 15
+          length props `shouldBe` 5
           ess `shouldBe` Ess "object:specific door"
           Map.member ess statEsss `shouldBe` True
         _ -> error "invalid materialization result"
@@ -51,9 +70,17 @@ spec = do
       statProps <- readIORef $ seStaticPropertiesRef sEnv
       statEsss  <- readIORef $ seStaticEssencesRef sEnv
 
-      -- print $ "Stat props: " <> show (Map.keys statProps)
-      -- print $ "Stat essences: " <> show (Map.keys statEsss)
+      print $ "Stat props: " <> show (Map.keys statProps)
+      print $ "Stat essences: " <> show (Map.keys statEsss)
 
-      length statProps `shouldBe` 26
+      print $ map (getComboId . snd) $ Map.elems statProps
+
+      let (_, p1) = fromJust $ Map.lookup (StaticPropertyId 3) statProps
+      let (_, p2) = fromJust $ Map.lookup (StaticPropertyId 9) statProps
+
+      Descr.printDescription p1
+      Descr.printDescription p2
+
+      length statProps `shouldBe` 10
       length props `shouldBe` 3
       length objs `shouldBe` 2
