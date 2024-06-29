@@ -38,9 +38,9 @@ type OpenStateRef  = '[ EStates, EStateOpen  ]
 
 -- | Abstract door.
 type AbstractDoor = AbstractProp (Group EAbstractDoor)
-  '[ -- PropKeyVal EIcon (OwnVal (IconVal "+"))   -- TODO: open and close door with own icons
-    PropKeyVal EHP   (OwnVal (HPTagVal 50))
-  --  , PropKeyVal EPos  (OwnVal DerivablePosTagVal)
+  '[ PropKeyVal EIcon (OwnVal (IconVal "+"))   -- TODO: open and close door with own icons
+   , PropKeyVal EHP   (OwnVal (HPTagVal 50))
+   , PropKeyVal EPos  (OwnVal DerivablePosTagVal)
 
     -- | Possible states
    , PropKeyBag EStates
@@ -62,9 +62,9 @@ type AbstractDoor = AbstractProp (Group EAbstractDoor)
 
 -- | Specific door with a specific icon.
 type SpecificDoor = DerivedProp ESpecificDoor AbstractDoor
-  '[ -- PropKeyVal EIcon (OwnVal (IconVal "?"))   -- TODO: open and close door with own icons
-  --  , PropKeyVal EHP   (OwnVal (HPTagVal 100))
-  --  , PropKeyVal EPos  (OwnVal (PosTagVal 2 3))
+  '[ PropKeyVal EIcon (OwnVal (IconVal "?"))   -- TODO: open and close door with own icons
+   , PropKeyVal EHP   (OwnVal (HPTagVal 100))
+   , PropKeyVal EPos  (OwnVal (PosTagVal 2 3))
    ]
   '[]
 

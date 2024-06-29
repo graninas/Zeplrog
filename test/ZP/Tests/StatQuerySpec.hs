@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 
-module ZP.Tests.QuerySpec where
+module ZP.Tests.StatQuerySpec where
 
 import ZP.Prelude
 
@@ -34,38 +34,72 @@ type Wall = DerivedProp KB.EWall KB.AnyProp
 spec :: Spec
 spec = do
   describe "Query spec" $ do
-    it "Query string value for own prop" $ do
+    it "Query string value for owning: found" $ do
+      sEnv <- makeSEnv DebugDisabled
+
+      owning <- sMat' sEnv () $ Proxy @TestIconOwning
+      path   <- sMat' sEnv () $ Proxy @(SMat.Essences '[])
+
+      length path `shouldBe` 0
+      let mbRes = queryValue path owning
+      mbRes `shouldBe` (Just $ StringValue "+")
+
+    it "Query string value for owning: not found" $ do
       sEnv <- makeSEnv DebugDisabled
 
       owning <- sMat' sEnv () $ Proxy @TestIconOwning
       path   <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
 
+      length path `shouldBe` 1
       let mbRes = queryValue path owning
-      mbRes `shouldBe` (Just $ StringValue "+")
+      mbRes `shouldBe` Nothing
 
-    it "Query string value for prop key val" $ do
+    it "Query string value for prop key val: found" $ do
       sEnv <- makeSEnv DebugDisabled
 
       kv   <- sMat' sEnv () $ Proxy @TestPropKeyVal
       path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
 
+      length path `shouldBe` 1
       let mbRes = queryValue path kv
       mbRes `shouldBe` (Just $ StringValue "+")
 
-    it "Query string value for prop not relative" $ do
+    it "Query string value for prop key val: not found" $ do
+      sEnv <- makeSEnv DebugDisabled
+
+      kv   <- sMat' sEnv () $ Proxy @TestPropKeyVal
+      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EHP])
+
+      length path `shouldBe` 1
+      let mbRes = queryValue path kv
+      mbRes `shouldBe` Nothing
+
+    it "Query string value for prop key val: not found 2" $ do
+      sEnv <- makeSEnv DebugDisabled
+
+      kv   <- sMat' sEnv () $ Proxy @TestPropKeyVal
+      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[])
+
+      length path `shouldBe` 0
+      let mbRes = queryValue path kv
+      mbRes `shouldBe` Nothing
+
+    it "Query string value for prop: found" $ do
       sEnv <- makeSEnv DebugDisabled
 
       prop <- sMat' sEnv () $ Proxy @TestProp
       path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIntrinsics, KB.EIcon])
 
+      length path `shouldBe` 2
       let mbRes = queryValue path prop
       mbRes `shouldBe` (Just $ StringValue "+")
 
-    it "Query string value for prop relative" $ do
+    it "Query string value for prop: not found" $ do
       sEnv <- makeSEnv DebugDisabled
 
       prop <- sMat' sEnv () $ Proxy @TestProp
       path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
 
+      length path `shouldBe` 1
       let mbRes = queryValue path prop
-      mbRes `shouldBe` (Just $ StringValue "+")
+      mbRes `shouldBe` Nothing

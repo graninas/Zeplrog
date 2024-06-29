@@ -129,7 +129,7 @@ instance
     -- N.B. This routine will result in some staticPropertyIds
     --   to be dropped when a singleton property is already present.
     group <- sMat () $ Proxy @group
-    let (ess, statPropId) = getComboPropertyId group
+    let (ess, statPropId) = getComboId group
 
     case Map.lookup ess esss of
       Just [(sId, prop)] -> do
@@ -186,7 +186,7 @@ instance
 
         case aPropPrepared of
           PropDict aGroup parentAPropKVs parentAPropScripts -> do
-            let aId@(abstractPropEss, abstractPropSId) = getComboPropertyId aGroup
+            let aId@(abstractPropEss, abstractPropSId) = getComboId aGroup
             sTraceDebug $ "Parent abstract property to derive: " <> show aId
 
             propKVs <- sMat () $ Proxy @(SrcPropKVs propKVs)
@@ -220,7 +220,7 @@ instance
 
     case aPropPrepared of
       PropDict aGroup abstractPropKVs abstractPropScripts -> do
-        let aId@(abstractPropEss, abstractPropSId) = getComboPropertyId aGroup
+        let aId@(abstractPropEss, abstractPropSId) = getComboId aGroup
         sTraceDebug $ "Abstract property to derive: " <> show aId
 
         statPropId <- getNextStaticPropertyId
@@ -350,8 +350,8 @@ mergePropKVs
   -> [PropertyKeyValueVL]
   -> [PropertyKeyValueVL]
 mergePropKVs kvs1 kvs2 = let
-  pKVs1 = Map.fromList [ (getEssenceFromKV k, k) | k <- kvs1]
-  pKVs2 = Map.fromList [ (getEssenceFromKV k, k) | k <- kvs2]
+  pKVs1 = Map.fromList [ (getEssence k, k) | k <- kvs1]
+  pKVs2 = Map.fromList [ (getEssence k, k) | k <- kvs2]
   pKVs3 = Map.union pKVs1 pKVs2
   in Map.elems pKVs3
 

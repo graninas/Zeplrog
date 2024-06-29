@@ -34,7 +34,7 @@ spec = do
 
       case door of
         PropDict group props scripts -> do
-          let (ess, sId) = getComboPropertyId group
+          let (ess, sId) = getComboId group
           length scripts `shouldBe` 1
           length props `shouldBe` 6
           length statProps `shouldBe` 15
@@ -43,7 +43,7 @@ spec = do
         _ -> error "invalid materialization result"
 
     it "Game materialization test 1" $ do
-      sEnv <- makeSEnv DebugEnabled
+      sEnv <- makeSEnv DebugDisabled
 
       game <- sMat' sEnv () $ Proxy @(KB.Zeplrog KB.World1)
       let GameEnvironment _ _ _ props objs = game

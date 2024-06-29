@@ -36,7 +36,7 @@ import           Text.Read                    as X (read, readsPrec)
 -- includes Data.IORef
 import           Universum                    as X hiding (All, Option, Set,
                                                     Type, head, init, last, set,
-                                                    tail, trace,
+                                                    tail, trace, group,
                                                     natVal, symbolVal)
 import           Universum.Functor.Fmap       as X ((<<$>>))
 import           Universum.Unsafe             as X (head, init, last, tail,

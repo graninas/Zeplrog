@@ -59,12 +59,12 @@ type MbParentId = Maybe PropertyId
 instance
   DInst MbParentId SMod.PropertyVL (Essence, Property) where
   dInst shared _ (SMod.TagPropRef tagProp) = do
-    ess <- dInst False () $ SQ.getTagPropEss tagProp
+    ess <- dInst False () $ SQ.getEssence tagProp
     pure (ess, TagPropRef tagProp)
 
   dInst shared mbParentId (SMod.PropDict group propKVs scripts) =
     spawnProperty $ withShared shared group $ do
-      let (sEss, sId) = SQ.getComboPropertyId group
+      let (sEss, sId) = SQ.getComboId group
 
       ess         <- dInst False () sEss
       propId      <- getNextPropertyId
