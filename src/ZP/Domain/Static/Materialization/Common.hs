@@ -148,7 +148,7 @@ instance
   SMat (Proxy "string") s (String, DValue) where
   sMat _ _ = do
     let s = symbolVal $ Proxy @s
-    pure (s, StringValue s)
+    pure (s, StringValue "string" s)
 
 instance
   ( SMat () (Essences essPath) [EssenceVL]
@@ -157,7 +157,7 @@ instance
   sMat _ _ = do
     essPath <- sMat () $ Proxy @(Essences essPath)
     let dEssPath = map (\(Ess s) -> s) essPath
-    pure (essPath, PathValue dEssPath)
+    pure (essPath, PathValue "path" dEssPath)
 
 instance
   ( KnownNat n1
@@ -167,7 +167,7 @@ instance
   sMat _ _ = do
     let n1 = fromIntegral $ natVal $ Proxy @n1
     let n2 = fromIntegral $ natVal $ Proxy @n2
-    pure (Pair n1 n2, PairValue (IntValue n1) (IntValue n2))
+    pure (Pair n1 n2, PairValue "int pair" (IntValue "int" n1) (IntValue "int" n2))
 
 -- Generic value itself
 instance

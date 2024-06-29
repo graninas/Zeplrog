@@ -34,10 +34,15 @@ data DynamicScript = DynScript (IO ())
 
 -- | Dynamic property
 data Property
-  = TagPropRef SMod.TagPropertyVL
+  = TagPropRef
+    { pPropertyEssence  :: Essence
+    , pPropertyTagProp  :: SMod.TagPropertyVL
+    }
   | Prop
     { pPropertyId       :: PropertyId
       -- ^ Unique Id for a property instance
+    , pPropertyEssence  :: Essence
+      -- ^ Property essence
     , pOwner            :: Maybe PropertyId
       -- ^ Independent property that owns this prop exclusively
     , pStaticPropertyId :: SMod.StaticPropertyId

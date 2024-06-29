@@ -23,12 +23,10 @@ spec = do
     it "Full materialization: door" $ do
       (sEnv, dEnv) <- makeEnvs DebugDisabled
 
-      -- doorStat <- sMat' sEnv () $ Proxy @KB.SpecificDoor
-      -- door <- instProperty doorStat
       door <- fullInst dEnv () $ Proxy @KB.SpecificDoor
 
       props <- readIORef $ dePropertiesRef dEnv
-      print $ "All props: " <> show (Map.keys props)
+      -- print $ "All props: " <> show (Map.keys props)
 
       Map.size props `shouldBe` 8
 
@@ -38,8 +36,7 @@ spec = do
       game <- fullInst dEnv () $ Proxy @(KB.Zeplrog KB.World1)
 
       props <- readIORef $ dePropertiesRef dEnv
-      esss  <- readIORef $ deEssencesRef dEnv
 
-      print $ "Props: " <> show (Map.keys props)
+      -- print $ "Props: " <> show (Map.keys props)
 
       length props `shouldBe` 208

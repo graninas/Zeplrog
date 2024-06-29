@@ -73,9 +73,9 @@ invokeF
   -> GHC.Any
 invokeF Nothing anyVal = anyVal
 invokeF (Just NegateF) anyVal = let
-  val :: DMod.DValue = unsafeCoerce anyVal
+  val :: DValue = unsafeCoerce anyVal
   in case val of
-        DMod.BoolValue b -> unsafeCoerce $ DMod.BoolValue $ not b
+        BoolValue tn b -> unsafeCoerce $ BoolValue tn $ not b
         _ -> error $ "invokeF (Just NegateF) type mismatch: " <> show val
 
 readWrite
@@ -112,7 +112,7 @@ readWrite prop mbF
         let anyVal2 = invokeF mbF anyVal1
 
         let toFieldDPath = DInst.toDynEssPath toFieldSPath
-        toValRef <- Q.queryValueRef prop toFieldDPath
+        toValRef <- Q.queryValueRefUnsafe toFieldDPath prop
         writeIORef toValRef $ unsafeCoerce anyVal2
 
 readWrite prop mbF
@@ -126,7 +126,7 @@ readWrite prop mbF
       Just toVarRef -> do
 
         let fromFieldDPath = DInst.toDynEssPath fromFieldSPath
-        curValRef <- liftIO $ Q.queryValueRef prop fromFieldDPath
+        curValRef <- liftIO $ Q.queryValueRefUnsafe fromFieldDPath prop
         curVal    <- liftIO $ readIORef curValRef
 
         let anyVal2 = invokeF mbF $ unsafeCoerce curVal
@@ -138,9 +138,9 @@ readWrite prop mbF
     let fromFieldDPath = DInst.toDynEssPath fromFieldSPath
     let toFieldDPath   = DInst.toDynEssPath toFieldSPath
 
-    fromValRef <- liftIO $ Q.queryValueRef prop fromFieldDPath
+    fromValRef <- liftIO $ Q.queryValueRefUnsafe fromFieldDPath  prop
     fromVal    <- liftIO $ readIORef fromValRef
-    toValRef   <- liftIO $ Q.queryValueRef prop toFieldDPath
+    toValRef   <- liftIO $ Q.queryValueRefUnsafe toFieldDPath  prop
 
     let anyVal = invokeF mbF $ unsafeCoerce fromVal
     writeIORef toValRef $ unsafeCoerce anyVal
@@ -161,7 +161,7 @@ readWrite prop mbF (FromConst (GenericConst constVal))
                    (ToField _ toFieldSPath) = do
   let toFieldDPath = DInst.toDynEssPath toFieldSPath
 
-  toValRef <- liftIO $ Q.queryValueRef prop toFieldDPath
+  toValRef <- liftIO $ Q.queryValueRefUnsafe toFieldDPath prop
   let val = fromJust $ SQ.queryValue [] constVal
   let anyVal = invokeF mbF $ unsafeCoerce val
   writeIORef toValRef $ unsafeCoerce anyVal

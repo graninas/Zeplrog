@@ -19,69 +19,94 @@ import qualified Data.Map.Strict as Map
 import Unsafe.Coerce (unsafeCoerce)
 
 
-class QueryValueRef item where
+class QueryValueRef it where
   queryValueRef
-    :: item
-    -> EssencePath
-    -> IO (IORef DValue)
+    :: EssencePath
+    -> it
+    -> IO (Maybe (IORef DValue))
 
 
 instance QueryValueRef Property where
-  queryValueRef (TagPropRef _) _ = error "queryValueRef: TagPropRef not yet implemented"
-  queryValueRef _ [] = error "queryValueRef: Path is empty"
-  queryValueRef (Prop _ _ _ fieldsRef _) (ess : esss) = do
+  queryValueRef [] _ = pure Nothing
+  queryValueRef _ (TagPropRef _ _) =
+    error "queryValueRef not implemented for TagPropRef"
+  queryValueRef (ess1 : ess2 : path) (Prop _ ess _ _ fieldsRef _) = do
     fields <- readIORef fieldsRef
-    case Map.lookup ess fields of
-      Nothing    -> error $ show $ "queryValueRef: ess not found: " <> ess
-      Just field -> queryValueRef field esss
+    let propMatch = ess == ess1
+    let mbOwning = Map.lookup ess2 fields
+    case (propMatch, mbOwning) of
+          (False, _)   -> pure Nothing
+          (_, Nothing)      -> pure Nothing
+          (True, Just owning) -> queryValueRef path owning
+  queryValueRef _ _ = pure Nothing
 
 instance QueryValueRef PropertyOwning where
-  queryValueRef (OwnVal valRef) [] = pure valRef
-  queryValueRef (OwnVal _) esss = error $ show $ "Path exceeds hierarchy: " <> show esss
-  queryValueRef (SharedProp prop) _ =
-    error "queryValueRef (SharedProp prop): not yet implemented"
-  queryValueRef (OwnDict dictRef) [] =
-    error "queryValueRef (OwnDict dictRef): path is empty"
-  queryValueRef (OwnDict dictRef) (e:esss) = do
+  queryValueRef [] (OwnVal valRef) = pure $ Just valRef
+  queryValueRef _ (OwnVal _) = pure Nothing
+  queryValueRef (ess:path) (OwnDict dictRef) = do
     dict <- readIORef dictRef
-    case Map.lookup e dict of
-      Nothing -> error $ show $ "Field not found: " <> e
-      Just prop -> queryValueRef prop esss
-  queryValueRef (OwnProp prop) esss = queryValueRef prop esss
+    case Map.lookup ess dict of
+      Nothing -> pure Nothing
+      Just prop -> queryValueRef path prop
+  queryValueRef path (OwnProp prop) = queryValueRef path prop
+  queryValueRef _ (SharedProp _) =
+    error "queryValueRef not implemented for SharedProp"
 
+queryValueRefUnsafe
+  :: QueryValueRef it
+  => EssencePath
+  -> it
+  -> IO (IORef DValue)
+queryValueRefUnsafe path it = do
+  mbValRef <- queryValueRef path it
+  case mbValRef of
+    Nothing -> error $ "queryValueRefUnsafe value not found: " <> show path
+    Just valRef -> pure valRef
+
+
+------------
 
 readBoolVal
   :: Property
   -> [Essence]
   -> IO Bool
-readBoolVal prop esss = do
-  valRef <- queryValueRef prop esss
-  val <- readIORef valRef
-  case val of
-    BoolValue boolVal -> pure boolVal
-    _ -> error "readBoolVal: not a bool value"
+readBoolVal prop path = do
+  mbValRef <- queryValueRef path prop
+  case mbValRef of
+    Nothing -> error $ "Value not found: " <> show path
+    Just valRef -> do
+      val <- readIORef valRef
+      case val of
+        BoolValue _ boolVal -> pure boolVal
+        _ -> error "readBoolVal: not a bool value"
 
 readStringVal
   :: Property
   -> [Essence]
   -> IO String
-readStringVal prop esss = do
-  valRef <- queryValueRef prop esss
-  val <- readIORef valRef
-  case val of
-    StringValue val -> pure val
-    _ -> error "readStringVal: not a string value"
+readStringVal prop path = do
+  mbValRef <- queryValueRef path prop
+  case mbValRef of
+    Nothing -> error $ "Value not found: " <> show path
+    Just valRef -> do
+      val <- readIORef valRef
+      case val of
+        StringValue _ val -> pure val
+        _ -> error "readStringVal: not a string value"
 
 readPathVal
   :: Property
   -> [Essence]
   -> IO [Essence]
-readPathVal prop esss = do
-  valRef <- queryValueRef prop esss
-  val <- readIORef valRef
-  case val of
-    PathValue val -> pure val
-    _ -> error $ "readPathVal: not a path value "
+readPathVal prop path = do
+  mbValRef <- queryValueRef path prop
+  case mbValRef of
+    Nothing -> error $ "Value not found: " <> show path
+    Just valRef -> do
+      val <- readIORef valRef
+      case val of
+        PathValue _ val -> pure val
+        _ -> error $ "readPathVal: not a path value "
 
 updateValue
   :: Property
@@ -89,8 +114,16 @@ updateValue
   -> DValue
   -> IO ()
 updateValue prop path newVal = do
-  valRef <- queryValueRef prop path
-  writeIORef valRef newVal
+  mbValRef <- queryValueRef path prop
+  case mbValRef of
+    Nothing -> error $ "Value not found: " <> show path
+    Just valRef -> do
+      val <- readIORef valRef
+      let tn1 = tagName newVal
+      let tn2 = tagName val
+      if tn1 == tn2
+        then writeIORef valRef newVal
+        else error $ "Value types mismatch: " <> show tn1 <> " " <> show tn2
 
 
 -- addChildProperty :: [Category] -> Property -> Property -> DInstantiator ()

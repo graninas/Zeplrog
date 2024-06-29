@@ -29,7 +29,7 @@ instance
     essPath <- mapM (dInst False ()) pathToPos
     prop <- instProperty sProp
 
-    let posVal = PairValue (IntValue x) (IntValue y)
+    let posVal = mkIntPairValue x y
 
     liftIO $ updateValue prop essPath posVal
 

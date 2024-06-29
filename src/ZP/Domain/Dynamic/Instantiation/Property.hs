@@ -60,7 +60,7 @@ instance
   DInst MbParentId SMod.PropertyVL (Essence, Property) where
   dInst shared _ (SMod.TagPropRef tagProp) = do
     ess <- dInst False () $ SQ.getEssence tagProp
-    pure (ess, TagPropRef tagProp)
+    pure $ (ess, TagPropRef ess tagProp)
 
   dInst shared mbParentId (SMod.PropDict group propKVs scripts) =
     spawnProperty $ withShared shared group $ do
@@ -72,7 +72,7 @@ instance
       propBagsVar <- newIORef $ Map.fromList props
 
       -- Prop without scripts
-      let tmpProp = Prop propId mbParentId sId propBagsVar Map.empty
+      let tmpProp = Prop propId ess mbParentId sId propBagsVar Map.empty
 
       scripts' <- liftIO $ mapM (Script.makeScript tmpProp) scripts
       pure (ess, tmpProp {pScripts = Map.fromList scripts'})

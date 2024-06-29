@@ -20,11 +20,8 @@ instance
   DInst () SMod.EssenceVL Essence where
   dInst _ () (SMod.Ess ess) = pure ess
 
-toDynEss :: SMod.EssenceVL -> Essence
-toDynEss (SMod.Ess ess) = ess
-
-toDynEssPath :: [SMod.EssenceVL] -> EssencePath
-toDynEssPath esss = map toDynEss esss
+instance DInst () [SMod.EssenceVL] EssencePath where
+  dInst _ () path = mapM (dInst False ()) path
 
 instance
   DInst () SMod.PropertyGroupVL (Essence, SMod.StaticPropertyId) where
@@ -35,3 +32,10 @@ instance
     ess <- dInst False () statEss
     pure (ess, sId)
 
+
+
+toDynEss :: SMod.EssenceVL -> Essence
+toDynEss (SMod.Ess ess) = ess
+
+toDynEssPath :: [SMod.EssenceVL] -> EssencePath
+toDynEssPath esss = map toDynEss esss

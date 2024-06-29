@@ -34,16 +34,18 @@ data CustomTag where
   RegularTag  :: Symbol -> CustomTag
   CompoundTag :: Symbol -> CustomTag -> CustomTag -> CustomTag
 
+type TagName = String
+
 -- | Dynamic value needed to avoid much complexities
 --   of dependent typing
 data DValue
-  = PairValue DValue DValue
-  | IntValue Int
-  | BoolValue Bool
-  | StringValue String
-  | TagValue TagPropertyVL DValue
-  | PathValue [String]
-  | StaticPropertyRefValue StaticPropertyId
+  = PairValue TagName DValue DValue
+  | IntValue TagName Int
+  | BoolValue TagName Bool
+  | StringValue TagName String
+  | TagValue TagName TagPropertyVL DValue
+  | PathValue TagName [String]
+  | StaticPropertyRefValue TagName StaticPropertyId
   | DPlaceholder
   deriving (Show, Eq, Ord)
 
@@ -230,3 +232,23 @@ instance
   ( KnownSymbol s
   ) => Tag ('CompoundTag s v1 v2) where
   tagToString _ = symbolVal $ Proxy @s
+
+tagName :: DValue -> TagName
+tagName (PairValue tn _ _) = tn
+tagName (IntValue tn _) = tn
+tagName (BoolValue tn _) = tn
+tagName (StringValue tn _) = tn
+tagName (TagValue tn _ _) = tn
+tagName (PathValue tn _) = tn
+tagName (StaticPropertyRefValue tn _) = tn
+tagName DPlaceholder = ""
+
+mkIntValue :: Int -> DValue
+mkIntValue x = IntValue (tagToString (Proxy @IntTag)) x
+
+mkIntPairValue :: Int -> Int -> DValue
+mkIntPairValue x y =
+  PairValue
+    (tagToString (Proxy @PairIntIntTag))
+    (mkIntValue x)
+    (mkIntValue y)

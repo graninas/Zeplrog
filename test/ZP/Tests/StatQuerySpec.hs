@@ -11,29 +11,16 @@ import qualified ZP.Assets.KnowledgeBase as KB
 import qualified ZP.Domain.Static.Materialization as SMat
 
 import ZP.System.Debug
+import ZP.Testing.TestData
 import Test.Hspec
 
 import Data.Proxy
 import qualified Data.Map.Strict as Map
 
 
-type TestIconOwning = OwnVal (KB.IconVal "+")
-type TestPropKeyVal = PropKeyVal KB.EIcon TestIconOwning
-
-type TestProp = DerivedProp KB.EIntrinsics KB.AnyProp
-  '[ TestPropKeyVal
-   ]
-  '[]
-
-
-type Wall = DerivedProp KB.EWall KB.AnyProp
-  '[ PropKeyVal KB.EIcon (OwnVal (KB.IconVal "#"))
-   ]
-  '[]
-
 spec :: Spec
 spec = do
-  describe "Query spec" $ do
+  describe "Static query spec" $ do
     it "Query string value for owning: found" $ do
       sEnv <- makeSEnv DebugDisabled
 
@@ -42,7 +29,7 @@ spec = do
 
       length path `shouldBe` 0
       let mbRes = queryValue path owning
-      mbRes `shouldBe` (Just $ StringValue "+")
+      mbRes `shouldBe` (Just $ StringValue "string" "+")
 
     it "Query string value for owning: not found" $ do
       sEnv <- makeSEnv DebugDisabled
@@ -62,7 +49,7 @@ spec = do
 
       length path `shouldBe` 1
       let mbRes = queryValue path kv
-      mbRes `shouldBe` (Just $ StringValue "+")
+      mbRes `shouldBe` (Just $ StringValue "string" "+")
 
     it "Query string value for prop key val: not found" $ do
       sEnv <- makeSEnv DebugDisabled
@@ -92,7 +79,7 @@ spec = do
 
       length path `shouldBe` 2
       let mbRes = queryValue path prop
-      mbRes `shouldBe` (Just $ StringValue "+")
+      mbRes `shouldBe` (Just $ StringValue "string" "+")
 
     it "Query string value for prop: not found" $ do
       sEnv <- makeSEnv DebugDisabled
