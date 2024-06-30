@@ -52,13 +52,13 @@ instance
     pure $ ToVar varDef
 
 instance
-  ( SMat () (Essences essPath) [EssenceVL]
+  ( SMat () path EssencePathVL
   , proxy ~ (p :: Proxy tag)
   ) =>
-  SMat () ('ToField proxy essPath)
+  SMat () ('ToField proxy path)
           (TargetVL tag) where
   sMat () _ = do
-    path <- sMat () $ Proxy @(Essences essPath)
+    path <- sMat () $ Proxy @path
     pure $ ToField (Proxy @tag) path
 
 instance
@@ -72,13 +72,13 @@ instance
     pure $ FromVar varDef
 
 instance
-  ( SMat () (Essences essPath) [EssenceVL]
+  ( SMat () path EssencePathVL
   , proxy ~ (p :: Proxy tag)
   ) =>
-  SMat () ('FromField proxy essPath)
+  SMat () ('FromField proxy path)
           (SourceVL tag) where
   sMat () _ = do
-    path <- sMat () $ Proxy @(Essences essPath)
+    path <- sMat () $ Proxy @path
     pure $ FromField (Proxy @tag) path
 
 instance

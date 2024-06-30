@@ -8,8 +8,8 @@ import qualified ZP.Domain.Static.Model as SMod
 import ZP.Domain.Dynamic.Model.Common
 
 
-newtype Effect = Effect Essence
+newtype Effect = Effect DEssence
 
 data EffectTrigger
   = EffTrigger Effect Effect
-  | AbilityTrigger Effect Essence
+  | AbilityTrigger Effect DEssence

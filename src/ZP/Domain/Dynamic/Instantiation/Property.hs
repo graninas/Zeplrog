@@ -30,8 +30,8 @@ import qualified Data.Map.Strict as Map
 withShared
   :: Bool
   -> SMod.PropertyGroupVL
-  -> DInstantiator (Essence, Property)
-  -> DInstantiator (Essence, Property)
+  -> DInstantiator (DEssence, Property)
+  -> DInstantiator (DEssence, Property)
 withShared shared group matProp = do
   sharedVar   <- asks deSharedPropertiesRef
   sharedProps <- readIORef sharedVar
@@ -57,7 +57,7 @@ withShared shared group matProp = do
 type MbParentId = Maybe PropertyId
 
 instance
-  DInst MbParentId SMod.PropertyVL (Essence, Property) where
+  DInst MbParentId SMod.PropertyVL (DEssence, Property) where
   dInst shared _ (SMod.TagPropRef tagProp) = do
     ess <- dInst False () $ SQ.getEssence tagProp
     pure $ (ess, TagPropRef ess tagProp)
@@ -82,7 +82,7 @@ instance
   DInst MbParentId SMod.PropertyOwningVL PropertyOwning where
 
   dInst _ _ (SMod.OwnVal valDef) = do
-    let val = fromJust $ SQ.queryValue [] valDef
+    let val = fromJust $ SQ.queryValue (SMod.RelPath []) valDef
     valRef <- newIORef val
     pure (OwnVal valRef)
 
@@ -97,7 +97,7 @@ instance
     pure (SharedProp $ DynamicPropRef $ pPropertyId prop)
 
 instance
-  DInst MbParentId SMod.PropertyKeyValueVL (Essence, PropertyOwning) where
+  DInst MbParentId SMod.PropertyKeyValueVL (DEssence, PropertyOwning) where
 
   dInst _ mbParentId (SMod.PropKeyVal keyEss statOwning) = do
     keyEss <- dInst False () keyEss
@@ -119,6 +119,6 @@ instProperty
   :: SMod.PropertyVL
   -> DInstantiator Property
 instProperty sProp = do
-  (_ :: Essence, prop)
+  (_ :: DEssence, prop)
       <- dInst False (Nothing :: MbParentId) sProp
   pure prop

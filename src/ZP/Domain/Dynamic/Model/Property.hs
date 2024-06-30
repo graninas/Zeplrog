@@ -18,7 +18,7 @@ newtype PropertyId = PropertyId Int
 data PropertyOwning
   = OwnVal (IORef SMod.DValue)
   -- ^ Mutable dynamic value
-  | OwnDict (IORef (Map.Map Essence Property))
+  | OwnDict (IORef (Map.Map DEssence Property))
   -- ^ Multiple child props
   | OwnProp Property
   -- ^ Single child prop
@@ -35,19 +35,19 @@ data DynamicScript = DynScript (IO ())
 -- | Dynamic property
 data Property
   = TagPropRef
-    { pPropertyEssence  :: Essence
+    { pPropertyEssence  :: DEssence
     , pPropertyTagProp  :: SMod.TagPropertyVL
     }
   | Prop
     { pPropertyId       :: PropertyId
       -- ^ Unique Id for a property instance
-    , pPropertyEssence  :: Essence
+    , pPropertyEssence  :: DEssence
       -- ^ Property essence
     , pOwner            :: Maybe PropertyId
       -- ^ Independent property that owns this prop exclusively
     , pStaticPropertyId :: SMod.StaticPropertyId
       -- ^ Source property for this one
-    , pFieldsRef        :: IORef (Map.Map Essence PropertyOwning)
+    , pFieldsRef        :: IORef (Map.Map DEssence PropertyOwning)
       -- ^ Child properties
-    , pScripts          :: Map.Map Essence DynamicScript
+    , pScripts          :: Map.Map DEssence DynamicScript
     }

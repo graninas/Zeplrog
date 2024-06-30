@@ -42,8 +42,8 @@ instance
   ( SMat () world WorldVL
   , SMat () (Objs objs) [ObjectVL]
   , SMat () (Props props) [PropertyVL]
-  , SMat () (Essences pathToIcon) [EssenceVL]
-  , SMat () (Essences pathToPos) [EssenceVL]
+  , SMat () pathToIcon EssencePathVL
+  , SMat () pathToPos EssencePathVL
   ) =>
   SMat () ('GameEnvironment @TypeLevel
             world
@@ -55,8 +55,8 @@ instance
          GameVL where
   sMat () _ = do
     world      <- sMat () $ Proxy @world
-    pathToIcon <- sMat () $ Proxy @(Essences pathToIcon)
-    pathToPos  <- sMat () $ Proxy @(Essences pathToPos)
+    pathToIcon <- sMat () $ Proxy @pathToIcon
+    pathToPos  <- sMat () $ Proxy @pathToPos
     objs       <- sMat () $ Proxy @(Objs objs)
     props      <- sMat () $ Proxy @(Props props)
     pure $ GameEnvironment

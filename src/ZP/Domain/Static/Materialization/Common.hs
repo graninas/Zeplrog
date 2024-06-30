@@ -22,7 +22,7 @@ import qualified Data.Map.Strict as Map
 
 
 -- Helper to materialize the list of essences
-data Essences essPath
+data Essences path
 
 -- Statically materialize elementary types
 
@@ -105,14 +105,32 @@ instance
 
 instance
   ( SMat () ess EssenceVL
-  , SMat () (Essences essPath) [EssenceVL]
+  , SMat () (Essences path) [EssenceVL]
   ) =>
-  SMat () (Essences (ess ': essPath))
+  SMat () (Essences (ess ': path))
          [EssenceVL] where
   sMat () _ = do
-    ess     <- sMat () $ Proxy @ess
-    essPath <- sMat () $ Proxy @(Essences essPath)
-    pure $ ess : essPath
+    ess  <- sMat () $ Proxy @ess
+    path <- sMat () $ Proxy @(Essences path)
+    pure $ ess : path
+
+instance
+  ( SMat () (Essences path) [EssenceVL]
+  ) =>
+  SMat () ('RelPath path)
+          EssencePathVL where
+  sMat () _ = do
+    path <- sMat () $ Proxy @(Essences path)
+    pure $ RelPath path
+
+instance
+  ( SMat () (Essences path) [EssenceVL]
+  ) =>
+  SMat () ('AbsPath path)
+          EssencePathVL where
+  sMat () _ = do
+    path <- sMat () $ Proxy @(Essences path)
+    pure $ AbsPath path
 
 
 -- Statically materialize generic value
@@ -151,13 +169,15 @@ instance
     pure (s, StringValue "string" s)
 
 instance
-  ( SMat () (Essences essPath) [EssenceVL]
+  ( SMat () path EssencePathVL
   ) =>
-  SMat (Proxy "path") essPath ([EssenceVL], DValue) where
+  SMat (Proxy "path") path (EssencePathVL, DValue) where
   sMat _ _ = do
-    essPath <- sMat () $ Proxy @(Essences essPath)
-    let dEssPath = map (\(Ess s) -> s) essPath
-    pure (essPath, PathValue "path" dEssPath)
+    path <- sMat () $ Proxy @path
+    let dEssPath = case path of
+          RelPath p -> DRelPath $ map (\(Ess s) -> s) p
+          AbsPath p -> DAbsPath $ map (\(Ess s) -> s) p
+    pure (path, PathValue "path" dEssPath)
 
 instance
   ( KnownNat n1

@@ -21,7 +21,9 @@ import qualified Data.Kind as DK
 data Essence (lvl :: Level) where
   Ess :: StringType lvl -> Essence lvl
 
-type EssencePath (lvl :: Level) = [Essence lvl]
+data EssencePath (lvl :: Level) where
+  RelPath :: [Essence lvl] -> EssencePath lvl
+  AbsPath :: [Essence lvl] -> EssencePath lvl
 
 -- | Real Id of a property (for value-level usage only)
 
@@ -36,6 +38,12 @@ data CustomTag where
 
 type TagName = String
 
+type DEssence = String
+data DEssencePath
+  = DRelPath [DEssence]
+  | DAbsPath [DEssence]
+  deriving (Show, Eq, Ord)
+
 -- | Dynamic value needed to avoid much complexities
 --   of dependent typing
 data DValue
@@ -44,7 +52,7 @@ data DValue
   | BoolValue TagName Bool
   | StringValue TagName String
   | TagValue TagName TagPropertyVL DValue
-  | PathValue TagName [String]
+  | PathValue TagName DEssencePath
   | StaticPropertyRefValue TagName StaticPropertyId
   | DPlaceholder
   deriving (Show, Eq, Ord)
@@ -73,7 +81,7 @@ type family TagToType (lvl :: Level) (tag :: CustomTag) where
   TagToType lvl StringTag  = StringType lvl
   TagToType lvl BoolTag    = Bool
   TagToType lvl EssenceTag = Essence lvl
-  TagToType lvl PathTag    = [Essence lvl]
+  TagToType lvl PathTag    = EssencePath lvl
   TagToType 'TypeLevel  (TVHTag vt) = TagValueHolder 'TypeLevel vt
   TagToType 'ValueLevel (TVHTag vt) = TagValueHolder 'ValueLevel vt
   TagToType lvl PairIntIntTag = CustomPair (IntegerType lvl) (IntegerType lvl)
@@ -125,8 +133,8 @@ type StringValue (s :: Symbol)
 type EssenceValue (ess :: EssenceTL)
   = GenericValue @'TypeLevel @EssenceTag ess 'DPlaceholder
 
-type PathValue (ss :: [EssenceTL])
-  = GenericValue @'TypeLevel @PathTag ss 'DPlaceholder
+type PathValue (path :: EssencePathTL)
+  = GenericValue @'TypeLevel @PathTag path 'DPlaceholder
 
 type IntPairValue (i1 :: Nat) (i2 :: Nat)
   = GenericValue @'TypeLevel @PairIntIntTag ('Pair i1 i2) 'DPlaceholder
@@ -153,8 +161,8 @@ type StringConst (s :: Symbol)
 type EssenceConst (ess :: EssenceTL)
   = GenericConst (EssenceValue ess)
 
-type PathConst (s :: [EssenceTL])
-  = GenericConst (PathValue s)
+type PathConst (path :: EssencePathTL)
+  = GenericConst (PathValue path)
 
 -- TODO: rest of consts
 
@@ -163,6 +171,9 @@ type PathConst (s :: [EssenceTL])
 
 type EssenceTL = Essence 'TypeLevel
 type EssenceVL = Essence 'ValueLevel
+
+type EssencePathTL = EssencePath 'TypeLevel
+type EssencePathVL = EssencePath 'ValueLevel
 
 type TagPropertyGroupTL = TagPropertyGroup 'TypeLevel
 type TagPropertyGroupVL = TagPropertyGroup 'ValueLevel
@@ -175,9 +186,6 @@ type GenericValDefVL = GenericValDef 'ValueLevel
 
 type GenericConstDefTL = GenericConstDef 'TypeLevel
 type GenericConstDefVL = GenericConstDef 'ValueLevel
-
-type EssencePathTL = EssencePath 'TypeLevel
-type EssencePathVL = EssencePath 'ValueLevel
 
 type TagValueHolderTL = TagValueHolder 'TypeLevel
 type TagValueHolderVL = TagValueHolder 'ValueLevel
@@ -192,6 +200,21 @@ instance Ord EssenceVL where
 
 instance T.Show EssenceVL where
   show (Ess a) = T.show a
+
+instance Eq EssencePathVL where
+  (==) (RelPath a) (RelPath b) = a == b
+  (==) (AbsPath a) (AbsPath b) = a == b
+  (==) _ _ = False
+
+instance Ord EssencePathVL where
+  compare (RelPath a) (RelPath b) = compare a b
+  compare (AbsPath a) (AbsPath b) = compare a b
+  compare (RelPath _) _ = LT
+  compare _ _ = GT
+
+instance T.Show EssencePathVL where
+  show (RelPath a) = "|Rel|" <> show a <> "|"
+  show (AbsPath a) = "|Abs|" <> show a <> "|"
 
 instance Eq TagPropertyGroupVL where
   (==) (TagGroup a) (TagGroup b) = a == b
@@ -252,3 +275,7 @@ mkIntPairValue x y =
     (tagToString (Proxy @PairIntIntTag))
     (mkIntValue x)
     (mkIntValue y)
+
+pathLength :: EssencePathVL -> Int
+pathLength (RelPath path) = length path
+pathLength (AbsPath path) = length path

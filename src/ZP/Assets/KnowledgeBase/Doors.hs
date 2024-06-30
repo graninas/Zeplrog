@@ -33,8 +33,8 @@ type PushableScript = 'Script @'TypeLevel "'pushable' ability script" '[]
   --     (ReplaceProp '[ EState ] '[ EStates, EStateOpen ])
   --  ]
 
-type CloseStateRef = '[ EStates, EStateClose ]
-type OpenStateRef  = '[ EStates, EStateOpen  ]
+type CloseStateRef = RelPath '[ EStates, EStateClose ]
+type OpenStateRef  = RelPath '[ EStates, EStateOpen  ]
 
 -- | Abstract door.
 type AbstractDoor = AbstractProp (Group EAbstractDoor)

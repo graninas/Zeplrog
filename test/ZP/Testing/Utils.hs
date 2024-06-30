@@ -20,5 +20,5 @@ import GHC.TypeLits
 mkE :: forall ess symb
     . KnownSymbol symb
     => (ess ~ 'SMod.Ess @'TypeLevel symb)
-    => Essence
+    => DEssence
 mkE = symbolVal $ Proxy @symb

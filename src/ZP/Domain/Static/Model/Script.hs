@@ -80,8 +80,8 @@ type BoolVar (name :: Symbol) (b :: Bool)
 type StringVar (name :: Symbol) (s :: Symbol)
   = GenericVar name (StringValue s)
 
-type PathVar (name :: Symbol) (ss :: [EssenceTL])
-  = GenericVar name (PathValue ss)
+type PathVar (name :: Symbol) (path :: EssencePathTL)
+  = GenericVar name (PathValue path)
 
 -- TODO: rest of vars
 

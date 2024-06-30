@@ -26,12 +26,12 @@ import Data.Maybe
 instance
   DInst SMod.PosEssencePathVL SMod.ObjectVL Object where
   dInst _ (SMod.PosPath pathToPos) (SMod.Obj x y sProp) = do
-    essPath <- mapM (dInst False ()) pathToPos
+    path <- dInst False () pathToPos
     prop <- instProperty sProp
 
     let posVal = mkIntPairValue x y
 
-    liftIO $ updateValue prop essPath posVal
+    liftIO $ updateValue prop path posVal
 
     spawnObject prop
 

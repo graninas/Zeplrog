@@ -20,115 +20,139 @@ import qualified Data.Map.Strict as Map
 
 spec :: Spec
 spec = do
-  describe "Static query" $ do
-    it "QueryValue string value for owning: found" $ do
-      sEnv <- makeSEnv DebugDisabled
+  describe "QueryValue tests" $ do
+    describe "for owning" $ do
+      it "abs empty path string value: found" $ do
+        sEnv <- makeSEnv DebugDisabled
 
-      owning <- sMat' sEnv () $ Proxy @TestIconOwning
-      path   <- sMat' sEnv () $ Proxy @(SMat.Essences '[])
+        owning <- sMat' sEnv () $ Proxy @TestIconOwning
+        path   <- sMat' sEnv () $ Proxy @(AbsPath '[])
 
-      length path `shouldBe` 0
-      let mbRes = queryValue path owning
-      mbRes `shouldBe` (Just $ StringValue "string" "+")
+        pathLength path `shouldBe` 0
+        let mbRes = queryValue path owning
+        mbRes `shouldBe` (Just $ StringValue "string" "+")
 
-    it "QueryValue string value for owning: not found" $ do
-      sEnv <- makeSEnv DebugDisabled
+      it "abs path string value: not found" $ do
+        sEnv <- makeSEnv DebugDisabled
 
-      owning <- sMat' sEnv () $ Proxy @TestIconOwning
-      path   <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
+        owning <- sMat' sEnv () $ Proxy @TestIconOwning
+        path   <- sMat' sEnv () $ Proxy @(AbsPath '[KB.EIcon])
 
-      length path `shouldBe` 1
-      let mbRes = queryValue path owning
-      mbRes `shouldBe` Nothing
+        pathLength path `shouldBe` 1
+        let mbRes = queryValue path owning
+        mbRes `shouldBe` Nothing
 
-    it "QueryValue string value for prop key val: found" $ do
+      it "rel empty path string value: found" $ do
+        sEnv <- makeSEnv DebugDisabled
+
+        owning <- sMat' sEnv () $ Proxy @TestIconOwning
+        path   <- sMat' sEnv () $ Proxy @(RelPath '[])
+
+        pathLength path `shouldBe` 0
+        let mbRes = queryValue path owning
+        mbRes `shouldBe` (Just $ StringValue "string" "+")
+
+      it "rel path string value: not found" $ do
+        sEnv <- makeSEnv DebugDisabled
+
+        owning <- sMat' sEnv () $ Proxy @TestIconOwning
+        path   <- sMat' sEnv () $ Proxy @(AbsPath '[KB.EIcon])
+
+        pathLength path `shouldBe` 1
+        let mbRes = queryValue path owning
+        mbRes `shouldBe` Nothing
+
+  describe "for key val" $ do
+
+    it "abs path string value: found" $ do
       sEnv <- makeSEnv DebugDisabled
 
       kv   <- sMat' sEnv () $ Proxy @TestPropKeyVal
-      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
+      path <- sMat' sEnv () $ Proxy @(AbsPath '[KB.EIcon])
 
-      length path `shouldBe` 1
+      pathLength path `shouldBe` 1
       let mbRes = queryValue path kv
       mbRes `shouldBe` (Just $ StringValue "string" "+")
 
-    it "QueryValue string value for prop key val: not found" $ do
+    it "abs path string value: not found" $ do
       sEnv <- makeSEnv DebugDisabled
 
       kv   <- sMat' sEnv () $ Proxy @TestPropKeyVal
-      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EHP])
+      path <- sMat' sEnv () $ Proxy @(AbsPath '[KB.EHP])
 
-      length path `shouldBe` 1
+      pathLength path `shouldBe` 1
       let mbRes = queryValue path kv
       mbRes `shouldBe` Nothing
 
-    it "QueryValue string value for prop key val: not found 2" $ do
+    it "abs empty path string value: not found" $ do
       sEnv <- makeSEnv DebugDisabled
 
       kv   <- sMat' sEnv () $ Proxy @TestPropKeyVal
-      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[])
+      path <- sMat' sEnv () $ Proxy @(AbsPath '[])
 
-      length path `shouldBe` 0
+      pathLength path `shouldBe` 0
       let mbRes = queryValue path kv
       mbRes `shouldBe` Nothing
 
-    it "QueryValue string value for prop: found" $ do
+    it "rel empty path string value: found" $ do
+      sEnv <- makeSEnv DebugDisabled
+
+      kv   <- sMat' sEnv () $ Proxy @TestPropKeyVal
+      path <- sMat' sEnv () $ Proxy @(RelPath '[])
+
+      pathLength path `shouldBe` 0
+      let mbRes = queryValue path kv
+      mbRes `shouldBe` (Just $ StringValue "string" "+")
+
+    it "rel string value: not found" $ do
+      sEnv <- makeSEnv DebugDisabled
+
+      kv   <- sMat' sEnv () $ Proxy @TestPropKeyVal
+      path <- sMat' sEnv () $ Proxy @(RelPath '[KB.EHP])
+
+      pathLength path `shouldBe` 1
+      let mbRes = queryValue path kv
+      mbRes `shouldBe` Nothing
+
+  describe "for property" $ do
+
+    it "abs path string value: found" $ do
       sEnv <- makeSEnv DebugDisabled
 
       prop <- sMat' sEnv () $ Proxy @TestProp
-      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIntrinsics, KB.EIcon])
+      path <- sMat' sEnv () $ Proxy @(AbsPath '[KB.EIntrinsics, KB.EIcon])
 
-      length path `shouldBe` 2
+      pathLength path `shouldBe` 2
       let mbRes = queryValue path prop
       mbRes `shouldBe` (Just $ StringValue "string" "+")
 
-    it "QueryValue string value for prop: not found" $ do
+    it "abs path string value: not found" $ do
       sEnv <- makeSEnv DebugDisabled
 
       prop <- sMat' sEnv () $ Proxy @TestProp
-      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
+      path <- sMat' sEnv () $ Proxy @(AbsPath '[KB.EIcon])
 
-      length path `shouldBe` 1
+      pathLength path `shouldBe` 1
       let mbRes = queryValue path prop
       mbRes `shouldBe` Nothing
 
-  describe "Static query relative" $ do
-    it "QueryValueRel string value for prop key val: found" $ do
-      sEnv <- makeSEnv DebugDisabled
-
-      kv   <- sMat' sEnv () $ Proxy @TestPropKeyVal
-      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[])
-
-      length path `shouldBe` 0
-      let mbRes = queryValueRel path kv
-      mbRes `shouldBe` (Just $ StringValue "string" "+")
-
-    it "QueryValueRel string value for prop key val: not found" $ do
-      sEnv <- makeSEnv DebugDisabled
-
-      kv   <- sMat' sEnv () $ Proxy @TestPropKeyVal
-      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EHP])
-
-      length path `shouldBe` 1
-      let mbRes = queryValueRel path kv
-      mbRes `shouldBe` Nothing
-
-    it "QueryValueRel string value for prop: found" $ do
+    it "rel path string value: found" $ do
       sEnv <- makeSEnv DebugDisabled
 
       prop <- sMat' sEnv () $ Proxy @TestProp
-      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIcon])
+      path <- sMat' sEnv () $ Proxy @(RelPath '[KB.EIcon])
 
-      length path `shouldBe` 1
-      let mbRes = queryValueRel path prop
+      pathLength path `shouldBe` 1
+      let mbRes = queryValue path prop
       mbRes `shouldBe` (Just $ StringValue "string" "+")
 
-    it "QueryValueRel string value for prop: not found" $ do
+    it "rel path string value: not found" $ do
       sEnv <- makeSEnv DebugDisabled
 
       prop <- sMat' sEnv () $ Proxy @TestProp
-      path <- sMat' sEnv () $ Proxy @(SMat.Essences '[KB.EIntrinsics, KB.EIcon])
+      path <- sMat' sEnv () $ Proxy @(RelPath '[KB.EIntrinsics, KB.EIcon])
 
-      length path `shouldBe` 2
-      let mbRes = queryValueRel path prop
+      pathLength path `shouldBe` 2
+      let mbRes = queryValue path prop
       mbRes `shouldBe` Nothing
 

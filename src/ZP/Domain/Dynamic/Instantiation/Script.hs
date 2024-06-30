@@ -43,7 +43,7 @@ instance IScr CustomScriptVL () where
     mapM_ (iScr prop) ops
 
 instance
-  IScr EssenceVL DMod.Essence where
+  IScr EssenceVL DMod.DEssence where
   iScr _ (Ess ess) = pure ess
 
 
@@ -54,7 +54,7 @@ instance IScr ScriptOpVL () where
 
     case varDef of
       GenericVar name defVal -> do
-        let val = fromJust $ SQ.queryValue [] defVal
+        let val = fromJust $ SQ.queryValue (RelPath []) defVal
         varRef <- liftIO $ newIORef $ unsafeCoerce val
 
         let vars' = Map.insert name varRef vars
@@ -153,7 +153,7 @@ readWrite prop mbF (FromConst (GenericConst constVal))
   case Map.lookup to vars of
     Nothing    -> error $ show $ "To var not found: " <> to
     Just toRef -> do
-      let val = fromJust $ SQ.queryValue [] constVal
+      let val = fromJust $ SQ.queryValue (RelPath []) constVal
       let anyVal = invokeF mbF $ unsafeCoerce val
       writeIORef toRef anyVal
 
@@ -162,7 +162,7 @@ readWrite prop mbF (FromConst (GenericConst constVal))
   let toFieldDPath = DInst.toDynEssPath toFieldSPath
 
   toValRef <- liftIO $ Q.queryValueRefUnsafe toFieldDPath prop
-  let val = fromJust $ SQ.queryValue [] constVal
+  let val = fromJust $ SQ.queryValue (RelPath []) constVal
   let anyVal = invokeF mbF $ unsafeCoerce val
   writeIORef toValRef $ unsafeCoerce anyVal
 
@@ -179,7 +179,7 @@ clearRuntime (IScrRuntime varsRef) = writeIORef varsRef Map.empty
 makeScript
   :: DMod.Property
   -> PropertyScriptVL
-  -> IO (DMod.Essence, DMod.DynamicScript)
+  -> IO (DMod.DEssence, DMod.DynamicScript)
 makeScript prop (PropScript (Ess ess) customScr) = do
   runtime <- makeIScrRuntime
 

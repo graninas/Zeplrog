@@ -10,8 +10,8 @@ import ZP.Assets.KnowledgeBase.Essences
 import GHC.TypeLits
 
 
-type PathToIconRel = IconPath '[ EIcon ]
-type PathToPosRel  = PosPath  '[ EPos ]
+type PathToIconRel = IconPath ('RelPath '[ EIcon ])
+type PathToPosRel  = PosPath  ('RelPath '[ EPos ])
 
 -- | World position value.
 type GenericPos    = TagProp (TagGroup EGenericPos)

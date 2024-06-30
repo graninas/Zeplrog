@@ -176,3 +176,13 @@ It should be replaced by references to the value-level static model.
 
 The idea remains the same but models were reworked much.
 Static properties and references were simplified.
+
+**Stage 3**
+
+Complete rehaul of the model. Many simplifications, improvements
+and changes.
+
+New OOP model.
+New GenericValue model.
+New property structure model.
+New tag properties and groups.

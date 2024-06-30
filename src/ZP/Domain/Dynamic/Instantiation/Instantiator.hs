@@ -20,9 +20,9 @@ import qualified Data.Map.Strict as Map
 
 ---------- Dynamic instantiation interface ------------------
 
-type DynamicProperties = Map.Map PropertyId (Essence, Property)
-type SharedProperties  = Map.Map SMod.StaticPropertyId (Essence, Property)
-type DynamicEssences   = Map.Map Essence [(PropertyId, Property)]
+type DynamicProperties = Map.Map PropertyId (DEssence, Property)
+type SharedProperties  = Map.Map SMod.StaticPropertyId (DEssence, Property)
+type DynamicEssences   = Map.Map DEssence [(PropertyId, Property)]
 
 data DEnv = DEnv
   { deSEnv                :: SMat.SEnv
@@ -58,13 +58,13 @@ dInst'
 dInst' dEnv p itVL = runDInstantiator dEnv $ dInst False p itVL
 
 dInstParent
-  :: DInst (Maybe PropertyId) SMod.PropertyVL (Essence, Property)
+  :: DInst (Maybe PropertyId) SMod.PropertyVL (DEssence, Property)
   => DEnv
   -> Maybe PropertyId
   -> SMod.PropertyVL
   -> IO Property
 dInstParent dEnv mbParentId pVL = do
-  (_ :: Essence, prop) <- runDInstantiator dEnv $ dInst False mbParentId pVL
+  (_ :: DEssence, prop) <- runDInstantiator dEnv $ dInst False mbParentId pVL
   pure prop
 
 fullInst
@@ -108,7 +108,7 @@ getNextPropertyId = do
   propIdRef <- asks dePropertyIdRef
   getNextPropertyId' propIdRef
 
-getPropertyEssence :: PropertyId -> DInstantiator Essence
+getPropertyEssence :: PropertyId -> DInstantiator DEssence
 getPropertyEssence propId = do
   propsRef <- asks dePropertiesRef
   props    <- readIORef propsRef
@@ -134,8 +134,8 @@ withSMaterializer sMaterializer = do
 -- | Finalizes creation of property.
 -- Registers the property in maps.
 spawnProperty
-  :: DInstantiator (Essence, Property)
-  -> DInstantiator (Essence, Property)
+  :: DInstantiator (DEssence, Property)
+  -> DInstantiator (DEssence, Property)
 spawnProperty propMat = do
   (ess, prop) <- propMat
   let propId = pPropertyId prop

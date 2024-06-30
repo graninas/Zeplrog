@@ -21,40 +21,62 @@ import Unsafe.Coerce (unsafeCoerce)
 
 class QueryValueRef it where
   queryValueRef
-    :: EssencePath
+    :: DEssencePath
     -> it
     -> IO (Maybe (IORef DValue))
 
 
 instance QueryValueRef Property where
-  queryValueRef [] _ = pure Nothing
+  queryValueRef (DAbsPath []) _ = pure Nothing
+  queryValueRef (DRelPath []) _ = pure Nothing
+
   queryValueRef _ (TagPropRef _ _) =
     error "queryValueRef not implemented for TagPropRef"
-  queryValueRef (ess1 : ess2 : path) (Prop _ ess _ _ fieldsRef _) = do
+
+  queryValueRef (DAbsPath (ess1 : ess2 : path))
+                (Prop _ ess _ _ fieldsRef _) = do
     fields <- readIORef fieldsRef
     let propMatch = ess == ess1
     let mbOwning = Map.lookup ess2 fields
     case (propMatch, mbOwning) of
           (False, _)   -> pure Nothing
           (_, Nothing)      -> pure Nothing
-          (True, Just owning) -> queryValueRef path owning
+          (True, Just owning) -> queryValueRef (DRelPath path) owning
+
+  queryValueRef (DRelPath (ess1 : path))
+                (Prop _ _ _ _ fieldsRef _) = do
+    fields <- readIORef fieldsRef
+    let mbOwning = Map.lookup ess1 fields
+    case mbOwning of
+          Nothing     -> pure Nothing
+          Just owning -> queryValueRef (DRelPath path) owning
+
   queryValueRef _ _ = pure Nothing
 
 instance QueryValueRef PropertyOwning where
-  queryValueRef [] (OwnVal valRef) = pure $ Just valRef
+  queryValueRef (DAbsPath []) (OwnVal valRef) = pure $ Just valRef
+  queryValueRef (DRelPath []) (OwnVal valRef) = pure $ Just valRef
+
   queryValueRef _ (OwnVal _) = pure Nothing
-  queryValueRef (ess:path) (OwnDict dictRef) = do
+
+  queryValueRef (DAbsPath (ess:path)) (OwnDict dictRef) = do
     dict <- readIORef dictRef
     case Map.lookup ess dict of
-      Nothing -> pure Nothing
-      Just prop -> queryValueRef path prop
+      Nothing   -> pure Nothing
+
+      ------------------------------- V ???
+      Just prop -> queryValueRef (DRelPath path) prop
+
+  queryValueRef (DRelPath path) (OwnDict dictRef) =
+    error $ "queryValueRef DRelPath is invalid for OwnDict: " <> show path
+
   queryValueRef path (OwnProp prop) = queryValueRef path prop
   queryValueRef _ (SharedProp _) =
     error "queryValueRef not implemented for SharedProp"
 
 queryValueRefUnsafe
   :: QueryValueRef it
-  => EssencePath
+  => DEssencePath
   -> it
   -> IO (IORef DValue)
 queryValueRefUnsafe path it = do
@@ -63,26 +85,11 @@ queryValueRefUnsafe path it = do
     Nothing -> error $ "queryValueRefUnsafe value not found: " <> show path
     Just valRef -> pure valRef
 
-
-
-class QueryValueRefRel it where
-  queryValueRefRel
-    :: EssencePath
-    -> it
-    -> IO (Maybe (IORef DValue))
-
-instance QueryValueRefRel Property where
-  queryValueRefRel [] _ = pure Nothing
-  queryValueRefRel _ (TagPropRef _ _) =
-    error "queryValueRefRel not implemented for TagPropRef"
-  queryValueRefRel path prop@(Prop _ ess _ _ _ _) =
-    queryValueRef (ess : path) prop
-
 ------------
 
 readBoolVal
   :: Property
-  -> [Essence]
+  -> DEssencePath
   -> IO Bool
 readBoolVal prop path = do
   mbValRef <- queryValueRef path prop
@@ -96,7 +103,7 @@ readBoolVal prop path = do
 
 readStringVal
   :: Property
-  -> [Essence]
+  -> DEssencePath
   -> IO String
 readStringVal prop path = do
   mbValRef <- queryValueRef path prop
@@ -110,8 +117,8 @@ readStringVal prop path = do
 
 readPathVal
   :: Property
-  -> [Essence]
-  -> IO [Essence]
+  -> DEssencePath
+  -> IO DEssencePath
 readPathVal prop path = do
   mbValRef <- queryValueRef path prop
   case mbValRef of
@@ -124,7 +131,7 @@ readPathVal prop path = do
 
 updateValue
   :: Property
-  -> [Essence]
+  -> DEssencePath
   -> DValue
   -> IO ()
 updateValue prop path newVal = do

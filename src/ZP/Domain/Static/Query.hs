@@ -52,68 +52,62 @@ class QueryValue from where
   queryValue :: EssencePathVL -> from -> Maybe DValue
 
 instance QueryValue PropertyVL where
-  queryValue [] _ = Nothing
+  queryValue (RelPath []) _ = Nothing
+  queryValue (AbsPath []) _ = Nothing
   queryValue _ (TagPropRef _) =
     error "queryValue not implemented for TagPropRef"
-  queryValue (ess1 : ess2 : path) (PropDict group kvs _) = let
+
+  queryValue (AbsPath (ess1 : ess2 : path)) (PropDict group kvs _) = let
     propMatch = getEssence group == ess1
     kvsFound = filter (\kv -> getEssence kv == ess2) kvs
     in case (propMatch, kvsFound) of
           (False, _)   -> Nothing
           (_, [])      -> Nothing
-          (True, kv:_) -> queryValue (ess2 : path) kv
+          (True, kv:_) -> queryValue (RelPath path) kv
+
+  queryValue (RelPath (ess1 : path)) (PropDict _ kvs _) = let
+    kvsFound = filter (\kv -> getEssence kv == ess1) kvs
+    in case kvsFound of
+          []     -> Nothing
+          (kv:_) -> queryValue (RelPath path) kv
   queryValue _ _ = Nothing
-    -- TODO: resilent or rejecting??
-    -- error "queryValue: ess path is malformed"
 
 instance QueryValue PropertyKeyValueVL where
-  queryValue (ess:path) (PropKeyVal ess1 own)
-    | ess == ess1 = queryValue path own
+  queryValue (AbsPath []) (PropKeyVal _ _) = Nothing
+  queryValue (AbsPath (ess:path)) (PropKeyVal ess1 own)
+    | ess == ess1 = queryValue (AbsPath path) own
     | otherwise = Nothing
-  queryValue _ (PropKeyVal _ _) = Nothing
-  queryValue [] (PropKeyBag _ _) = Nothing
-    -- TODO: resilent or rejecting??
-    -- error "queryValue PropKeyBag path is empty"
-  queryValue (ess : path) (PropKeyBag ess1 props) = let
+
+  queryValue (RelPath path) (PropKeyVal _ own) =
+    queryValue (RelPath path) own
+
+  queryValue (AbsPath []) (PropKeyBag _ _) = Nothing
+  queryValue (RelPath []) (PropKeyBag _ _) = Nothing
+
+  queryValue (AbsPath (ess : path)) (PropKeyBag ess1 props) = let
     kbMatch = ess == ess1
     propsFound = filter (\p -> getEssence p == ess) props
     in case (kbMatch, propsFound) of
           (False, _)         -> Nothing
           (_, [])            -> Nothing
-          (True, (prop : _)) -> queryValue path prop
+          (True, (prop : _)) -> queryValue (RelPath path) prop
+
+  queryValue (RelPath path) (PropKeyBag _ props) =
+    error $ "queryValue RelPath is invalid for PropKeyBag: " <> show path
+
   queryValue _ _ = Nothing
-    -- TODO: resilent or rejecting??
-    -- error "queryValue PropKeyBag path is malformed"
 
 instance QueryValue PropertyOwningVL where
-  queryValue [] (OwnVal (GenericValue _ dVal)) = Just dVal
+  queryValue (AbsPath []) (OwnVal (GenericValue _ dVal)) = Just dVal
+  queryValue (RelPath []) (OwnVal (GenericValue _ dVal)) = Just dVal
+
   queryValue path (OwnProp prop) = queryValue path prop
   queryValue path (SharedProp prop) = queryValue path prop
   queryValue _  _ = Nothing
-    -- TODO: resilent or rejecting??
-    -- error "queryValue OwnVal path not empty"
 
 instance QueryValue (GenericValDefVL tag) where
-  queryValue [] (GenericValue _ dVal) = Just dVal
+  queryValue (AbsPath []) (GenericValue _ dVal) = Just dVal
+  queryValue (RelPath []) (GenericValue _ dVal) = Just dVal
   queryValue _ _ = Nothing
-    -- TODO: resilent or rejecting??
-    -- error "queryValue (GenericValDefVL tag) path is not empty"
 
-
-
-class QueryValueRel from where
-  queryValueRel :: EssencePathVL -> from -> Maybe DValue
-
-instance QueryValueRel PropertyVL where
-  queryValueRel [] _ = Nothing
-  queryValueRel _ (TagPropRef _) =
-    error "queryValueRdl not implemented for TagPropRef"
-  queryValueRel path prop@(PropDict group _ _) =
-    queryValue (getEssence group : path) prop
-
-instance QueryValueRel PropertyKeyValueVL where
-  queryValueRel path kv@(PropKeyVal ess _) =
-    queryValue (ess : path) kv
-  queryValueRel path kv@(PropKeyBag ess _) =
-    queryValue (ess : path) kv
 

@@ -1,15 +1,10 @@
-{-# LANGUAGE DataKinds #-}
+module ZP.Domain.Dynamic.Model.Common
+  (module X
+  ) where
 
-module ZP.Domain.Dynamic.Model.Common where
-
-import ZP.Prelude
-
-import qualified ZP.Domain.Static.Model as SMod
-
-
-type Essence = String
-type EssencePath = [Essence]
-
-type TypeTag = String
-type StringifiedValue = String
-
+import ZP.Domain.Static.Model as X
+  (DValue (..), TagName, CustomTag(..), Tag,
+  IntTag, StringTag, BoolTag, PathTag, TagTag,
+  EssenceTag, PairIntIntTag,
+  DEssence, DEssencePath(..),
+  tagToString, tagName, mkIntPairValue, mkIntValue)

@@ -46,7 +46,7 @@ instance
   DInst () SMod.GameVL Game where
   dInst _ () (SMod.GameEnvironment
               statWorld
-              (SMod.IconPath pathToIconRel)
+              (SMod.IconPath pathToIcon)
               pathToPosRel
               statProps
               statObjs) = do
@@ -62,7 +62,7 @@ instance
                 _ -> error "invalid mbIcon"
             , statProp)
           | statProp <- statProps
-          , let mbIcon = SQuery.queryValueRel pathToIconRel statProp
+          , let mbIcon = SQuery.queryValue pathToIcon statProp
           , case mbIcon of
               Just (StringValue _ _) -> True
               _ -> False

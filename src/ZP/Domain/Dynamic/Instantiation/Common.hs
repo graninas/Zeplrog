@@ -17,14 +17,19 @@ import qualified Data.Map.Strict as Map
 -- Instantiate group and essence
 
 instance
-  DInst () SMod.EssenceVL Essence where
+  DInst () SMod.EssenceVL DEssence where
   dInst _ () (SMod.Ess ess) = pure ess
 
-instance DInst () [SMod.EssenceVL] EssencePath where
-  dInst _ () path = mapM (dInst False ()) path
+instance DInst () SMod.EssencePathVL DEssencePath where
+  dInst _ () (SMod.AbsPath path) = do
+    dPath <- mapM (dInst False ()) path
+    pure $ DAbsPath dPath
+  dInst _ () (SMod.RelPath path) = do
+    dPath <- mapM (dInst False ()) path
+    pure $ DRelPath dPath
 
 instance
-  DInst () SMod.PropertyGroupVL (Essence, SMod.StaticPropertyId) where
+  DInst () SMod.PropertyGroupVL (DEssence, SMod.StaticPropertyId) where
   dInst _ () (SMod.GroupId statEss sId) = do
     ess <- dInst False () statEss
     pure (ess, sId)
@@ -34,8 +39,13 @@ instance
 
 
 
-toDynEss :: SMod.EssenceVL -> Essence
+toDynEss :: SMod.EssenceVL -> DEssence
 toDynEss (SMod.Ess ess) = ess
 
-toDynEssPath :: [SMod.EssenceVL] -> EssencePath
-toDynEssPath esss = map toDynEss esss
+toDynEssPath :: SMod.EssencePathVL -> DEssencePath
+toDynEssPath (SMod.AbsPath path) = let
+    dPath = map toDynEss path
+    in DAbsPath dPath
+toDynEssPath (SMod.RelPath path) = let
+    dPath = map toDynEss path
+    in DRelPath dPath
