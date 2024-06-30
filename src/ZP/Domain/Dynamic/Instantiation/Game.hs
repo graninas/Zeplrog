@@ -15,6 +15,7 @@ import ZP.Domain.Dynamic.Instantiation.Common
 import ZP.Domain.Dynamic.Instantiation.Property
 import ZP.Domain.Dynamic.Instantiation.Effect
 import ZP.Domain.Dynamic.Instantiation.World
+import ZP.Domain.Dynamic.Instantiation.Object
 
 import Data.Proxy
 import qualified Data.Map.Strict as Map
@@ -22,13 +23,13 @@ import Data.Maybe
 
 
 -- Instatiation of Game
+type Pos' = (Int, Int)
 
 prepareProp
-  :: SMod.PosEssencePathVL
-  -> Map.Map String SMod.PropertyVL
-  -> ((Int, Int), Char)
-  -> DInstantiator (Maybe SMod.PropertyVL)
-prepareProp (SMod.PosPath pathToPos) statProps ((x, y), ch) = do
+  :: Map.Map String SMod.PropertyVL
+  -> (Pos', Char)
+  -> DInstantiator (Maybe (Pos', SMod.PropertyVL))
+prepareProp statProps (pos, ch) = do
   case Map.lookup [ch] statProps of
     Nothing -> do
       dTraceDebug (pure $ "Static property not found for symbol: "
@@ -36,7 +37,7 @@ prepareProp (SMod.PosPath pathToPos) statProps ((x, y), ch) = do
                     <> ". Skipping.\nKnown static props: "
                     <> show (Map.keys statProps))
       pure Nothing
-    Just statProp -> pure $ Just statProp
+    Just statProp -> pure $ Just (pos, statProp)
 
 instance
   ( DInst () SMod.WorldVL World
@@ -47,7 +48,7 @@ instance
   dInst _ () (SMod.GameEnvironment
               statWorld
               (SMod.IconPath pathToIcon)
-              pathToPosRel
+              pathToPos
               statProps
               statObjs) = do
     let SMod.WorldData statWD = statWorld
@@ -73,15 +74,19 @@ instance
 
     -- Static properties that correspond to icons.
     preparedStatProps <-
-      mapM (prepareProp pathToPosRel iconsToStatPropsMap) cells
+      mapM (prepareProp iconsToStatPropsMap) cells
 
     world <- dInst False () statWorld
 
-    propsFromWorld <- mapM (dInst False ()) $ catMaybes preparedStatProps
-    objsFromWorld  <- mapM spawnObject propsFromWorld
+    propsFromWorld <- mapM (\(pos, sProp) -> do
+        p <- dInst False () sProp
+        pure (pos, p)) $ catMaybes preparedStatProps
 
-    -- Spawning the list of objects with world positions.
-    objs <- mapM (dInst False pathToPosRel) statObjs
+    -- Spawning objects from the world map
+    objsFromWorld  <- mapM (spawnObject pathToPos) propsFromWorld
+
+    -- Spawning the list of objects with world positions
+    objs <- mapM (dInst False pathToPos) statObjs
 
     -- TODO: verify that all objects are in the world's bounds
 

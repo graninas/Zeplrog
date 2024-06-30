@@ -165,11 +165,3 @@ spawnProperty propMat = do
       <> show pId
 
   pure (ess, prop)
-
-spawnObject :: Property -> DInstantiator Object
-spawnObject prop = do
-  objIdRef <- asks deObjectIdRef
-  ObjectId objId <- readIORef objIdRef
-  writeIORef objIdRef $ ObjectId $ objId + 1
-  pure $ Object (ObjectId objId) prop
-

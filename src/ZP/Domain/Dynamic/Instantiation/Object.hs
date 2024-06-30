@@ -25,13 +25,20 @@ import Data.Maybe
 
 instance
   DInst SMod.PosEssencePathVL SMod.ObjectVL Object where
-  dInst _ (SMod.PosPath pathToPos) (SMod.Obj x y sProp) = do
-    path <- dInst False () pathToPos
+  dInst _ posPath (SMod.Obj x y sProp) = do
     prop <- instProperty sProp
+    spawnObject posPath ((x, y), prop)
 
-    let posVal = mkIntPairValue x y
 
-    liftIO $ updateValue prop path posVal
-
-    spawnObject prop
+spawnObject
+  :: SMod.PosEssencePathVL
+  -> ((Int, Int), Property)
+  -> DInstantiator Object
+spawnObject (SMod.PosPath pathToPos) ((x, y), prop) = do
+  path <- dInst False () pathToPos
+  liftIO $ updateValue prop path $ mkIntPairValue x y
+  objIdRef <- asks deObjectIdRef
+  ObjectId objId <- readIORef objIdRef
+  writeIORef objIdRef $ ObjectId $ objId + 1
+  pure $ Object (ObjectId objId) prop
 

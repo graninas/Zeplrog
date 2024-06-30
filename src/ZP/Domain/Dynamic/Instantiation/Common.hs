@@ -37,15 +37,3 @@ instance
     ess <- dInst False () statEss
     pure (ess, sId)
 
-
-
-toDynEss :: SMod.EssenceVL -> DEssence
-toDynEss (SMod.Ess ess) = ess
-
-toDynEssPath :: SMod.EssencePathVL -> DEssencePath
-toDynEssPath (SMod.AbsPath path) = let
-    dPath = map toDynEss path
-    in DAbsPath dPath
-toDynEssPath (SMod.RelPath path) = let
-    dPath = map toDynEss path
-    in DRelPath dPath

@@ -11,7 +11,6 @@ import qualified ZP.Domain.Dynamic.Description as Descr
 
 import qualified ZP.Assets.KnowledgeBase.Essences as KB
 import ZP.System.Debug
-import ZP.Testing.Utils
 import ZP.Testing.TestData
 
 import Test.Hspec
@@ -27,7 +26,7 @@ spec = do
 
       door <- fullInst dEnv () $ Proxy @SpecificDoor
 
-      Descr.printDescription door
+      -- Descr.printDescription door
 
       props <- readIORef $ dePropertiesRef dEnv
       -- print $ "All props: " <> show (Map.keys props)
@@ -41,6 +40,24 @@ spec = do
 
       props <- readIORef $ dePropertiesRef dEnv
 
+      statProps <- readIORef $ seStaticPropertiesRef sEnv
+      statEsss  <- readIORef $ seStaticEssencesRef sEnv
+
+      -- dynEsss   <- readIORef $ deEssencesRef dEnv
+      -- print $ "Stat props: " <> show (Map.keys statProps)
+      -- print $ "Stat essences: " <> show (Map.keys statEsss)
       -- print $ "Props: " <> show (Map.keys props)
 
-      length props `shouldBe` 208
+      -- let genericDoorEss = mkE @KB.EGenericDoor
+      -- let genericDoorProps = map snd
+      --           $ fromJust
+      --           $ Map.lookup genericDoorEss dynEsss
+      -- mapM_ Descr.printDescription genericDoorProps
+
+      -- let wallEss = mkE @KB.EWall
+      -- let wallProps = map snd
+      --           $ fromJust
+      --           $ Map.lookup wallEss dynEsss
+      -- mapM_ Descr.printDescription wallProps
+
+      length props `shouldBe` 67

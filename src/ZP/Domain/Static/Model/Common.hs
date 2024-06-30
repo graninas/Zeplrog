@@ -264,7 +264,7 @@ tagName (StringValue tn _) = tn
 tagName (TagValue tn _ _) = tn
 tagName (PathValue tn _) = tn
 tagName (StaticPropertyRefValue tn _) = tn
-tagName DPlaceholder = ""
+tagName DPlaceholder = "DPlaceholder"
 
 mkIntValue :: Int -> DValue
 mkIntValue x = IntValue (tagToString (Proxy @IntTag)) x

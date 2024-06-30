@@ -142,70 +142,7 @@ updateValue prop path newVal = do
       val <- readIORef valRef
       let tn1 = tagName newVal
       let tn2 = tagName val
-      if tn1 == tn2
+      if tn1 == tn2 || tn2 == tagName DPlaceholder
         then writeIORef valRef newVal
         else error $ "Value types mismatch: " <> show tn1 <> " " <> show tn2
 
-
--- addChildProperty :: [Category] -> Property -> Property -> DInstantiator ()
--- addChildProperty [] _ _ =
---   error $ "Can't add a child under for property, path is empty."
--- addChildProperty cs'@(_:_:[]) _ (ValueProperty _ _ _) =
---   error $ "Can't add a child under a ValueProperty. Also, the path is too long " <> show cs'
--- addChildProperty cs'@(_:[]) _ (ValueProperty _ _ _) =
---   error $ "Can't add a child under a ValueProperty. Current path: " <> show cs'
--- addChildProperty cs'@(c:cs) childProp prop = do
---   let parentMapTVar = pPropertyBagsVar prop
---   parentMap <- readTVarIO parentMapTVar
-
---   case (Map.lookup c parentMap, cs) of
---     -- Parent prop doesn't contain this category, and the path is good.
---     (Nothing, []) -> do
---       let parentMap' = Map.insert c (SingleProperty $ OwnProperty childProp) parentMap
---       atomically $ writeTVar parentMapTVar parentMap'
-
---     -- Parent prop doesn't contain this category, but the path is too long.
---     (Nothing, _) -> do
---       error $ "Can't add a child, path points to absent children: " <> show cs'
-
---     -- Parent prop contains a single property under the top category.
---     (Just (SingleProperty _), _) ->
---       error $ "Can't add a child under a SingleProperty: " <> show cs'
-
---     -- Parent prop contains a dict under the top category, but the path is short.
---     (Just (PropertyDict _), []) -> do
---       error $ "Can't add a child under a PropertyDict, the category exists, but path is too short: " <> show cs'
-
---     -- Parent prop contains a dict under the top category, and the path has more elements to go.
---     (Just (PropertyDict dictTVar), _) ->
---       addChildPropertyForDict cs childProp dictTVar
-
-
--- addChildPropertyForDict [] _ _ =
---   error $ "Can't add a child under a property dict, the path is empty."
--- addChildPropertyForDict cs'@(c:cs) childProp dictTVar = do
---   dict <- readTVarIO dictTVar
---   case (Map.lookup c dict, cs) of
---     -- Dict doesn't contain this category and the path is good.
---     (Nothing, []) -> do
---       let dict' = Map.insert c (OwnProperty childProp) dict
---       atomically $ writeTVar dictTVar dict'
-
---     -- Dict doesn't contain this category but there are more steps to go.
---     (Nothing, _) ->
---       error $ "Can't add a child under a property dict, the category is absent but the path is too long: " <> show cs'
-
---     -- Dict contains this category but the path is too short.
---     (Just _, []) ->
---       error $ "Can't add a child under a property dict, the category exists but the path is too short: " <> show cs'
-
---     -- Dict contains this category and the path is good.
---     (Just owning, _) -> addChildPropertyForOwning cs childProp owning
-
-
--- addChildPropertyForOwning [] _ _ =
---   error $ "Can't add a child for property owning, the path is empty."
--- addChildPropertyForOwning cs childProp (OwnProperty prop) =
---   addChildProperty cs childProp prop
--- addChildPropertyForOwning cs _ (SharedProperty _) =
---   error $ "Can't add a child for shared property: " <> show cs

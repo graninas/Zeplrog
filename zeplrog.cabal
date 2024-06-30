@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c17a243f4d21665d65ce528ac9f147a24b71607cdb2c6ed4f6c56b124ce871e9
+-- hash: b4d9cef3bbf7795a57dcbfe240add7742d8d1155efd07091c48c57429e79b6d6
 
 name:           zeplrog
 version:        0.0.0.1
@@ -58,6 +58,7 @@ library
       ZP.Domain.Dynamic.Model.PropertyOld
       ZP.Domain.Dynamic.Model.World
       ZP.Domain.Dynamic.Query
+      ZP.Domain.EssenceUtils
       ZP.Domain.Static.Description
       ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
@@ -195,6 +196,7 @@ executable zeplrog
       ZP.Domain.Dynamic.Model.PropertyOld
       ZP.Domain.Dynamic.Model.World
       ZP.Domain.Dynamic.Query
+      ZP.Domain.EssenceUtils
       ZP.Domain.Static.Description
       ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
@@ -299,7 +301,6 @@ test-suite tests
   main-is: Spec.hs
   other-modules:
       ZP.Testing.TestData
-      ZP.Testing.Utils
       ZP.Tests.AgentsSpec
       ZP.Tests.DynMaterializationSpec
       ZP.Tests.DynQuerySpec

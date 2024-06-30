@@ -82,5 +82,5 @@ spec = do
       -- Descr.printDescription p2
 
       length statProps `shouldBe` 6
-      length props `shouldBe` 3
+      length props `shouldBe` 4
       length objs `shouldBe` 2

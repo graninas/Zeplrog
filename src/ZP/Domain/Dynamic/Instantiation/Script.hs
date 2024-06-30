@@ -20,6 +20,7 @@ import qualified ZP.Domain.Static.Query as SQ
 import qualified ZP.Domain.Dynamic.Model as DMod
 import qualified ZP.Domain.Dynamic.Instantiation.Common as DInst
 import qualified ZP.Domain.Dynamic.Query as Q
+import ZP.Domain.EssenceUtils
 
 import ZP.System.TypeSelector.Granular
 import GHC.TypeLits
@@ -111,7 +112,7 @@ readWrite prop mbF
         anyVal1 <- readIORef fromRef
         let anyVal2 = invokeF mbF anyVal1
 
-        let toFieldDPath = DInst.toDynEssPath toFieldSPath
+        let toFieldDPath = toDynEssPath toFieldSPath
         toValRef <- Q.queryValueRefUnsafe toFieldDPath prop
         writeIORef toValRef $ unsafeCoerce anyVal2
 
@@ -125,7 +126,7 @@ readWrite prop mbF
       Nothing    -> error $ show $ "readWrite (FromField, ToVar) To var not found: " <> to
       Just toVarRef -> do
 
-        let fromFieldDPath = DInst.toDynEssPath fromFieldSPath
+        let fromFieldDPath = toDynEssPath fromFieldSPath
         curValRef <- liftIO $ Q.queryValueRefUnsafe fromFieldDPath prop
         curVal    <- liftIO $ readIORef curValRef
 
@@ -135,8 +136,8 @@ readWrite prop mbF
 readWrite prop mbF
   (FromField _ fromFieldSPath)
   (ToField   _ toFieldSPath) = do
-    let fromFieldDPath = DInst.toDynEssPath fromFieldSPath
-    let toFieldDPath   = DInst.toDynEssPath toFieldSPath
+    let fromFieldDPath = toDynEssPath fromFieldSPath
+    let toFieldDPath   = toDynEssPath toFieldSPath
 
     fromValRef <- liftIO $ Q.queryValueRefUnsafe fromFieldDPath  prop
     fromVal    <- liftIO $ readIORef fromValRef
@@ -159,7 +160,7 @@ readWrite prop mbF (FromConst (GenericConst constVal))
 
 readWrite prop mbF (FromConst (GenericConst constVal))
                    (ToField _ toFieldSPath) = do
-  let toFieldDPath = DInst.toDynEssPath toFieldSPath
+  let toFieldDPath = toDynEssPath toFieldSPath
 
   toValRef <- liftIO $ Q.queryValueRefUnsafe toFieldDPath prop
   let val = fromJust $ SQ.queryValue (RelPath []) constVal

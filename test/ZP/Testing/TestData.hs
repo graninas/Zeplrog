@@ -68,15 +68,6 @@ type GenericDoor = DerivedProp EGenericDoor AbstractDoor
    ]
   '[]
 
-
-type World1 = WorldData @TypeLevel
-  '[ "#############"
-   , "#...........#"
-   , "###?####.####"
-   , "#...........#"
-   , "#############"
-   ]
-
 type Wall = DerivedProp EWall AnyProp
   '[ PropKeyVal EIcon (OwnVal (IconVal "#"))
    , PropKeyVal EPos  (OwnVal DerivablePosTagVal)
@@ -89,6 +80,14 @@ type EmptySpace = DerivedProp EEmptySpace AnyProp
    ]
   '[]
 
+type World1 = WorldData @TypeLevel
+  '[ "#############"
+   , "#...........#"
+   , "###?#+##.####"
+   , "#...........#"
+   , "#############"
+   ]
+
 type Zeplrog world = GameEnvironment
   world
   PathToIconRel
@@ -97,6 +96,7 @@ type Zeplrog world = GameEnvironment
   -- Static props for the instantiation from the world data
   '[ EmptySpace
    , SpecificDoor
+   , GenericDoor
    , Wall
    ]
 
