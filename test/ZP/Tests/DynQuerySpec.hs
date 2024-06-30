@@ -7,7 +7,7 @@ import ZP.Prelude
 import qualified ZP.Domain.Static.Model as S
 import qualified ZP.Domain.Static.Query as S
 import qualified ZP.Domain.Static.Materialization as S
-import qualified ZP.Assets.KnowledgeBase as KB
+import qualified ZP.Assets.KnowledgeBase.Essences as KB
 
 import ZP.Domain.Dynamic.Model
 import ZP.Domain.Dynamic.Query

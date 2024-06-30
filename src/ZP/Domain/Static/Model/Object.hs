@@ -14,11 +14,10 @@ import ZP.Domain.Static.Model.Effect
 ------ Object -----
 
 -- | Objects in the world.
--- No static type-level version.
 data Object (lvl :: Level) where
   Obj
-    :: IntegerType lvl
-    -> IntegerType lvl
+    :: IntegerType lvl  -- ^ Pos x
+    -> IntegerType lvl  -- ^ Pos y
     -> Property lvl
     -> Object lvl
 

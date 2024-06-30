@@ -98,3 +98,22 @@ instance QueryValue (GenericValDefVL tag) where
   queryValue _ _ = Nothing
     -- TODO: resilent or rejecting??
     -- error "queryValue (GenericValDefVL tag) path is not empty"
+
+
+
+class QueryValueRel from where
+  queryValueRel :: EssencePathVL -> from -> Maybe DValue
+
+instance QueryValueRel PropertyVL where
+  queryValueRel [] _ = Nothing
+  queryValueRel _ (TagPropRef _) =
+    error "queryValueRdl not implemented for TagPropRef"
+  queryValueRel path prop@(PropDict group _ _) =
+    queryValue (getEssence group : path) prop
+
+instance QueryValueRel PropertyKeyValueVL where
+  queryValueRel path kv@(PropKeyVal ess _) =
+    queryValue (ess : path) kv
+  queryValueRel path kv@(PropKeyBag ess _) =
+    queryValue (ess : path) kv
+

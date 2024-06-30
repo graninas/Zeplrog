@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9499f54ff56e01c1316f7e9d7a69ba18f6a90d39f645d21af35fbd28d822034f
+-- hash: c17a243f4d21665d65ce528ac9f147a24b71607cdb2c6ed4f6c56b124ce871e9
 
 name:           zeplrog
 version:        0.0.0.1
@@ -34,6 +34,7 @@ library
       ZP.Assets.KnowledgeBase.Items
       ZP.Assets.KnowledgeBase.Surroundings
       ZP.Assets.KnowledgeBase.World1
+      ZP.Domain.Dynamic.Description
       ZP.Domain.Dynamic.Instantiation
       ZP.Domain.Dynamic.Instantiation.Common
       ZP.Domain.Dynamic.Instantiation.CommonOld
@@ -170,6 +171,7 @@ executable zeplrog
       ZP.Assets.KnowledgeBase.Items
       ZP.Assets.KnowledgeBase.Surroundings
       ZP.Assets.KnowledgeBase.World1
+      ZP.Domain.Dynamic.Description
       ZP.Domain.Dynamic.Instantiation
       ZP.Domain.Dynamic.Instantiation.Common
       ZP.Domain.Dynamic.Instantiation.CommonOld

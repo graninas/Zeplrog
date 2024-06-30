@@ -46,8 +46,8 @@ instance
   DInst () SMod.GameVL Game where
   dInst _ () (SMod.GameEnvironment
               statWorld
-              (SMod.IconPath pathToIcon)
-              pathToPos
+              (SMod.IconPath pathToIconRel)
+              pathToPosRel
               statProps
               statObjs) = do
     let SMod.WorldData statWD = statWorld
@@ -56,22 +56,24 @@ instance
       <> show (length statProps)
 
     -- N.B., repeated props will be droped.
-    let iconsToStatPropsMap = Map.fromList []
-
-    error "TODO..."
-    -- TODO
-          -- [ (fromJust mbIcon, statProp)
-          -- | statProp <- statProps
-          -- , let mbIcon = SQuery.queryStringValueRelative pathToIcon statProp
-          -- , isJust (trace ("\n\n" <> show mbIcon) mbIcon)
-          -- ]
+    let iconsToStatPropsMap = Map.fromList
+          [ ( case mbIcon of
+                Just (StringValue _ icon) -> icon
+                _ -> error "invalid mbIcon"
+            , statProp)
+          | statProp <- statProps
+          , let mbIcon = SQuery.queryValueRel pathToIconRel statProp
+          , case mbIcon of
+              Just (StringValue _ _) -> True
+              _ -> False
+          ]
 
     -- World cells to traverse and search for icons.
     let cells = worldDataToList statWD
 
     -- Static properties that correspond to icons.
     preparedStatProps <-
-      mapM (prepareProp pathToPos iconsToStatPropsMap) cells
+      mapM (prepareProp pathToPosRel iconsToStatPropsMap) cells
 
     world <- dInst False () statWorld
 
@@ -79,7 +81,7 @@ instance
     objsFromWorld  <- mapM spawnObject propsFromWorld
 
     -- Spawning the list of objects with world positions.
-    objs <- mapM (dInst False pathToPos) statObjs
+    objs <- mapM (dInst False pathToPosRel) statObjs
 
     -- TODO: verify that all objects are in the world's bounds
 

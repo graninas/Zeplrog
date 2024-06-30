@@ -64,6 +64,20 @@ queryValueRefUnsafe path it = do
     Just valRef -> pure valRef
 
 
+
+class QueryValueRefRel it where
+  queryValueRefRel
+    :: EssencePath
+    -> it
+    -> IO (Maybe (IORef DValue))
+
+instance QueryValueRefRel Property where
+  queryValueRefRel [] _ = pure Nothing
+  queryValueRefRel _ (TagPropRef _ _) =
+    error "queryValueRefRel not implemented for TagPropRef"
+  queryValueRefRel path prop@(Prop _ ess _ _ _ _) =
+    queryValueRef (ess : path) prop
+
 ------------
 
 readBoolVal

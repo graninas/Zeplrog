@@ -18,8 +18,8 @@ import GHC.TypeLits
 
 type Zeplrog world = GameEnvironment
   world
-  PathToIcon
-  PathToPos
+  PathToIconRel
+  PathToPosRel
 
   -- Static props for the instantiation from the world data
   '[ EmptySpace

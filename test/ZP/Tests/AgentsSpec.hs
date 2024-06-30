@@ -7,7 +7,7 @@ import ZP.Prelude
 import ZP.System.Debug
 import qualified ZP.Domain.Static.Model as SMod
 import ZP.Domain.Dynamic.Model
-import qualified ZP.Assets.KnowledgeBase as KB
+import qualified ZP.Assets.KnowledgeBase.Essences as KB
 
 import Test.Hspec
 

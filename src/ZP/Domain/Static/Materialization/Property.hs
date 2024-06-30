@@ -212,32 +212,42 @@ instance
           PropertyVL where
   sMat () _ = do
 
-    ess <- sMat () $ Proxy @ess
+    sEnv <- ask
+    ess  <- sMat () $ Proxy @ess
+    esss <- readIORef $ seStaticEssencesRef sEnv
+
     sTraceDebug $ "Property to derive: " <> show ess
 
-    sTraceDebug $ "Preparing abstract property for deriving"
-    APropPrepared aPropPrepared <- sMat () $ Proxy @abstractProp
-
-    case aPropPrepared of
-      PropDict aGroup abstractPropKVs abstractPropScripts -> do
-        let aId@(abstractPropEss, abstractPropSId) = getComboId aGroup
-        sTraceDebug $ "Abstract property to derive: " <> show aId
-
-        statPropId <- getNextStaticPropertyId
-
-        propKVs <- sMat () $ Proxy @(SrcPropKVs propKVs)
-        let propKVs' = mergePropKVs propKVs abstractPropKVs
-
-        scripts <- sMat () $ Proxy @(SS scripts)
-        let scripts' = mergeScripts scripts abstractPropScripts
-
-        let prop = PropDict (GroupId ess statPropId) propKVs' scripts'
-        addStaticProperty (statPropId, ess, prop)
-        sTraceDebug $ show ess <> ": new property is derived: "
-                   <> show statPropId
+    case Map.lookup ess esss of
+      Just [(sId, prop)] -> do
+        sTraceDebug $ "Derived prop found: " <> show (ess, sId)
         pure prop
+      Just (_:_:_) ->
+        error $ "Multiple derived properties found, ess: " <> show ess
+      _ -> do
+        sTraceDebug $ "Preparing abstract property for deriving"
+        APropPrepared aPropPrepared <- sMat () $ Proxy @abstractProp
 
-      _ -> error "Invalid prepared property (not PropDict)."
+        case aPropPrepared of
+          PropDict aGroup abstractPropKVs abstractPropScripts -> do
+            let aId@(abstractPropEss, abstractPropSId) = getComboId aGroup
+            sTraceDebug $ "Abstract property to derive: " <> show aId
+
+            statPropId <- getNextStaticPropertyId
+
+            propKVs <- sMat () $ Proxy @(SrcPropKVs propKVs)
+            let propKVs' = mergePropKVs propKVs abstractPropKVs
+
+            scripts <- sMat () $ Proxy @(SS scripts)
+            let scripts' = mergeScripts scripts abstractPropScripts
+
+            let prop = PropDict (GroupId ess statPropId) propKVs' scripts'
+            addStaticProperty (statPropId, ess, prop)
+            sTraceDebug $ show ess <> ": new property is derived: "
+                      <> show statPropId
+            pure prop
+
+          _ -> error "Invalid prepared property (not PropDict)."
 
 -- Statically materialize property key value list
 
