@@ -29,7 +29,10 @@ type Close = TagProp (TagGroup EClose)
 type StateOpen  = TagProp (TagGroupRoot EStateOpen  Open)
 type StateClose = TagProp (TagGroupRoot EStateClose Close)
 
-type PushableScript = 'Script @'TypeLevel "'pushable' ability script" '[]
+type OpenDoorScript = 'Script @'TypeLevel "'pushable' ability script"
+  '[ WriteData (ToField 'Proxy (RelPath '[ EState ]))
+               (FromConst (PathConst OpenStateRef))
+   ]
 
 type CloseStateRef = RelPath '[ EStates, EStateClose ]
 type OpenStateRef  = RelPath '[ EStates, EStateOpen  ]
@@ -48,14 +51,13 @@ type AbstractDoor = AbstractProp (Group EAbstractDoor)
 
     -- | Current state. Points to a close/open state
    , PropKeyVal EState (OwnVal (PathValue CloseStateRef))
-
    ]
-   '[ PropScript EPushable PushableScript
+   '[ PropScript EPushable OpenDoorScript
    ]
 
 -- | Specific door with a specific icon.
 type SpecificDoor = DerivedProp ESpecificDoor AbstractDoor
-  '[ PropKeyVal EIcon (OwnVal (IconVal "?"))   -- TODO: open and close door with own icons
+  '[ PropKeyVal EIcon (OwnVal (IconVal "?"))
    , PropKeyVal EHP   (OwnVal (HPTagVal 100))
    , PropKeyVal EPos  (OwnVal (PosTagVal 2 3))
    ]

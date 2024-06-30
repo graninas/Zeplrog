@@ -53,7 +53,7 @@ instance
               statObjs) = do
     let SMod.WorldData statWD = statWorld
 
-    print $ "How many stat props for the game: "
+    print @String $ "How many stat props for the game: "
       <> show (length statProps)
 
     -- N.B., repeated props will be droped.

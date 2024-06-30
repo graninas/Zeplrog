@@ -147,8 +147,6 @@ instance
     genVal  <- sMat (Proxy @childTag) $ Proxy @genVal
     pure $ TVH tagProp genVal
 
-
-
 instance
   ( SMat (Proxy childTag) tvh (TagValueHolderVL childTag)
   ) =>
@@ -158,7 +156,6 @@ instance
   sMat _ parentGenVal = do
     tvh <- sMat (Proxy @childTag) (Proxy @tvh)
     pure (GenericValue tvh DPlaceholder)
-
 
 instance
   ( KnownSymbol s
@@ -214,3 +211,17 @@ instance
   sMat _ _ = do
     (genPVal, dVal) <- sMat (Proxy @"int pair") $ Proxy @val
     pure $ GenericValue genPVal dVal
+
+
+-- Generic const instantiation
+
+instance
+  ( SMat (Proxy tag) genVal (GenericValDefVL tag)
+  ) =>
+  SMat
+    (Proxy tag)
+    ('GenericConst genVal)
+    (GenericConstDefVL tag) where
+  sMat proxy _ = do
+    genVal <- sMat proxy $ Proxy @genVal
+    pure $ GenericConst genVal

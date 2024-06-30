@@ -18,7 +18,10 @@ type Close = TagProp (TagGroup EClose)
 type StateOpen  = TagProp (TagGroupRoot EStateOpen  Open)
 type StateClose = TagProp (TagGroupRoot EStateClose Close)
 
-type PushableScript = 'Script @'TypeLevel "'pushable' ability script" '[]
+type OpenDoorScript = 'Script @'TypeLevel "'pushable' ability script"
+  '[ WriteData (ToField 'Proxy (RelPath '[ EState ]))
+               (FromConst (PathConst OpenStateRef))
+   ]
   -- '[]
   -- '[ SimpleQuery
   --       '[ FollowReferences ]
@@ -57,7 +60,7 @@ type AbstractDoor = AbstractProp (Group EAbstractDoor)
   --                   PushableScript)
   --      ]
    ]
-   '[ PropScript EPushable PushableScript
+   '[ PropScript EPushable OpenDoorScript
    ]
 
 

@@ -87,48 +87,6 @@ queryValueRefUnsafe path it = do
 
 ------------
 
-readBoolVal
-  :: Property
-  -> DEssencePath
-  -> IO Bool
-readBoolVal prop path = do
-  mbValRef <- queryValueRef path prop
-  case mbValRef of
-    Nothing -> error $ "Value not found: " <> show path
-    Just valRef -> do
-      val <- readIORef valRef
-      case val of
-        BoolValue _ boolVal -> pure boolVal
-        _ -> error "readBoolVal: not a bool value"
-
-readStringVal
-  :: Property
-  -> DEssencePath
-  -> IO String
-readStringVal prop path = do
-  mbValRef <- queryValueRef path prop
-  case mbValRef of
-    Nothing -> error $ "Value not found: " <> show path
-    Just valRef -> do
-      val <- readIORef valRef
-      case val of
-        StringValue _ val -> pure val
-        _ -> error "readStringVal: not a string value"
-
-readPathVal
-  :: Property
-  -> DEssencePath
-  -> IO DEssencePath
-readPathVal prop path = do
-  mbValRef <- queryValueRef path prop
-  case mbValRef of
-    Nothing -> error $ "Value not found: " <> show path
-    Just valRef -> do
-      val <- readIORef valRef
-      case val of
-        PathValue _ val -> pure val
-        _ -> error $ "readPathVal: not a path value "
-
 updateValue
   :: Property
   -> DEssencePath

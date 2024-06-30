@@ -145,8 +145,6 @@ type TagValue
   = GenericValue @TypeLevel @(TVHTag vt)
       (TVH tagProp genVal) 'DPlaceholder
 
-
-
 -- Predefined constants
 
 type IntConst (i :: Nat)
@@ -164,8 +162,13 @@ type EssenceConst (ess :: EssenceTL)
 type PathConst (path :: EssencePathTL)
   = GenericConst (PathValue path)
 
--- TODO: rest of consts
+type IntPairConst (i1 :: Nat) (i2 :: Nat)
+  = GenericConst (IntPairValue i1 i2)
 
+type TagValueConst
+  (tagProp :: TagProperty 'TypeLevel)
+  (genVal :: GenericValDef 'TypeLevel vt)
+  = GenericConst (TagValue tagProp genVal)
 
 ------ Short identifiers ----------
 
@@ -275,6 +278,10 @@ mkIntPairValue x y =
     (tagToString (Proxy @PairIntIntTag))
     (mkIntValue x)
     (mkIntValue y)
+
+mkPathValue :: DEssencePath -> DValue
+mkPathValue path =
+  PathValue (tagToString (Proxy @PathTag)) path
 
 pathLength :: EssencePathVL -> Int
 pathLength (RelPath path) = length path

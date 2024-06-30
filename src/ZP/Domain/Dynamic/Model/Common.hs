@@ -7,4 +7,4 @@ import ZP.Domain.Static.Model as X
   IntTag, StringTag, BoolTag, PathTag, TagTag,
   EssenceTag, PairIntIntTag,
   DEssence, DEssencePath(..),
-  tagToString, tagName, mkIntPairValue, mkIntValue)
+  tagToString, tagName, mkIntPairValue, mkIntValue, mkPathValue)

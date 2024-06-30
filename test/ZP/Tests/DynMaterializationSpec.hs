@@ -4,11 +4,15 @@ module ZP.Tests.DynMaterializationSpec where
 
 import ZP.Prelude
 
-import ZP.Domain.Dynamic.Model
+import ZP.Domain.Static.Model
 import ZP.Domain.Static.Materialization
+import ZP.Domain.Dynamic.Model
 import ZP.Domain.Dynamic.Instantiation
-import qualified ZP.Domain.Dynamic.Description as Descr
+import ZP.Domain.Dynamic.Interaction
+import ZP.Domain.Dynamic.Query
 
+import qualified ZP.Domain.Dynamic.Description as Descr
+import ZP.Domain.EssenceUtils
 import qualified ZP.Assets.KnowledgeBase.Essences as KB
 import ZP.System.Debug
 import ZP.Testing.TestData
@@ -32,6 +36,25 @@ spec = do
       -- print $ "All props: " <> show (Map.keys props)
 
       Map.size props `shouldBe` 1
+
+    it "Door's script invoke" $ do
+      (sEnv, dEnv) <- makeEnvs DebugDisabled
+
+      door <- fullInst dEnv () $ Proxy @SpecificDoor
+
+      let scriptEss = matEss @KB.EPushable
+      let doorStatePath  = matPath @('RelPath '[KB.EState])
+      let openStatePath  = matPath @OpenStateRef
+      let closeStatePath = matPath @CloseStateRef
+
+      valRef <- queryValueRefUnsafe doorStatePath door
+      val1 <- readIORef valRef
+      val1 `shouldBe` mkPathValue closeStatePath
+
+      invoke scriptEss door
+
+      val2 <- readIORef valRef
+      val2 `shouldBe` mkPathValue openStatePath
 
     it "Full materialization: game" $ do
       (sEnv, dEnv) <- makeEnvs DebugDisabled
