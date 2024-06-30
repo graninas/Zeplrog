@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3257e406b2d3e5f7c4f15716933b8383fc7b50708550a683cf71ae0454967b14
+-- hash: dd90af3495a8f9dd79839e59e247de4e62fbeeeb1aeecb116dea9208e16ef487
 
 name:           zeplrog
 version:        0.0.0.1
@@ -37,26 +37,20 @@ library
       ZP.Domain.Dynamic.Description
       ZP.Domain.Dynamic.Instantiation
       ZP.Domain.Dynamic.Instantiation.Common
-      ZP.Domain.Dynamic.Instantiation.CommonOld
       ZP.Domain.Dynamic.Instantiation.Effect
       ZP.Domain.Dynamic.Instantiation.Game
       ZP.Domain.Dynamic.Instantiation.Instantiator
-      ZP.Domain.Dynamic.Instantiation.InstantiatorOld
       ZP.Domain.Dynamic.Instantiation.Object
       ZP.Domain.Dynamic.Instantiation.Property
-      ZP.Domain.Dynamic.Instantiation.PropertyOld
       ZP.Domain.Dynamic.Instantiation.Script
-      ZP.Domain.Dynamic.Instantiation.ScriptOld
       ZP.Domain.Dynamic.Instantiation.World
       ZP.Domain.Dynamic.Interaction
       ZP.Domain.Dynamic.Model
       ZP.Domain.Dynamic.Model.Common
-      ZP.Domain.Dynamic.Model.CommonOld
       ZP.Domain.Dynamic.Model.Effect
       ZP.Domain.Dynamic.Model.Game
       ZP.Domain.Dynamic.Model.Object
       ZP.Domain.Dynamic.Model.Property
-      ZP.Domain.Dynamic.Model.PropertyOld
       ZP.Domain.Dynamic.Model.World
       ZP.Domain.Dynamic.Query
       ZP.Domain.EssenceUtils
@@ -64,32 +58,24 @@ library
       ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
-      ZP.Domain.Static.Materialization.CommonOld
       ZP.Domain.Static.Materialization.Effect
       ZP.Domain.Static.Materialization.Game
       ZP.Domain.Static.Materialization.Macro
       ZP.Domain.Static.Materialization.Materializer
-      ZP.Domain.Static.Materialization.MaterializerOld
       ZP.Domain.Static.Materialization.Object
       ZP.Domain.Static.Materialization.Property
-      ZP.Domain.Static.Materialization.PropertyOld
       ZP.Domain.Static.Materialization.Script
-      ZP.Domain.Static.Materialization.ScriptOld
       ZP.Domain.Static.Materialization.World
       ZP.Domain.Static.Model
       ZP.Domain.Static.Model.Common
-      ZP.Domain.Static.Model.CommonOld
       ZP.Domain.Static.Model.Effect
       ZP.Domain.Static.Model.Game
       ZP.Domain.Static.Model.Helpers
       ZP.Domain.Static.Model.Object
       ZP.Domain.Static.Model.Property
-      ZP.Domain.Static.Model.PropertyOld
       ZP.Domain.Static.Model.Script
-      ZP.Domain.Static.Model.ScriptOld
       ZP.Domain.Static.Model.World
       ZP.Domain.Static.Query
-      ZP.Domain.Static.QueryOld
       ZP.Domain.Static.Transform
       ZP.Prelude
       ZP.System.Debug
@@ -176,26 +162,20 @@ executable zeplrog
       ZP.Domain.Dynamic.Description
       ZP.Domain.Dynamic.Instantiation
       ZP.Domain.Dynamic.Instantiation.Common
-      ZP.Domain.Dynamic.Instantiation.CommonOld
       ZP.Domain.Dynamic.Instantiation.Effect
       ZP.Domain.Dynamic.Instantiation.Game
       ZP.Domain.Dynamic.Instantiation.Instantiator
-      ZP.Domain.Dynamic.Instantiation.InstantiatorOld
       ZP.Domain.Dynamic.Instantiation.Object
       ZP.Domain.Dynamic.Instantiation.Property
-      ZP.Domain.Dynamic.Instantiation.PropertyOld
       ZP.Domain.Dynamic.Instantiation.Script
-      ZP.Domain.Dynamic.Instantiation.ScriptOld
       ZP.Domain.Dynamic.Instantiation.World
       ZP.Domain.Dynamic.Interaction
       ZP.Domain.Dynamic.Model
       ZP.Domain.Dynamic.Model.Common
-      ZP.Domain.Dynamic.Model.CommonOld
       ZP.Domain.Dynamic.Model.Effect
       ZP.Domain.Dynamic.Model.Game
       ZP.Domain.Dynamic.Model.Object
       ZP.Domain.Dynamic.Model.Property
-      ZP.Domain.Dynamic.Model.PropertyOld
       ZP.Domain.Dynamic.Model.World
       ZP.Domain.Dynamic.Query
       ZP.Domain.EssenceUtils
@@ -203,32 +183,24 @@ executable zeplrog
       ZP.Domain.Static.Macro
       ZP.Domain.Static.Materialization
       ZP.Domain.Static.Materialization.Common
-      ZP.Domain.Static.Materialization.CommonOld
       ZP.Domain.Static.Materialization.Effect
       ZP.Domain.Static.Materialization.Game
       ZP.Domain.Static.Materialization.Macro
       ZP.Domain.Static.Materialization.Materializer
-      ZP.Domain.Static.Materialization.MaterializerOld
       ZP.Domain.Static.Materialization.Object
       ZP.Domain.Static.Materialization.Property
-      ZP.Domain.Static.Materialization.PropertyOld
       ZP.Domain.Static.Materialization.Script
-      ZP.Domain.Static.Materialization.ScriptOld
       ZP.Domain.Static.Materialization.World
       ZP.Domain.Static.Model
       ZP.Domain.Static.Model.Common
-      ZP.Domain.Static.Model.CommonOld
       ZP.Domain.Static.Model.Effect
       ZP.Domain.Static.Model.Game
       ZP.Domain.Static.Model.Helpers
       ZP.Domain.Static.Model.Object
       ZP.Domain.Static.Model.Property
-      ZP.Domain.Static.Model.PropertyOld
       ZP.Domain.Static.Model.Script
-      ZP.Domain.Static.Model.ScriptOld
       ZP.Domain.Static.Model.World
       ZP.Domain.Static.Query
-      ZP.Domain.Static.QueryOld
       ZP.Domain.Static.Transform
       ZP.Prelude
       ZP.System.Debug
