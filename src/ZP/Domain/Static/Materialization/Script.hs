@@ -25,22 +25,23 @@ import qualified Data.Map.Strict as Map
 
 data ScrOps ops
 
--- Var materialization
+-- GenericVar materialization
 
 instance
   ( KnownSymbol varName
-  , SMat () defVal (GenericValDefVL tag)
+  , SMat (Proxy tag) defVal (GenericValDefVL tag)
   ) =>
   SMat (Proxy tag)
         ('GenericVar @'TypeLevel varName defVal)
         (GenericVarDefVL tag) where
-  sMat _ _ = do
+  sMat proxy _ = do
     let varName = symbolVal $ Proxy @varName
-    val <- sMat () $ Proxy @defVal
+    val <- sMat proxy $ Proxy @defVal
     pure $ GenericVar varName val
 
 -- Target materialization
 
+-- -- ToVar
 instance
   ( varDef ~ (vd :: GenericVarDefTL tag)
   , SMat (Proxy tag) varDef (GenericVarDefVL tag)
@@ -51,6 +52,7 @@ instance
     varDef <- sMat (Proxy @tag) $ Proxy @varDef
     pure $ ToVar varDef
 
+-- ToField
 instance
   ( SMat () path EssencePathVL
   , proxy ~ (p :: Proxy tag)
@@ -61,6 +63,9 @@ instance
     path <- sMat () $ Proxy @path
     pure $ ToField (Proxy @tag) path
 
+-- Source
+
+-- -- FromVar
 instance
   ( varDef ~ (vd :: GenericVarDefTL tag)
   , SMat (Proxy tag) varDef (GenericVarDefVL tag)
@@ -71,6 +76,7 @@ instance
     varDef <- sMat (Proxy @tag) $ Proxy @varDef
     pure $ FromVar varDef
 
+-- -- FromField
 instance
   ( SMat () path EssencePathVL
   , proxy ~ (p :: Proxy tag)
@@ -81,6 +87,7 @@ instance
     path <- sMat () $ Proxy @path
     pure $ FromField (Proxy @tag) path
 
+-- FromConst
 instance
   ( constDef ~ (c :: GenericConstDefTL tag)
   , SMat (Proxy tag) constDef (GenericConstDefVL tag)
@@ -91,13 +98,20 @@ instance
     val <- sMat (Proxy @tag) $ Proxy @constDef
     pure $ FromConst val
 
+-- Functions
+
 instance
   SMat () ('NegateF @'TypeLevel)
           (FuncVL BoolTag BoolTag) where
   sMat () _ = pure NegateF
 
+
+-- Specific script op
+
+-- -- DeclareVar
 instance
-  ( SMat (Proxy tag) varDef (GenericVarDefVL tag)
+  ( varDef ~ (vd :: GenericVarDefTL tag)
+  , SMat (Proxy tag) varDef (GenericVarDefVL tag)
   ) =>
   SMat () ('DeclareVar @'TypeLevel varDef)
          ScriptOpVL where
@@ -105,6 +119,7 @@ instance
     varDef <- sMat (Proxy @tag) $ Proxy @varDef
     pure $ DeclareVar varDef
 
+-- -- WriteData
 instance
   ( SMat () source (SourceVL tag)
   , SMat () target (TargetVL tag)
@@ -116,6 +131,7 @@ instance
     target <- sMat () $ Proxy @target
     pure $ WriteData target source
 
+-- -- Invoke
 instance
   ( SMat () func   (FuncVL tag1 tag2)
   , SMat () source (SourceVL tag1)
@@ -128,6 +144,9 @@ instance
     source <- sMat () $ Proxy @source
     target <- sMat () $ Proxy @target
     pure $ Invoke func source target
+
+
+-- Script operations list
 
 instance
   SMat () (ScrOps '[]) [ScriptOpVL] where
@@ -142,6 +161,9 @@ instance
     op  <- sMat () $ Proxy @op
     ops <- sMat () $ Proxy @(ScrOps ops)
     pure $ op : ops
+
+
+-- Script entity
 
 instance
   ( KnownSymbol descr

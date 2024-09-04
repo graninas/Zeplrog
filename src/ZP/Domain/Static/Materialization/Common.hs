@@ -24,7 +24,7 @@ import qualified Data.Map.Strict as Map
 -- Helper to materialize the list of essences
 data Essences path
 
--- Statically materialize elementary types
+-- Elementary types
 
 instance
   ( t ~ TagToType 'ValueLevel IntTag
@@ -58,7 +58,7 @@ instance
   SMat () str String where
   sMat () _ = pure $ symbolVal $ Proxy @str
 
--- Statically materialize tag property group
+-- Tag property group
 
 instance
   ( SMat () ess EssenceVL
@@ -80,7 +80,7 @@ instance
     tagProp  <- sMat () $ Proxy @tagProp
     pure $ TagGroupRoot ess tagProp
 
--- Statically materialize tag property
+-- Tag property
 
 instance
   ( SMat () tagGroup TagPropertyGroupVL
@@ -91,7 +91,7 @@ instance
     tagGroup <- sMat () $ Proxy @tagGroup
     pure $ TagProp tagGroup
 
--- Statically materialize Essence & path
+-- Essence & path
 
 instance
   ( KnownSymbol symb
@@ -133,8 +133,9 @@ instance
     pure $ AbsPath path
 
 
--- Statically materialize generic value
+-- Generic value
 
+-- -- TVH / TagValueHolder
 instance
   ( SMat () tagProp TagPropertyVL
   , SMat (Proxy childTag) genVal (GenericValDefVL childTag)
@@ -147,6 +148,7 @@ instance
     genVal  <- sMat (Proxy @childTag) $ Proxy @genVal
     pure $ TVH tagProp genVal
 
+-- -- GenericValue tvh
 instance
   ( SMat (Proxy childTag) tvh (TagValueHolderVL childTag)
   ) =>
@@ -157,6 +159,7 @@ instance
     tvh <- sMat (Proxy @childTag) (Proxy @tvh)
     pure (GenericValue tvh DPlaceholder)
 
+-- -- string value
 instance
   ( KnownSymbol s
   ) =>
@@ -165,6 +168,25 @@ instance
     let s = symbolVal $ Proxy @s
     pure (s, StringValue "string" s)
 
+-- -- int value
+instance
+  ( KnownNat n
+  ) =>
+  SMat (Proxy "int") n (Int, DValue) where
+  sMat _ _ = do
+    let n = fromIntegral $ natVal $ Proxy @n
+    pure (n, IntValue "int" n)
+
+-- -- bool value
+instance
+  ( SMat () v Bool
+  ) =>
+  SMat (Proxy "bool") v (Bool, DValue) where
+  sMat _ _ = do
+    v <- sMat () $ Proxy @v
+    pure (v, BoolValue "bool" v)
+
+-- -- path value
 instance
   ( SMat () path EssencePathVL
   ) =>
@@ -176,6 +198,7 @@ instance
           AbsPath p -> DAbsPath $ map (\(Ess s) -> s) p
     pure (path, PathValue "path" dEssPath)
 
+-- -- int pair value
 instance
   ( KnownNat n1
   , KnownNat n2
@@ -187,18 +210,21 @@ instance
     pure (Pair n1 n2, PairValue "int pair" (IntValue "int" n1) (IntValue "int" n2))
 
 -- Generic value itself
+
+-- -- regular tag
 instance
-  ( SMat (Proxy strTag) val
-    (TagToType 'ValueLevel ('RegularTag strTag), DValue)
+  ( SMat (Proxy tag) val
+    (TagToType 'ValueLevel ('RegularTag tag), DValue)
   ) =>
   SMat
-    (Proxy ('RegularTag strTag))
+    (Proxy ('RegularTag tag))
     ('GenericValue val 'DPlaceholder)
-    (GenericValDefVL ('RegularTag strTag)) where
-  sMat proxy _ = do
-    (val, dVal) <- sMat (Proxy @strTag) $ Proxy @val
+    (GenericValDefVL ('RegularTag tag)) where
+  sMat _ _ = do
+    (val, dVal) <- sMat (Proxy @tag) $ Proxy @val
     pure $ GenericValue val dVal
 
+-- -- int pair tag
 instance
   ( SMat (Proxy "int pair") val
     (TagToType 'ValueLevel ('CompoundTag "int pair" IntTag IntTag), DValue)

@@ -72,16 +72,16 @@ data CustomScript (lvl :: Level) where
 -- Predefined var types
 
 type IntVar (name :: Symbol) (i :: Nat)
-  = GenericVar name (IntValue i)
+  = GenericVar @'TypeLevel @IntTag name (IntValue i)
 
 type BoolVar (name :: Symbol) (b :: Bool)
-  = GenericVar name (BoolValue b)
+  = GenericVar @'TypeLevel @BoolTag name (BoolValue b)
 
 type StringVar (name :: Symbol) (s :: Symbol)
-  = GenericVar name (StringValue s)
+  = GenericVar @'TypeLevel @StringTag name (StringValue s)
 
 type PathVar (name :: Symbol) (path :: EssencePathTL)
-  = GenericVar name (PathValue path)
+  = GenericVar @'TypeLevel @PathTag name (PathValue path)
 
 -- TODO: rest of vars
 

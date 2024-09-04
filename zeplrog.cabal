@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dd90af3495a8f9dd79839e59e247de4e62fbeeeb1aeecb116dea9208e16ef487
+-- hash: 3e8bc7b9b114fc6bb10cc8d50e8ffc8b62466e1a07356734fd2ce14b7c611762
 
 name:           zeplrog
 version:        0.0.0.1
@@ -281,6 +281,7 @@ test-suite tests
       ZP.Tests.GameSpec
       ZP.Tests.StatMaterializationSpec
       ZP.Tests.StatQuerySpec
+      ZP.Tests.ValueModelSpec
       Paths_zeplrog
   hs-source-dirs:
       test/
