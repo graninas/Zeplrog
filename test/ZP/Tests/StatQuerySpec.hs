@@ -30,7 +30,10 @@ spec = do
 
         pathLength path `shouldBe` 0
         let mbRes = queryValue path owning
-        mbRes `shouldBe` (Just $ StringValue "string" "+")
+        case mbRes of
+          Nothing -> error "failed"
+          Just res ->
+            eqDValue res (StringValue "string" "+") `shouldBe` True
 
       it "abs path string value: not found" $ do
         sEnv <- makeSEnv DebugDisabled
@@ -40,7 +43,9 @@ spec = do
 
         pathLength path `shouldBe` 1
         let mbRes = queryValue path owning
-        mbRes `shouldBe` Nothing
+        case mbRes of
+          Just _ -> error "failed"
+          Nothing -> pass
 
       it "rel empty path string value: found" $ do
         sEnv <- makeSEnv DebugDisabled
@@ -50,7 +55,10 @@ spec = do
 
         pathLength path `shouldBe` 0
         let mbRes = queryValue path owning
-        mbRes `shouldBe` (Just $ StringValue "string" "+")
+        case mbRes of
+          Nothing -> error "failed"
+          Just res ->
+            eqDValue res (StringValue "string" "+") `shouldBe` True
 
       it "rel path string value: not found" $ do
         sEnv <- makeSEnv DebugDisabled
@@ -60,7 +68,9 @@ spec = do
 
         pathLength path `shouldBe` 1
         let mbRes = queryValue path owning
-        mbRes `shouldBe` Nothing
+        case mbRes of
+          Just _ -> error "failed"
+          Nothing -> pass
 
   describe "for key val" $ do
 
@@ -72,7 +82,10 @@ spec = do
 
       pathLength path `shouldBe` 1
       let mbRes = queryValue path kv
-      mbRes `shouldBe` (Just $ StringValue "string" "+")
+      case mbRes of
+          Nothing -> error "failed"
+          Just res ->
+            eqDValue res (StringValue "string" "+") `shouldBe` True
 
     it "abs path string value: not found" $ do
       sEnv <- makeSEnv DebugDisabled
@@ -82,7 +95,9 @@ spec = do
 
       pathLength path `shouldBe` 1
       let mbRes = queryValue path kv
-      mbRes `shouldBe` Nothing
+      case mbRes of
+          Just _ -> error "failed"
+          Nothing -> pass
 
     it "abs empty path string value: not found" $ do
       sEnv <- makeSEnv DebugDisabled
@@ -92,7 +107,9 @@ spec = do
 
       pathLength path `shouldBe` 0
       let mbRes = queryValue path kv
-      mbRes `shouldBe` Nothing
+      case mbRes of
+          Just _ -> error "failed"
+          Nothing -> pass
 
     it "rel empty path string value: found" $ do
       sEnv <- makeSEnv DebugDisabled
@@ -102,7 +119,10 @@ spec = do
 
       pathLength path `shouldBe` 0
       let mbRes = queryValue path kv
-      mbRes `shouldBe` (Just $ StringValue "string" "+")
+      case mbRes of
+          Nothing -> error "failed"
+          Just res ->
+            eqDValue res (StringValue "string" "+") `shouldBe` True
 
     it "rel string value: not found" $ do
       sEnv <- makeSEnv DebugDisabled
@@ -112,7 +132,9 @@ spec = do
 
       pathLength path `shouldBe` 1
       let mbRes = queryValue path kv
-      mbRes `shouldBe` Nothing
+      case mbRes of
+          Just _ -> error "failed"
+          Nothing -> pass
 
   describe "for property" $ do
 
@@ -124,7 +146,10 @@ spec = do
 
       pathLength path `shouldBe` 2
       let mbRes = queryValue path prop
-      mbRes `shouldBe` (Just $ StringValue "string" "+")
+      case mbRes of
+          Nothing -> error "failed"
+          Just res ->
+            eqDValue res (StringValue "string" "+") `shouldBe` True
 
     it "abs path string value: not found" $ do
       sEnv <- makeSEnv DebugDisabled
@@ -134,7 +159,9 @@ spec = do
 
       pathLength path `shouldBe` 1
       let mbRes = queryValue path prop
-      mbRes `shouldBe` Nothing
+      case mbRes of
+          Just _ -> error "failed"
+          Nothing -> pass
 
     it "rel path string value: found" $ do
       sEnv <- makeSEnv DebugDisabled
@@ -144,7 +171,10 @@ spec = do
 
       pathLength path `shouldBe` 1
       let mbRes = queryValue path prop
-      mbRes `shouldBe` (Just $ StringValue "string" "+")
+      case mbRes of
+          Nothing -> error "failed"
+          Just res ->
+            eqDValue res (StringValue "string" "+") `shouldBe` True
 
     it "rel path string value: not found" $ do
       sEnv <- makeSEnv DebugDisabled
@@ -154,5 +184,7 @@ spec = do
 
       pathLength path `shouldBe` 2
       let mbRes = queryValue path prop
-      mbRes `shouldBe` Nothing
+      case mbRes of
+          Just _ -> error "failed"
+          Nothing -> pass
 

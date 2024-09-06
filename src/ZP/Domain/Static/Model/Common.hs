@@ -10,6 +10,7 @@ module ZP.Domain.Static.Model.Common where
 
 import ZP.Prelude
 import GHC.TypeLits
+import GHC.Types as GHC
 
 import qualified Text.Show as T
 import qualified Data.Kind as DK
@@ -54,8 +55,8 @@ data DValue
   | TagValue TagName TagPropertyVL DValue
   | PathValue TagName DEssencePath
   | StaticPropertyRefValue TagName StaticPropertyId
+  | AnyValue TagName (Maybe String) GHC.Any
   | DPlaceholder
-  deriving (Show, Eq, Ord)
 
 -- | Tag property is always static.
 --   Used to tag and group notions.
@@ -268,6 +269,7 @@ tagName (StringValue tn _) = tn
 tagName (TagValue tn _ _) = tn
 tagName (PathValue tn _) = tn
 tagName (StaticPropertyRefValue tn _) = tn
+tagName (AnyValue tn _ _) = tn
 tagName DPlaceholder = "DPlaceholder"
 
 mkIntValue :: Int -> DValue
@@ -287,3 +289,44 @@ mkPathValue path =
 pathLength :: EssencePathVL -> Int
 pathLength (RelPath path) = length path
 pathLength (AbsPath path) = length path
+
+
+showDValue :: DValue -> String
+showDValue (PairValue _ p1 p2) = "(" <> showDValue p1 <> ", " <> showDValue p2 <> ")"
+showDValue (IntValue _ p) = show p
+showDValue (BoolValue _ p) = show p
+showDValue (StringValue _ p) = p
+showDValue (TagValue _ _ dv) = "TagValue " <> showDValue dv
+showDValue (PathValue _ p) = show p
+showDValue (StaticPropertyRefValue _ sId) = "StaticPropertyRefValue " <> show sId
+showDValue (AnyValue _ Nothing _) = "AnyValue: not showable"
+showDValue (AnyValue _ (Just p) _) = "AnyValue: " <> p
+showDValue DPlaceholder = "DPlaceholder"
+
+
+-- Equality of dyn values. Should be used with care.
+-- Maybe, use it only for tests
+eqDValue :: DValue -> DValue -> Bool
+eqDValue (PairValue t1 p1 p2)
+         (PairValue t2 p3 p4)
+          = t1 == t2 && eqDValue p1 p3 && eqDValue p2 p4
+eqDValue (IntValue t1 p1)
+         (IntValue t2 p2)                = t1 == t2 && p1 == p2
+eqDValue (BoolValue t1 p1)
+         (BoolValue t2 p2)               = t1 == t2 && p1 == p2
+eqDValue (StringValue t1 p1)
+         (StringValue t2 p2)             = t1 == t2 && p1 == p2
+eqDValue (TagValue t1 _ p1)
+         (TagValue t2 _ p2)              = t1 == t2 && eqDValue p1 p2
+eqDValue (PathValue t1 p1)
+         (PathValue t2 p2)               = t1 == t2 && p1 == p2
+eqDValue (StaticPropertyRefValue t1 sId1)
+         (StaticPropertyRefValue t2 sId2)
+        = t1 == t2 && sId1 == sId2
+eqDValue (AnyValue t1 s1 _)
+         (AnyValue t2 s2 _)
+          = t1 == t2 && s1 == s2      -- N.B., not a good equality
+                                      -- because different GHC.Any
+                                      -- can occur equal
+eqDValue DPlaceholder DPlaceholder = True
+eqDValue _ _ = False

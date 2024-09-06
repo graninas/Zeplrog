@@ -3,6 +3,10 @@ module ZP.Domain.Dynamic.Model
   ) where
 
 
+import ZP.Domain.Static.Model as X
+  (StaticPropertyId, TagName, DEssence, DEssencePath (..),
+  DValue(..), tagName, mkIntValue, mkIntPairValue, mkPathValue,
+  showDValue, eqDValue)
 import ZP.Domain.Dynamic.Model.Common as X
 import ZP.Domain.Dynamic.Model.Property as X
 import ZP.Domain.Dynamic.Model.Effect as X

@@ -33,7 +33,7 @@ spec = do
       valRef <- queryValueRefUnsafe path prop
       val <- readIORef valRef
 
-      val `shouldBe` StringValue "string" "+"
+      eqDValue val (StringValue "string" "+") `shouldBe` True
 
     it "QueryValue abs path string value for prop: not found" $ do
       (sEnv, dEnv) <- makeEnvs DebugDisabled
@@ -55,7 +55,7 @@ spec = do
       valRef <- queryValueRefUnsafe path prop
       val <- readIORef valRef
 
-      val `shouldBe` StringValue "string" "+"
+      eqDValue val (StringValue "string" "+") `shouldBe` True
 
     it "QueryValue rel path string value for prop: not found" $ do
       (sEnv, dEnv) <- makeEnvs DebugDisabled

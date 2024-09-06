@@ -49,12 +49,12 @@ spec = do
 
       valRef <- queryValueRefUnsafe doorStatePath door
       val1 <- readIORef valRef
-      val1 `shouldBe` mkPathValue closeStatePath
+      eqDValue val1 (mkPathValue closeStatePath) `shouldBe` True
 
       invoke scriptEss door
 
       val2 <- readIORef valRef
-      val2 `shouldBe` mkPathValue openStatePath
+      eqDValue val2 (mkPathValue openStatePath) `shouldBe` True
 
     it "Full materialization: game" $ do
       (sEnv, dEnv) <- makeEnvs DebugDisabled

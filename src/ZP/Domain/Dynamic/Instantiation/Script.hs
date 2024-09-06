@@ -77,7 +77,8 @@ invokeF (Just NegateF) anyVal = let
   val :: DValue = unsafeCoerce anyVal
   in case val of
         BoolValue tn b -> unsafeCoerce $ BoolValue tn $ not b
-        _ -> error $ "invokeF (Just NegateF) type mismatch: " <> show val
+        _ -> error $ "invokeF (Just NegateF) type mismatch: "
+                  <> show (showDValue val)
 
 readWrite
   :: DMod.Property
