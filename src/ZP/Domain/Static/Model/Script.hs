@@ -83,6 +83,14 @@ type StringVar (name :: Symbol) (s :: Symbol)
 type PathVar (name :: Symbol) (path :: EssencePathTL)
   = GenericVar @'TypeLevel @PathTag name (PathValue path)
 
+type TagPropertyVar
+  (name :: Symbol)
+  (tagProp :: TagPropertyTL)
+  (genVal :: GenericValDef 'TypeLevel vt)
+  = GenericVar @'TypeLevel @(TPHTag vt)
+      name (TagPropertyValue tagProp genVal)
+
+
 -- TODO: rest of vars
 
 

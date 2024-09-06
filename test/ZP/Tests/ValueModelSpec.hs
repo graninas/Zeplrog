@@ -24,25 +24,51 @@ type ESomeProp = Ess @TypeLevel "some prop"
 type ESomeAbstractProp = Ess @TypeLevel "some abstract prop"
 type EHPVal = Ess @TypeLevel "hp val"
 type ETest = Ess @TypeLevel "test script"
+type EGenericPos = Ess @TypeLevel "generic pos"
 
 
 type HPVal hp = IntValue hp
 type HPVar = IntVar "hp var" 0
 type NameVar = StringVar "name var" "John Doe"
 
+type GenericPos    = TagProp (TagGroup EGenericPos)
+type PosVal x y    = IntPairValue x y
+type PosTagVal x y = TagPropertyValue GenericPos (PosVal x y)
+type PosTagVar x y = TagPropertyVar "pos var" GenericPos (PosVal x y)
+
 type TestScript = 'Script @'TypeLevel "test script"
   '[ DeclareVar HPVar
+   , DeclareVar (PosTagVar 1 1)
 
    , WriteData (ToVar HPVar)
                (FromConst (IntConst 30))
 
-   , WriteData (ToField 'Proxy (RelPath '[ EHPVal ]))
-               (FromVar HPVar)
+   , ReadData (FromVar HPVar)
+              (ToField 'Proxy (RelPath '[ EHPVal ]))
 
+  -- Won't compile, type mismatch:
   --  , WriteData (ToVar HPVar)
   --              (FromVar NameVar)
 
    ]
+
+
+data Person (lvl :: Level) where
+  Person :: StringType lvl -> StringType lvl -> Person lvl
+
+data PersonValueHolder (lvl :: Level) (tag :: CustomTag)
+  = PVH
+    (Person lvl)
+    (GenericValDef lvl tag)
+
+type UserTypeScript = 'Script @'TypeLevel "user type usage script"
+  '[ DeclareVar HPVar
+
+   , WriteData (ToVar HPVar)
+               (FromConst (IntConst 30))
+   ]
+
+
 
 
 type SomeAbstractProp = AbstractProp (Group ESomeAbstractProp) '[] '[]
