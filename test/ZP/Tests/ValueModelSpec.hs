@@ -18,7 +18,7 @@ import Test.Hspec
 import GHC.TypeLits
 import Data.Proxy
 import qualified Data.Map.Strict as Map
-
+import Unsafe.Coerce (unsafeCoerce)
 
 
 type ESomeProp = Ess @TypeLevel "some prop"
@@ -101,7 +101,9 @@ instance
   sMat _ _ = do
     let fn = symbolVal $ Proxy @fn
     let ln = symbolVal $ Proxy @ln
-    pure (PersonImpl fn ln, DPlaceholder)     -- TODO: dyn val
+    let p = PersonImpl fn ln
+    pure (p, AnyValue "TPH" (Just $ "Person " <> fn <> " " <> ln)
+                            (unsafeCoerce p))
 
 -- Test property
 
