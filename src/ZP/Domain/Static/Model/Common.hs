@@ -76,15 +76,16 @@ data TagProperty (lvl :: Level) where
 
 -- | Type family that will match a type tag
 --   to a specific type depending on the level
-type family TagToType (lvl :: Level) (tag :: CustomTag) where
-  TagToType lvl IntTag     = IntegerType lvl
-  TagToType lvl StringTag  = StringType lvl
-  TagToType lvl BoolTag    = Bool
-  TagToType lvl EssenceTag = Essence lvl
-  TagToType lvl PathTag    = EssencePath lvl
-  TagToType 'TypeLevel  (TPHTag vt) = TagPropertyValueHolder 'TypeLevel vt
-  TagToType 'ValueLevel (TPHTag vt) = TagPropertyValueHolder 'ValueLevel vt
-  TagToType lvl PairIntIntTag = CustomPair (IntegerType lvl) (IntegerType lvl)
+type family TagToType (lvl :: Level) (tag :: CustomTag) :: *
+
+type instance TagToType lvl IntTag     = IntegerType lvl
+type instance TagToType lvl StringTag  = StringType lvl
+type instance TagToType lvl BoolTag    = Bool
+type instance TagToType lvl EssenceTag = Essence lvl
+type instance TagToType lvl PathTag    = EssencePath lvl
+type instance TagToType 'TypeLevel  (TPHTag vt) = TagPropertyValueHolder 'TypeLevel vt
+type instance TagToType 'ValueLevel (TPHTag vt) = TagPropertyValueHolder 'ValueLevel vt
+type instance TagToType lvl PairIntIntTag = CustomPair (IntegerType lvl) (IntegerType lvl)
 
 
 -- | Generic value definition with a default value

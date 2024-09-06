@@ -15,6 +15,7 @@ import ZP.Testing.TestData
 import ZP.System.Debug
 import Test.Hspec
 
+import GHC.TypeLits
 import Data.Proxy
 import qualified Data.Map.Strict as Map
 
@@ -52,24 +53,57 @@ type TestScript = 'Script @'TypeLevel "test script"
 
    ]
 
+-- Extensibility test data
+
 
 data Person (lvl :: Level) where
-  Person :: StringType lvl -> StringType lvl -> Person lvl
+  PersonImpl
+    :: StringType lvl
+    -> StringType lvl
+    -> Person lvl
 
-data PersonValueHolder (lvl :: Level) (tag :: CustomTag)
-  = PVH
-    (Person lvl)
-    (GenericValDef lvl tag)
+-- data PersonValueHolder (lvl :: Level) (tag :: CustomTag)
+--   = PVH
+--     (Person lvl)
+--     (GenericValDef lvl tag)
+
+type PVHTag = 'RegularTag "TPH"
+
+type instance TagToType lvl PVHTag = Person lvl
+
+type PersonValue (person :: Person 'TypeLevel)
+  = GenericValue @TypeLevel @PVHTag
+     person
+     'DPlaceholder
+type PersonVar (name :: Symbol) (person :: Person 'TypeLevel)
+  = GenericVar @'TypeLevel @PVHTag name (PersonValue person)
+
+
+type MeVar = PersonVar "me" ('PersonImpl "Alex" "Granin")
 
 type UserTypeScript = 'Script @'TypeLevel "user type usage script"
-  '[ DeclareVar HPVar
+  '[ DeclareVar MeVar
 
-   , WriteData (ToVar HPVar)
-               (FromConst (IntConst 30))
+   , WriteData (ToVar MeVar)
+               (FromVar MeVar)
    ]
 
+-- Extensibility materialization
 
+instance
+  ( KnownSymbol fn
+  , KnownSymbol ln
+  ) =>
+  SMat
+    (Proxy "TPH")
+    ('PersonImpl @TypeLevel fn ln)
+    (Person 'ValueLevel, DValue) where
+  sMat _ _ = do
+    let fn = symbolVal $ Proxy @fn
+    let ln = symbolVal $ Proxy @ln
+    pure (PersonImpl fn ln, DPlaceholder)     -- TODO: dyn val
 
+-- Test property
 
 type SomeAbstractProp = AbstractProp (Group ESomeAbstractProp) '[] '[]
 
@@ -77,6 +111,7 @@ type SomeProp = DerivedProp ESomeProp SomeAbstractProp
   '[ PropKeyVal EHPVal (OwnVal (HPVal 10))
    ]
   '[ PropScript ETest TestScript
+   , PropScript ETest UserTypeScript
    ]
 
 
