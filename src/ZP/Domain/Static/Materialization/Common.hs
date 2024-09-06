@@ -135,29 +135,29 @@ instance
 
 -- Generic value
 
--- -- TVH / TagValueHolder
+-- -- TPH / TagPropertyValueHolder
 instance
   ( SMat () tagProp TagPropertyVL
   , SMat (Proxy childTag) genVal (GenericValDefVL childTag)
   ) =>
   SMat (Proxy childTag)
-       ('TVH tagProp genVal)
-       (TagValueHolderVL childTag) where
+       ('TPH tagProp genVal)
+       (TagPropertyValueHolderVL childTag) where
   sMat _ parentGenVal = do
     tagProp <- sMat () $ Proxy @tagProp
     genVal  <- sMat (Proxy @childTag) $ Proxy @genVal
-    pure $ TVH tagProp genVal
+    pure $ TPH tagProp genVal
 
--- -- GenericValue tvh
+-- -- GenericValue tph
 instance
-  ( SMat (Proxy childTag) tvh (TagValueHolderVL childTag)
+  ( SMat (Proxy childTag) tph (TagPropertyValueHolderVL childTag)
   ) =>
-  SMat (Proxy (TVHTag childTag))
-       ('GenericValue tvh 'DPlaceholder)
-       (GenericValDefVL (TVHTag childTag)) where
+  SMat (Proxy (TPHTag childTag))
+       ('GenericValue tph 'DPlaceholder)
+       (GenericValDefVL (TPHTag childTag)) where
   sMat _ parentGenVal = do
-    tvh <- sMat (Proxy @childTag) (Proxy @tvh)
-    pure (GenericValue tvh DPlaceholder)
+    tph <- sMat (Proxy @childTag) (Proxy @tph)
+    pure (GenericValue tph DPlaceholder)
 
 -- -- string value
 instance

@@ -16,12 +16,12 @@ type PathToPosRel  = PosPath  ('RelPath '[ EPos ])
 -- | World position value.
 type GenericPos    = TagProp (TagGroup EGenericPos)
 type PosVal x y    = IntPairValue x y
-type PosTagVal x y = TagValue GenericPos (PosVal x y)
+type PosTagVal x y = TagPropertyValue GenericPos (PosVal x y)
 
 -- | Actor's HP.
 type GenericHP   = TagProp (TagGroup EGenericHP)
 type HPVal hp    = IntPairValue hp hp
-type HPTagVal hp = TagValue GenericHP (HPVal hp)
+type HPTagVal hp = TagPropertyValue GenericHP (HPVal hp)
 
 
 -- -- | Strength random val

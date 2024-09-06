@@ -82,8 +82,8 @@ type family TagToType (lvl :: Level) (tag :: CustomTag) where
   TagToType lvl BoolTag    = Bool
   TagToType lvl EssenceTag = Essence lvl
   TagToType lvl PathTag    = EssencePath lvl
-  TagToType 'TypeLevel  (TVHTag vt) = TagValueHolder 'TypeLevel vt
-  TagToType 'ValueLevel (TVHTag vt) = TagValueHolder 'ValueLevel vt
+  TagToType 'TypeLevel  (TPHTag vt) = TagPropertyValueHolder 'TypeLevel vt
+  TagToType 'ValueLevel (TPHTag vt) = TagPropertyValueHolder 'ValueLevel vt
   TagToType lvl PairIntIntTag = CustomPair (IntegerType lvl) (IntegerType lvl)
 
 
@@ -111,11 +111,11 @@ type PathTag        = 'RegularTag "path"
 type TagTag         = 'RegularTag "tag:tag"
 type EssenceTag     = 'RegularTag "essence"
 type PairIntIntTag  = 'CompoundTag "int pair" IntTag IntTag
-type TVHTag (innerT :: CustomTag) = 'CompoundTag "TVH" innerT ('RegularTag "")
+type TPHTag (innerT :: CustomTag) = 'CompoundTag "TPH" innerT ('RegularTag "")
 
 data CustomPair a b = Pair a b
-data TagValueHolder lvl (tag :: CustomTag)
-  = TVH
+data TagPropertyValueHolder lvl (tag :: CustomTag)
+  = TPH
     (TagProperty lvl)
     (GenericValDef lvl tag)
 
@@ -139,11 +139,11 @@ type PathValue (path :: EssencePathTL)
 type IntPairValue (i1 :: Nat) (i2 :: Nat)
   = GenericValue @'TypeLevel @PairIntIntTag ('Pair i1 i2) 'DPlaceholder
 
-type TagValue
+type TagPropertyValue
   (tagProp :: TagProperty 'TypeLevel)
   (genVal :: GenericValDef 'TypeLevel vt)
-  = GenericValue @TypeLevel @(TVHTag vt)
-      (TVH tagProp genVal) 'DPlaceholder
+  = GenericValue @TypeLevel @(TPHTag vt)
+      (TPH tagProp genVal) 'DPlaceholder
 
 -- Predefined constants
 
@@ -165,10 +165,10 @@ type PathConst (path :: EssencePathTL)
 type IntPairConst (i1 :: Nat) (i2 :: Nat)
   = GenericConst (IntPairValue i1 i2)
 
-type TagValueConst
+type TagPropertyValueConst
   (tagProp :: TagProperty 'TypeLevel)
   (genVal :: GenericValDef 'TypeLevel vt)
-  = GenericConst (TagValue tagProp genVal)
+  = GenericConst (TagPropertyValue tagProp genVal)
 
 ------ Short identifiers ----------
 
@@ -190,8 +190,8 @@ type GenericValDefVL = GenericValDef 'ValueLevel
 type GenericConstDefTL = GenericConstDef 'TypeLevel
 type GenericConstDefVL = GenericConstDef 'ValueLevel
 
-type TagValueHolderTL = TagValueHolder 'TypeLevel
-type TagValueHolderVL = TagValueHolder 'ValueLevel
+type TagPropertyValueHolderTL = TagPropertyValueHolder 'TypeLevel
+type TagPropertyValueHolderVL = TagPropertyValueHolder 'ValueLevel
 
 -------- Instances ------------------
 

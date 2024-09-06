@@ -28,6 +28,7 @@ type ETest = Ess @TypeLevel "test script"
 
 type HPVal hp = IntValue hp
 type HPVar = IntVar "hp var" 0
+type NameVar = StringVar "name var" "John Doe"
 
 type TestScript = 'Script @'TypeLevel "test script"
   '[ DeclareVar HPVar
@@ -37,6 +38,10 @@ type TestScript = 'Script @'TypeLevel "test script"
 
    , WriteData (ToField 'Proxy (RelPath '[ EHPVal ]))
                (FromVar HPVar)
+
+  --  , WriteData (ToVar HPVar)
+  --              (FromVar NameVar)
+
    ]
 
 
