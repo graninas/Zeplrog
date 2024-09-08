@@ -67,16 +67,16 @@ data Person (lvl :: Level) where
 --     (Person lvl)
 --     (GenericValDef lvl tag)
 
-type PVHTag = 'RegularTag "TPH"
+type PersonTag = 'RegularTag "Person"
 
-type instance TagToType lvl PVHTag = Person lvl
+type instance TagToType lvl PersonTag = Person lvl
 
 type PersonValue (person :: Person 'TypeLevel)
-  = GenericValue @TypeLevel @PVHTag
+  = GenericValue @TypeLevel @PersonTag
      person
      'DPlaceholder
 type PersonVar (name :: Symbol) (person :: Person 'TypeLevel)
-  = GenericVar @'TypeLevel @PVHTag name (PersonValue person)
+  = GenericVar @'TypeLevel @PersonTag name (PersonValue person)
 
 
 type MeVar = PersonVar "me" ('PersonImpl "Alex" "Granin")
@@ -95,15 +95,15 @@ instance
   , KnownSymbol ln
   ) =>
   SMat
-    (Proxy "TPH")
+    (Proxy "Person")
     ('PersonImpl @TypeLevel fn ln)
     (Person 'ValueLevel, DValue) where
   sMat _ _ = do
     let fn = symbolVal $ Proxy @fn
     let ln = symbolVal $ Proxy @ln
     let p = PersonImpl fn ln
-    pure (p, AnyValue "TPH" (Just $ "Person " <> fn <> " " <> ln)
-                            (unsafeCoerce p))
+    pure (p, AnyValue "Person" (Just $ "Person " <> fn <> " " <> ln)
+                               (unsafeCoerce p))
 
 -- Test property
 
